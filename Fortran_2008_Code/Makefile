@@ -12,7 +12,7 @@ DFLAGS = -g -g3 -fbacktrace -fbounds-check #-g* -f* for debugging
 	$(FC) $(FFLAGS) $(DFLAGS) -c $*.f08
 
 # Object modules
-QNMod = FortranFunctions.o ArrayFunctions.o Applications.o TestingFunctions.o
+OBJ = FortranFunctions.o ArrayFunctions.o Applications.o TestingFunctions.o
 
 # Default target
 all: Quantum_Now
