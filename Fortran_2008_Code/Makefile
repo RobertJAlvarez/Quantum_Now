@@ -4,7 +4,7 @@
 FC  = gfortran 
 
 # Flags
-FFLAGS = -O3 -Wall -Wconversion # -O3 for optimization \ -W* for warnings
+FFLAGS = -O3 -Wall -Wconversion # -O3 for maximum optimization \ -W* for warnings
 DFLAGS = -g -g3 -fbacktrace -fbounds-check #-g* -f* for debugging
 
 # Compiling rules
