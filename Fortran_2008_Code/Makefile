@@ -1,4 +1,4 @@
-.SUFFIXES: .ftn .o .f08
+.SUFFIXES: .o .f08
 
 # Compiler
 FC  = gfortran 
@@ -13,8 +13,6 @@ DFLAGS = -g -g3 -fbacktrace -fbounds-check #-g* -f* for debugging
 
 # Object modules
 QNMod = FortranFunctions.o ArrayFunctions.o Applications.o TestingFunctions.o
-
-OBJ = $(QNMod)
 
 # Default target
 all: Quantum_Now
