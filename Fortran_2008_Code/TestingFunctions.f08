@@ -1,5 +1,5 @@
 PROGRAM testing_func
-  USE FortranFunctions, ONLY: PI, DBL, FMOD, DIV, Class_DIV, SINE, COSINE, SQR, SQR2
+  USE FortranFunctions, ONLY: PI, DBL, FMOD, DIV, Class_DIV, SINE, COSINE
   USE ArrayFunctions
   USE Applications
   IMPLICIT NONE
@@ -9,7 +9,7 @@ PROGRAM testing_func
   DO
     WRITE(*,*)
     WRITE(*,*) 'You can test for:'
-    WRITE(*,*) '1. modulus, 2. division, 3. sine, 4. Square root'
+    WRITE(*,*) '1. modulus, 2. division, 3. sine'
     WRITE(*,*) 'Anything else to exit'
     READ(*,*) input
     IF (input == 1) THEN
@@ -18,8 +18,6 @@ PROGRAM testing_func
       CALL div_comp
     ELSE IF (input == 3) THEN
       CALL trigTest
-    ELSE IF (input == 4) THEN
-      CALL sqr_comp
     ELSE
       WRITE(*,*) 'Have a nice day:)'
       EXIT
@@ -113,23 +111,23 @@ PROGRAM testing_func
     j = 1
     error = 0.0D0
     nTimes = 1000000
-    t = Second()
+    t = GetTime()
 
     DO i=1, nTimes
       CALL RANDOM_NUMBER(N)
       CALL RANDOM_NUMBER(D)
 
-      IF (low_b < D .AND. D < up_b) THEN
+      IF (REAL(low_b) < D .AND. D < REAL(up_b)) THEN
         IF (low_b == 0.1 .AND. up_b == 1.0) D = D*factor(j)
         IF (low_b == 0.0 .AND. up_b == 0.1) D = D+factor(j)
-        IF (low_b == 0.0 .AND. up_b == 1.0) D = (D+1.0)*factor(j)
+        IF (low_b == 0.0 .AND. up_b == 1.0) D = (D+1.0D0)*factor(j)
         j = j + 1
         IF (j >= 11) j=1
       END IF
       error = error + ABS(N/D - P_DIV(N,D))
     END DO
 
-    WRITE(*,*) 'Time:', Second() - t
+    WRITE(*,*) 'Time:', GetTime() - t
     WRITE(*,*) 'error = ', error
   END SUBROUTINE auto_div
 
@@ -167,46 +165,12 @@ PROGRAM testing_func
     END IF
   END SUBROUTINE newAngle
 
-  SUBROUTINE sqr_comp()
-    IMPLICIT NONE
-
-    PROCEDURE(SQR), POINTER :: P
-
-    WRITE(*,*) 'sqr_comp:'
-
-    WRITE(*,*) 'Function: SQR'
-    P => SQR
-    CALL auto_sqr(P)
-
-    WRITE(*,*) 'Function: SQR2'
-    P => SQR2
-    CALL auto_sqr(P)
-  END SUBROUTINE sqr_comp
-
-  SUBROUTINE auto_sqr(P_SQR)
-    IMPLICIT NONE
-
-    PROCEDURE(SQR), POINTER, INTENT(IN) :: P_SQR
-    INTEGER :: i, nTimes
-    REAL(DBL) :: t, error, num
-
-    nTimes = 100
-    error = 0.0D0
-    t = Second()
-    DO i=1, nTimes
-      CALL RANDOM_NUMBER(num)
-      num = (num+100.0D0)*100.0D0
-      error = error + ABS(SQRT(num) - P_SQR(num))
-    END DO
-    WRITE(*,*) 'Time:', Second() - t
-    WRITE(*,*) 'error = ', error
-  END SUBROUTINE auto_sqr
-
-  REAL FUNCTION Second()
+  REAL(DBL) FUNCTION GetTime()
     IMPLICIT NONE
 
     INTEGER i, timer_count_rate, timer_count_max
     CALL SYSTEM_CLOCK(i, timer_count_rate, timer_count_max)
-    Second = REAL(i) / timer_count_rate
-  END FUNCTION Second
+    GetTime = REAL(i) / REAL(timer_count_rate)
+  END FUNCTION GetTime
 END PROGRAM testing_func
+

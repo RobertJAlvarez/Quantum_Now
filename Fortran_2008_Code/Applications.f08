@@ -70,7 +70,7 @@ MODULE Applications
 ! |PHI_K (t) > = SUM_J exp(ie(J) t)* OVR(K,J)|PSI_J> = SUM_JL exp(iEjt)ovr(j,k)*umt(k,l)|PHI_l> !E_j=LAMDA_J
     TAU = DIV(8.0D0*PI,ABSO(HAM(1,1)))
     DO M=0,1000
-      T = M*DIV(TAU,1.0D3)
+      t = REAL(M)*DIV(TAU,1.0D3)
       OPEN(12,FILE='PLOT')
       DO k=1,3
         DO l=1,3  
@@ -159,7 +159,7 @@ MODULE Applications
 !     E=-1*DIV(2.0D0,RINGSZ*RINGSZ)
       DO m=-5,5
         NBS = NBS + 1
-        DIP(NBS,NBS) = M*E 
+        DIP(NBS,NBS) = REAL(M)*E 
       END DO
     END IF
 
@@ -201,7 +201,7 @@ MODULE Applications
           WRITE(*,*) HAM(I,I)
         END DO
       END IF
-      t = M*DIV(TAU,5.0D1)
+      t = REAL(M)*DIV(TAU,5.0D1)
       DO K=1,NBS
         DO L=1,NBS
           AR = 0.0D0
@@ -249,10 +249,10 @@ MODULE Applications
   END SUBROUTINE RINGDVR
 
   SUBROUTINE BOXDVR()
-    IMPLICIT REAL*8 (A-H,O-Z)
+    IMPLICIT NONE
     INTEGER, PARAMETER :: NDH = 10
-    DIMENSION HAM(NDH,NDH),OVR(NDH,NDH),UMT(NDH,NDH),SPC(NDH,NDH)
-    DIMENSION PRD(NDH,NDH),DIP(NDH,NDH)
+    REAL(DBL), DIMENSION(NDH,NDH) :: HAM, OVR, UMT, SPC, PRD, DIP
+    REAL(DBL) :: alpha, a, twom, tau, dr, di, ai, ar, boxsz, dipole, phs, t
     INTEGER :: i, j, k, l, m, NBS
 
     WRITE(*,*) 'WELCOME TO BOX DRIVER, HOW LARGE IS YOUR BOX?'
@@ -267,7 +267,7 @@ MODULE Applications
     HAM = 0.0D0
     DO M=-4,4
       NBS = NBS + 1
-      TWOM = M*2.0D0*PI
+      TWOM = 2.0D0*REAL(M)*PI
       WRITE(*,*) M,TWOM
       HAM(NBS,NBS) = DIV(TWOM,BOXSZ)*DIV(TWOM,BOXSZ)
     END DO
@@ -301,7 +301,7 @@ MODULE Applications
     TAU = DIV(8.0D0*PI,ABSO(HAM(1,1)))
     TAU = DIV(1.0D0,ABSO(DIV(HAM(1,1),4.0D0)))
     DO M=0,1000
-      t = M*DIV(TAU,1.0D3)
+      t = REAL(M)*DIV(TAU,1.0D3)
       OPEN(12,FILE='PLOT')
       DO K=1,3
         DO L=1,3
@@ -349,13 +349,14 @@ MODULE Applications
   END SUBROUTINE BOXDVR
 
   SUBROUTINE HMODVR()
-    IMPLICIT REAL*8 (A-H,O-Z)
+    IMPLICIT NONE
     INTEGER, PARAMETER :: NDH = 10
     REAL(DBL), DIMENSION(NDH,NDH) :: HAM, OVR, UMT, SPC, PRD, DIP
-    REAL(DBL) :: rkmx, rkmn, emax, emin, energy, hmass
+    REAL(DBL) :: rkmx, rkmn, emax, emin, energy, hmass, ai, ar, di, dr
+    REAL(DBL) :: dipole, efield, guess, phs, scale, t, tau
     INTEGER :: i, j, ii, k, l, m, NBS
 
-    WRITE(*,*) 'NRLMOL:',DIV(0.36005D0*1.6E-19,1.0D0*6.626E-34)
+    WRITE(*,*) 'NRLMOL:',DIV(0.36005D0*1.6D-19,6.626D-34)
     rkmx = 1.0D30
     rkmn = 0.0D0
     emax = 1.0D30
@@ -364,18 +365,18 @@ MODULE Applications
     WRITE(*,*) 'HCl Diatomic in and Electric Field' 
     WRITE(*,*) 'Clorine atom has infinite mass'
     WRITE(*,*) 'IR frequency of HCl molecule is: 8.88*10^13 Hz' 
-    energy = 8.88E13
+    energy = 8.88D13
     WRITE(*,*) 'energy:', energy
     WRITE(*,*) 'Please googlge this to determine if this is correct'
     WRITE(*,*) 'The mass of the Hydrogen is 1.67*10^{-27} kg'
     WRITE(*,*) 'Strength of Electric field?'
-    hmass = 1.67e-27!*(35.)/(36.)
+    hmass = 1.67D-27!*(35.)/(36.)
     WRITE(*,*) EField
     DO II=1,30
       WRITE(*,*) 'Guess the spring constant in (Newtons/Meter)'
       WRITE(*,*) 'Guess should be between:',rkmn,' and ',rkmx
       READ(*,*) guess
-      DIP(1,2) = 0.01
+      DIP(1,2) = 1.0D-2
       DIP(2,1) = DIP(1,2)
       OVR = 0.0D0
       OVR = 0.0D0
@@ -444,7 +445,7 @@ MODULE Applications
 ! |PHI_K (t) > = SUM_J exp(ie(J) t)* OVR(K,J)|PSI_J> = SUM_JL exp(iEjt)ovr(j,k)*umt(k,l)|PHI_l> !E_j=LAMDA_J
     TAU = DIV(8.0D0*PI,ABSO(HAM(1,1)))
     DO M=0,1000
-      t = M*DIV(TAU,1.0D3)
+      t = REAL(M)*DIV(TAU,1.0D3)
       OPEN(12,FILE='PLOT')
       DO K=1,3
         DO L=1,3  
@@ -480,5 +481,11 @@ MODULE Applications
     CALL system('gnuplot <plot_directions')
     STOP
   END SUBROUTINE HMODVR
+
+  SUBROUTINE Make_Plot()
+    IMPLICIT NONE
+
+    !
+  END SUBROUTINE
 END MODULE Applications
 

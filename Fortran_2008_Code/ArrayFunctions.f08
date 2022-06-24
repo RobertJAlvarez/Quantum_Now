@@ -500,7 +500,7 @@ MODULE ArrayFunctions
       WRITE(*,*) 'Warning: No Convergence'
     END IF
 
-    WRITE(*,*) iTry, NBS, FLOAT(iTry)/(NBS*NBS), 'Diag Eff'
+    WRITE(*,*) iTry, NBS, REAL(iTry)/REAL(NBS*NBS), 'Diag Eff'
 
     HAM = PRD
   END SUBROUTINE DIAGNxN
@@ -517,17 +517,17 @@ MODULE ArrayFunctions
       mid = low + (high-low)/2
       CALL sort(idx(:,low:mid), PRD, mid)
       CALL sort(idx(:,mid+1:high), PRD, high-mid)
-      idx(:,low:high) = Merge(idx(:,low:mid), idx(:,mid+1:high), PRD, mid, high-mid)
+      idx(:,low:high) = MergeIdx(idx(:,low:mid), idx(:,mid+1:high), PRD, mid, high-mid)
     END IF
   END SUBROUTINE sort
 
-  FUNCTION Merge(a, b, PRD, a_high, b_high)
+  FUNCTION MergeIdx(a, b, PRD, a_high, b_high)
     IMPLICIT NONE
     INTEGER, DIMENSION(:,:), INTENT(INOUT) :: a, b
     REAL(DBL), INTENT(IN) :: PRD(:,:)
     INTEGER, INTENT(IN) :: a_high, b_high
 
-    INTEGER :: Merge(2,a_high+b_high)
+    INTEGER :: MergeIdx(2,a_high+b_high)
     INTEGER :: a_ptr, b_ptr, c_ptr
 
     a_ptr = 1
@@ -536,21 +536,21 @@ MODULE ArrayFunctions
 
     DO WHILE (a_ptr <= a_high .AND. b_ptr <= b_high)
       IF (ABSO(PRD(a(1,a_ptr),a(2,a_ptr))) > ABSO(PRD(b(1,b_ptr),b(2,b_ptr)))) THEN
-        Merge(:,c_ptr) = a(:,a_ptr)
+        MergeIdx(:,c_ptr) = a(:,a_ptr)
         a_ptr = a_ptr + 1
       ELSE
-        Merge(:,c_ptr) = b(:,b_ptr)
+        MergeIdx(:,c_ptr) = b(:,b_ptr)
         b_ptr = b_ptr + 1
       END IF
       c_ptr = c_ptr + 1
     END DO
 
     IF (a_ptr > a_high) THEN
-      Merge(:,c_ptr:) = b(:,b_ptr:b_high)
+      MergeIdx(:,c_ptr:) = b(:,b_ptr:b_high)
     ELSE
-      Merge(:,c_ptr:) = a(:,a_ptr:a_high)
+      MergeIdx(:,c_ptr:) = a(:,a_ptr:a_high)
     END IF
-  END FUNCTION Merge
+  END FUNCTION MergeIdx
 
   SUBROUTINE Class_DIAGNxN(NDH, NBS, HAM, OVR, UMT, PRD, SPC)
     IMPLICIT NONE
