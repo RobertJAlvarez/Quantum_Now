@@ -110,7 +110,7 @@ PROGRAM testing_func
 
     j = 1
     error = 0.0D0
-    nTimes = 1000000
+    nTimes = 100000
     t = GetTime()
 
     DO i=1, nTimes
@@ -134,20 +134,20 @@ PROGRAM testing_func
   SUBROUTINE trigTest
     IMPLICIT NONE
 
-    REAL(DBL) :: angle!, add
+    REAL(DBL) :: angle, add
     INTEGER :: i
 
     WRITE(*,*) 'trigTest:'
 
-!    add = PI/36.0D0
-!    angle = -PI
-    CALL newAngle(angle)
+    add = PI/36.0D0
+    angle = -PI
+!    CALL newAngle(angle)
 
     WRITE(*,'(A,4(A9,A10))') ' ', 'angle', '', 'SINE', '', 'SIN', '', 'SIN error'
     DO i=0, 72
         WRITE(*,'(F15.10,4F20.16)') angle, SINE(angle), SIN(angle), SIN(angle)-SINE(angle)
-!        angle = angle + add
-        CALL newAngle(angle)
+        angle = angle + add
+!        CALL newAngle(angle)
     END DO
   END SUBROUTINE trigTest
 

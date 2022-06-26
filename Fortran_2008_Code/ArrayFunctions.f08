@@ -4,81 +4,6 @@ MODULE ArrayFunctions
 
   CONTAINS
 
-  SUBROUTINE LEASTSQUARE()
-    IMPLICIT NONE
-    REAL(DBL) :: F(100)    !Function to evaluate to
-    REAL(DBL) :: DM(4,4)   !Design matrix
-    REAL(DBL) :: DI(4,4)   !Identity matrix
-    REAL(DBL) :: B(4)      !
-    REAL(DBL) :: A(4)      !
-    REAL(DBL) :: P(100,4)  !
-    REAL(DBL) :: xMin, xMax, dx, x, pow, fit, dat
-    INTEGER :: i, j, k
-
-    WRITE(*,*) 'xMin, xMax=?'
-    READ(*,*) xMin, xMax
-
-    dx = DIV(xMax - xMin, 99.0D0)
-    x = xMin - dx
-
-    DO i=1, 100
-      x = x + dx
-      F(i) = x*x*x*x
-      pow = 1.0D0
-
-      DO j=1, 4
-        P(i,j) = pow
-        pow = pow*x
-      END DO
-    END DO
-
-    !Evaluate design matrix
-    B = 0.0D0
-    DO j=1, 4
-      DO k=1, 4
-        DM(k,j) = 0.0D0
-        DO i=1, 100
-          DM(k,j) = DM(k,j) + P(i,k)*P(i,j)
-        END DO
-      END DO
-
-      DO i=1, 100
-        B(j) = B(j) + F(i)*P(i,j)
-      END DO
-    END DO
-
-!    CALL DIAGNxN(DM)
-
-    STOP 'Before INVERSE4x4'
-
-    CALL INVERSE4x4(DM, DI)
-
-    A = 0.0D0
-    DO j=1, 4
-      DO k=1, 4
-        A(j) = A(j) + DI(j,k)*B(k)
-      END DO
-    END DO
-
-    WRITE(*,*) 'A=', A
-
-    DO i=1, 10
-      WRITE(*,*) 'x=?'
-      READ(*,*) x
-
-      fit = 0.0D0
-      pow = 1.0D0
-
-      DO j=1, 4
-        fit = fit + A(j)*pow
-        pow = pow*x
-      END DO
-
-      dat = x*x*x*x
-      WRITE(*,*) x, dat, fit
-    END DO
-  END SUBROUTINE LEASTSQUARE
-
   SUBROUTINE INVERSE4x4(AA, BB)
     IMPLICIT NONE
 
@@ -122,8 +47,7 @@ MODULE ArrayFunctions
 
       TMAX = A(k,i)
       IF (ABSO(TMAX) < 1.0D15) THEN
-        WRITE(*,*) 'A row is linearly dependent of one or more other rows'
-        STOP
+        STOP 'A row is linearly dependent of one or more other rows'
       END IF
 
       !Swap row with highest value in column i
@@ -288,70 +212,63 @@ MODULE ArrayFunctions
       END IF
     END DO
   END SUBROUTINE JAC2BY2GEN
-
-  SUBROUTINE DIAGDVR()  !Diag driver
+!
+!SUbroutine sort and MergeIdx are only used for DIAGNxN
+!
+  RECURSIVE SUBROUTINE sort(idx, PRD, high)
     IMPLICIT NONE
-    INTEGER, PARAMETER :: NDH = 10
-    REAL(DBL) :: HAM(NDH,NDH)  !Hamiltonian
-    REAL(DBL) :: OVR(NDH,NDH)  !Overlap
-    REAL(DBL) :: UMT(NDH,NDH)  !Unitary matrix
-    REAL(DBL) :: SPC(NDH,NDH)  !Space
-    REAL(DBL) :: PRD(NDH,NDH)  !Product
+    INTEGER, INTENT(INOUT) :: idx(:,:)
+    REAL(DBL), INTENT(IN) :: PRD(:,:)
+    INTEGER, INTENT(IN) :: high
+    INTEGER :: low, mid
 
-    REAL(DBL) :: G, X, P, TXR
-    INTEGER :: i, j, NBS
+    low = 1
+    IF (low < high) THEN
+      mid = low + (high-low)/2
+      CALL sort(idx(:,low:mid), PRD, mid)
+      CALL sort(idx(:,mid+1:high), PRD, high-mid)
+      idx(:,low:high) = MergeIdx(idx(:,low:mid), idx(:,mid+1:high), PRD, mid, high-mid)
+    END IF
+  END SUBROUTINE sort
 
-    G = -1.0D0  !Ground
-    X = -0.5D0  !Exited
-    P =  0.1D0  !Perturbation
-    TXR = 0.2D0 !Transfer
+  FUNCTION MergeIdx(a, b, PRD, a_high, b_high)
+    IMPLICIT NONE
+    INTEGER, DIMENSION(:,:), INTENT(INOUT) :: a, b
+    REAL(DBL), INTENT(IN) :: PRD(:,:)
+    INTEGER, INTENT(IN) :: a_high, b_high
 
-    OVR = 0.0D0
-    HAM = 0.0D0
+    INTEGER :: MergeIdx(2,a_high+b_high)
+    INTEGER :: a_ptr, b_ptr, c_ptr
 
-    DO i=1,NDH
-      OVR(i,i) = 1.0D0
+    a_ptr = 1
+    b_ptr = 1
+    c_ptr = 1
+
+    DO WHILE (a_ptr <= a_high .AND. b_ptr <= b_high)
+      IF (ABSO(PRD(a(1,a_ptr),a(2,a_ptr))) > ABSO(PRD(b(1,b_ptr),b(2,b_ptr)))) THEN
+        MergeIdx(:,c_ptr) = a(:,a_ptr)
+        a_ptr = a_ptr + 1
+      ELSE
+        MergeIdx(:,c_ptr) = b(:,b_ptr)
+        b_ptr = b_ptr + 1
+      END IF
+      c_ptr = c_ptr + 1
     END DO
 
-    HAM(1,1) = G
-    HAM(2,2) = X
-    HAM(3,3) = X
-    HAM(4,4) = G
-    HAM(5,5) = X
-    HAM(6,6) = X
-    HAM(7,7) = G
+    IF (a_ptr > a_high) THEN
+      MergeIdx(:,c_ptr:) = b(:,b_ptr:b_high)
+    ELSE
+      MergeIdx(:,c_ptr:) = a(:,a_ptr:a_high)
+    END IF
+  END FUNCTION MergeIdx
 
-    HAM(1,2) = P
-    HAM(2,3) = TXR
-    HAM(3,4) = P
-    HAM(4,5) = P
-    HAM(5,6) = TXR
-    HAM(6,7) = P
-
-    NBS = 7
-
-    DO i=1, NBS
-      DO j=i, NBS
-        HAM(j,i) = HAM(i,j)
-      END DO
-      WRITE(*,'(10F7.2)') (HAM(i,j),j=1,NBS)
-    END DO
-
-    CALL DIAGNxN(NDH, NBS, HAM, OVR, UMT, PRD, SPC)
-
-    WRITE(*,*) 'Updated Hamiltonian:'
-    DO i=1,NBS
-      WRITE(*,'(10F12.4)') (HAM(j,i), j=1,NBS)
-    END DO
-    STOP
-  END SUBROUTINE DIAGDVR
-
-  SUBROUTINE DIAGNxN(NDH, NBS, HAM, OVR, UMT, PRD, SPC)
+  SUBROUTINE DIAGNxN(NDH, NBS, HAM, OVR, UMT, PRD)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NDH, NBS
     REAL(DBL), INTENT(INOUT) :: HAM(:,:), OVR(:,:)
-    REAL(DBL), INTENT(OUT) :: UMT(:,:), PRD(:,:), SPC(:,:)
+    REAL(DBL), INTENT(OUT) :: UMT(:,:), PRD(:,:)
 
+    REAL(DBL) :: SPC(NDH,NDH)
     REAL(DBL) :: H(2,2), E(2), O(2,2)!, V(2,2), T(2,2), D(2,2)  !J2X2
     REAL(DBL) :: ERRPREV, ERRNW
 
@@ -505,53 +422,139 @@ MODULE ArrayFunctions
     HAM = PRD
   END SUBROUTINE DIAGNxN
 
-  RECURSIVE SUBROUTINE sort(idx, PRD, high)
+  SUBROUTINE DIAGDVR()  !Diag driver
     IMPLICIT NONE
-    INTEGER, INTENT(INOUT) :: idx(:,:)
-    REAL(DBL), INTENT(IN) :: PRD(:,:)
-    INTEGER, INTENT(IN) :: high
-    INTEGER :: low, mid
+    INTEGER, PARAMETER :: NDH = 10
+    REAL(DBL) :: HAM(NDH,NDH)  !Hamiltonian
+    REAL(DBL) :: OVR(NDH,NDH)  !Overlap
+    REAL(DBL) :: UMT(NDH,NDH)  !Unitary matrix
+    REAL(DBL) :: PRD(NDH,NDH)  !Product
 
-    low = 1
-    IF (low < high) THEN
-      mid = low + (high-low)/2
-      CALL sort(idx(:,low:mid), PRD, mid)
-      CALL sort(idx(:,mid+1:high), PRD, high-mid)
-      idx(:,low:high) = MergeIdx(idx(:,low:mid), idx(:,mid+1:high), PRD, mid, high-mid)
-    END IF
-  END SUBROUTINE sort
+    REAL(DBL) :: G, X, P, TXR
+    INTEGER :: i, j, NBS
 
-  FUNCTION MergeIdx(a, b, PRD, a_high, b_high)
-    IMPLICIT NONE
-    INTEGER, DIMENSION(:,:), INTENT(INOUT) :: a, b
-    REAL(DBL), INTENT(IN) :: PRD(:,:)
-    INTEGER, INTENT(IN) :: a_high, b_high
+    G = -1.0D0  !Ground
+    X = -0.5D0  !Exited
+    P =  0.1D0  !Perturbation
+    TXR = 0.2D0 !Transfer
 
-    INTEGER :: MergeIdx(2,a_high+b_high)
-    INTEGER :: a_ptr, b_ptr, c_ptr
+    OVR = 0.0D0
+    HAM = 0.0D0
 
-    a_ptr = 1
-    b_ptr = 1
-    c_ptr = 1
-
-    DO WHILE (a_ptr <= a_high .AND. b_ptr <= b_high)
-      IF (ABSO(PRD(a(1,a_ptr),a(2,a_ptr))) > ABSO(PRD(b(1,b_ptr),b(2,b_ptr)))) THEN
-        MergeIdx(:,c_ptr) = a(:,a_ptr)
-        a_ptr = a_ptr + 1
-      ELSE
-        MergeIdx(:,c_ptr) = b(:,b_ptr)
-        b_ptr = b_ptr + 1
-      END IF
-      c_ptr = c_ptr + 1
+    DO i=1,NDH
+      OVR(i,i) = 1.0D0
     END DO
 
-    IF (a_ptr > a_high) THEN
-      MergeIdx(:,c_ptr:) = b(:,b_ptr:b_high)
-    ELSE
-      MergeIdx(:,c_ptr:) = a(:,a_ptr:a_high)
-    END IF
-  END FUNCTION MergeIdx
+    HAM(1,1) = G
+    HAM(2,2) = X
+    HAM(3,3) = X
+    HAM(4,4) = G
+    HAM(5,5) = X
+    HAM(6,6) = X
+    HAM(7,7) = G
 
+    HAM(1,2) = P
+    HAM(2,3) = TXR
+    HAM(3,4) = P
+    HAM(4,5) = P
+    HAM(5,6) = TXR
+    HAM(6,7) = P
+
+    NBS = 7
+
+    DO i=1, NBS
+      DO j=i, NBS
+        HAM(j,i) = HAM(i,j)
+      END DO
+      WRITE(*,'(10F7.2)') (HAM(i,j),j=1,NBS)
+    END DO
+
+    CALL DIAGNxN(NDH, NBS, HAM, OVR, UMT, PRD)
+
+    WRITE(*,*) 'Updated Hamiltonian:'
+    DO i=1,NBS
+      WRITE(*,'(10F12.4)') (HAM(j,i), j=1,NBS)
+    END DO
+  END SUBROUTINE DIAGDVR
+
+  SUBROUTINE LEASTSQUARE()
+    IMPLICIT NONE
+    REAL(DBL) :: F(100)    !Function to evaluate to
+    REAL(DBL) :: DM(4,4)   !Design matrix
+    REAL(DBL) :: DI(4,4)   !Identity matrix
+    REAL(DBL) :: B(4)      !
+    REAL(DBL) :: A(4)      !
+    REAL(DBL) :: P(100,4)  !
+    REAL(DBL) :: xMin, xMax, dx, x, pow, fit, dat
+    INTEGER :: i, j, k
+
+    WRITE(*,*) 'xMin, xMax=?'
+    READ(*,*) xMin, xMax
+
+    dx = DIV(xMax - xMin, 99.0D0)
+    x = xMin - dx
+
+    DO i=1, 100
+      x = x + dx
+      F(i) = x*x*x*x
+      pow = 1.0D0
+
+      DO j=1, 4
+        P(i,j) = pow
+        pow = pow*x
+      END DO
+    END DO
+
+    !Evaluate design matrix
+    B = 0.0D0
+    DO j=1, 4
+      DO k=1, 4
+        DM(k,j) = 0.0D0
+        DO i=1, 100
+          DM(k,j) = DM(k,j) + P(i,k)*P(i,j)
+        END DO
+      END DO
+
+      DO i=1, 100
+        B(j) = B(j) + F(i)*P(i,j)
+      END DO
+    END DO
+
+!    CALL DIAGNxN(DM)
+
+    STOP 'Before INVERSE4x4'
+
+    CALL INVERSE4x4(DM, DI)
+
+    A = 0.0D0
+    DO j=1, 4
+      DO k=1, 4
+        A(j) = A(j) + DI(j,k)*B(k)
+      END DO
+    END DO
+
+    WRITE(*,*) 'A=', A
+
+    DO i=1, 10
+      WRITE(*,*) 'x=?'
+      READ(*,*) x
+
+      fit = 0.0D0
+      pow = 1.0D0
+
+      DO j=1, 4
+        fit = fit + A(j)*pow
+        pow = pow*x
+      END DO
+
+      dat = x*x*x*x
+      WRITE(*,*) x, dat, fit
+    END DO
+  END SUBROUTINE LEASTSQUARE
+
+!
+!Only difference is the way of sorting idxs
+!
   SUBROUTINE Class_DIAGNxN(NDH, NBS, HAM, OVR, UMT, PRD, SPC)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NDH, NBS
@@ -567,8 +570,7 @@ MODULE ArrayFunctions
     INTEGER :: mPair, no
 
     IF (NDH > 1000) THEN
-      WRITE(*,*) 'NDH must be smaller then 1000'
-      STOP
+      STOP 'NDH must be smaller then 1000'
     END IF
 
     IF (NBS > NDH) THEN

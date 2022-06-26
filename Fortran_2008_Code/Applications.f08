@@ -1,6 +1,6 @@
 MODULE Applications
   USE FortranFunctions, ONLY: DBL, PI, ABSO, COSINE, SINE, DIV, SQR
-  USE ArrayFunctions
+  USE ArrayFunctions, ONLY: DIAGNxN
 
   IMPLICIT NONE
 
@@ -9,7 +9,7 @@ MODULE Applications
   SUBROUTINE STARKDVR()
     IMPLICIT NONE
     INTEGER, PARAMETER :: NDH = 10
-    REAL(DBL), DIMENSION(NDH,NDH) :: HAM, OVR, UMT, SPC, PRD, DIP
+    REAL(DBL), DIMENSION(NDH,NDH) :: HAM, OVR, UMT, PRD, DIP
     REAL(DBL) :: EFIELD, G, X, P, TXR, t, DIPOLE
     REAL(DBL) :: AI, AR, DI, DR, phs, tau
     INTEGER :: i, j, k, l, m, NBS
@@ -46,7 +46,7 @@ MODULE Applications
     HAM(3,2) = HAM(2,3)
     NBS = 3
 
-    CALL DIAGnxn(NDH,NBS,HAM,OVR,UMT,PRD,SPC)
+    CALL DIAGNxN(NDH,NBS,HAM,OVR,UMT,PRD)
 
     WRITE(*,*) "UPDATED HAM"
     DO i=1,NBS
@@ -120,7 +120,7 @@ MODULE Applications
   SUBROUTINE RINGDVR()
     IMPLICIT NONE
     INTEGER, PARAMETER :: NDH = 12
-    REAL(DBL), DIMENSION(NDH,NDH) :: HAM, OVR, UMT, SPC, PRD, DIP
+    REAL(DBL), DIMENSION(NDH,NDH) :: HAM, OVR, UMT, PRD, DIP
     REAL(DBL) :: RINGSZ, E, aM, phs, DIPOLE
     REAL(DBL) :: AI, AR, DI, DR, t, TAU
     INTEGER :: i, j, k, l, m, NBS, iAP
@@ -168,7 +168,7 @@ MODULE Applications
     END DO
 
     DIP = DIP + HAM
-    CALL DIAGnxn(NDH,NBS,HAM,OVR,UMT,PRD,SPC)
+    CALL DIAGNxN(NDH,NBS,HAM,OVR,UMT,PRD)
     WRITE(*,*) "UPDATED HAM"
     DO I=1,NBS
       WRITE(*,'(10F12.4)') (HAM(J,I),J=1,NBS)  !LAMDA_J
@@ -196,7 +196,7 @@ MODULE Applications
         DO I=1,NBS
           OVR(I,I) = 1.0D0
         END DO
-        CALL DIAGnxn(NDH,NBS,HAM,OVR,UMT,PRD,SPC)
+        CALL DIAGNxN(NDH,NBS,HAM,OVR,UMT,PRD)
         DO I=1,NBS
           WRITE(*,*) HAM(I,I)
         END DO
@@ -251,7 +251,7 @@ MODULE Applications
   SUBROUTINE BOXDVR()
     IMPLICIT NONE
     INTEGER, PARAMETER :: NDH = 10
-    REAL(DBL), DIMENSION(NDH,NDH) :: HAM, OVR, UMT, SPC, PRD, DIP
+    REAL(DBL), DIMENSION(NDH,NDH) :: HAM, OVR, UMT, PRD, DIP
     REAL(DBL) :: alpha, a, twom, tau, dr, di, ai, ar, boxsz, dipole, phs, t
     INTEGER :: i, j, k, l, m, NBS
 
@@ -276,7 +276,7 @@ MODULE Applications
     DO I=1,NBS
       WRITE(*,'(10F12.4)') (HAM(J,I),J=1,NBS)  !LAMDA_J
     END DO
-    CALL DIAGnxn(NDH,NBS,HAM,OVR,UMT,PRD,SPC)
+    CALL DIAGNxN(NDH,NBS,HAM,OVR,UMT,PRD)
 
     WRITE(*,*) "UPDATED HAM"
     DO I=1,NBS
@@ -351,7 +351,7 @@ MODULE Applications
   SUBROUTINE HMODVR()
     IMPLICIT NONE
     INTEGER, PARAMETER :: NDH = 10
-    REAL(DBL), DIMENSION(NDH,NDH) :: HAM, OVR, UMT, SPC, PRD, DIP
+    REAL(DBL), DIMENSION(NDH,NDH) :: HAM, OVR, UMT, PRD, DIP
     REAL(DBL) :: rkmx, rkmn, emax, emin, energy, hmass, ai, ar, di, dr
     REAL(DBL) :: dipole, efield, guess, phs, scale, t, tau
     INTEGER :: i, j, ii, k, l, m, NBS
@@ -404,7 +404,7 @@ MODULE Applications
           HAM(I,J) = DIV(HAM(I,J),scale)
         END DO
       END DO
-      CALL DIAGnxn(NDH,NBS,HAM,OVR,UMT,PRD,SPC)
+      CALL DIAGNxN(NDH,NBS,HAM,OVR,UMT,PRD)
       DO I=1,NBS
         HAM(I,I) = HAM(I,I)*scale
       END DO
