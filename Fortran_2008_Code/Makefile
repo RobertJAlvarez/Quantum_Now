@@ -4,7 +4,7 @@
 FC  = gfortran 
 
 # Flags
-FFLAGS = -O3 -g -g3 -fbacktrace -fbounds-check -ffpe-trap=zero,overflow,underflow # -O3 for optimization / everything else for debugging
+FFLAGS = -O3 -g -g3 -fbacktrace -fbounds-check # -O3 for optimization / everything else for debugging
 WFLAGS = -Wall -Wconversion -pedantic -std=f2008 -fall-intrinsics -Warray-temporaries -Wcharacter-truncation \
          -Wconversion-extra -Wsurprising # -Wextra # warnings
 

@@ -183,24 +183,22 @@ MODULE FortranFunctions
     END IF
   END FUNCTION Class_DIV
 
-  REAL(DBL) FUNCTION RECIPROCAL(ZZ)
+  REAL(DBL) FUNCTION RECIPROCAL(Z)
     IMPLICIT NONE
-    REAL(DBL), INTENT(IN) :: ZZ
-    REAL(DBL) :: RECID, Z
+    REAL(DBL), INTENT(IN) :: Z
+    REAL(DBL) :: RECIP
 
-    Z = ZZ
+    RECIP = 1.0D0 !Only stays as 1.0 if z = 1
 
     IF (Z > 1.0D0)THEN                        !IF Z > 1
-      CALL GT1DIVIDE(Z - 1.0D0,RECID)
+      RECIP = GT1DIVIDE(Z - 1.0D0)
     ELSE IF(Z > 0.1D0 .AND. Z < 1.0D0) THEN   !IF 0.1 < Z < 1
-      CALL LT1DIVIDE(1.0D0 - Z,RECID)
+      RECIP = LT1DIVIDE(1.0D0 - Z)
     ELSE IF (Z > 0.0D0 .AND. Z <= 0.1D0) THEN !IF 0 < Z <= 0.1
-      CALL TNYDIVIDE(Z,RECID)
-    ELSE                                      !IF Z = 1
-      RECID = 1.0D0
+      RECIP = TNYDIVIDE(Z)
     END IF
 
-    RECIPROCAL = RECID
+    RECIPROCAL = RECIP
   END FUNCTION RECIPROCAL
 
   !DIVIDER (1/(1+x))   0<x<1
@@ -245,12 +243,11 @@ MODULE FortranFunctions
     DIVIDE = RECID
   END FUNCTION DIVIDE
 
-  !new subroutine for 1/Z, where 0<Z<1
+  !new function for 1/Z, where 0<Z<1
   !1/(1-x)=(1+x+x**2+....x**N)
-  SUBROUTINE LT1DIVIDE(X, RECID)
+  REAL(DBL) FUNCTION LT1DIVIDE(X) RESULT(RECIP)
     IMPLICIT NONE
     REAL(DBL), INTENT(IN) :: X
-    REAL(DBL), INTENT(OUT) :: RECID
     REAL(DBL) :: P
     INTEGER :: i, N
 
@@ -258,41 +255,40 @@ MODULE FortranFunctions
     IF (X > 1.0D0) STOP 'X GT 1 LT1DIVIDE'
 
     N = 1000
-    RECID = 0.0D0
+    RECIP = 0.0D0
     P = 1.0D0
 
     DO i=1, N
-      RECID = RECID + P
+      RECIP = RECIP + P
       P=P*X
     END DO
-  END SUBROUTINE LT1DIVIDE
+  END FUNCTION LT1DIVIDE
 
   !1/Z = 1/(0.5**N) + (Z-0.5**N)
   !    = (1./0.5**N) 1/(1+ (Z-0.5**N)/(0.5**N))
   !    = 2**N [1/(1 + (2^N(Z-0.5^N)))]
-  SUBROUTINE TNYDIVIDE(Z,RECIDUAL)
+  REAL(DBL) FUNCTION TNYDIVIDE(Z) RESULT(RECIP)
     IMPLICIT NONE
     REAL(DBL), INTENT(IN) :: Z
-    REAL(DBL), INTENT(INOUT) :: RECIDUAL
     REAL(DBL) :: PP, PR, X
     INTEGER :: i
 
+    RECIP = 0.0D0
     PP = 1.0D0
     PR = 1.0D0
     DO i=0, 64
       IF(Z > PR .and. Z < PR*2.0D0)THEN
         X = (Z-PR)*PP
-        RECIDUAL = PP*DIVIDER(X)
+        RECIP = PP*DIVIDER(X)
       END IF
       PR = PR*0.5D0
       PP = PP*2.0D0
     END DO
-  END SUBROUTINE TNYDIVIDE
+  END FUNCTION TNYDIVIDE
 
-  SUBROUTINE GT1DIVIDE(X,RECID)
+  REAL(DBL) FUNCTION GT1DIVIDE(X) RESULT(RECIP)
     IMPLICIT NONE
     REAL(DBL), INTENT(IN) :: X
-    REAL(DBL), INTENT(OUT) :: RECID
     REAL(DBL) :: ONED2N(0:64), ARE(0:64), TWON(0:64)
     REAL(DBL) :: Y
     INTEGER :: i
@@ -312,18 +308,19 @@ MODULE FortranFunctions
       TWON(i) = TWON(i-1)*2.0D0
     END DO
 
+    RECIP = 0.0D0
     IF (X .LT. 1.0D0) THEN
-      RECID = DIVIDER(X)
+      RECIP = DIVIDER(X)
     ELSE
       DO i=0, 63
         IF (X .GE. TWON(i) .AND. X .LT. TWON(i+1)) THEN
           Y = (X - TWON(i))*ARE(i)
-          RECID = DIVIDER(Y)
-          RECID = ARE(i)*RECID
+          RECIP = DIVIDER(Y)
+          RECIP = RECIP*ARE(i)
         END IF
       END DO
     END IF
-  END SUBROUTINE GT1DIVIDE
+  END FUNCTION GT1DIVIDE
 
 !Bhaskara approx: temp = (PI-x)*x
 !                 sin(x) = (16*temp) / (5*PI*PI - 4*temp)
