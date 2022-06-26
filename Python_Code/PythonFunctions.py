@@ -145,14 +145,14 @@ def DIVIDER(num):
 def TNYDIVIDE(num):
   P = 1.0
   R = 1.0
-  recidual = 1.0
+  recid = 0.0
   for i in range(64):
     if num > R and num < R*2.0:
-      x = P*(num-R)
-      recidual = P*DIVIDER(num)
+      x = (num-R)*P
+      recid = P*DIVIDER(x)
     R *= 0.5
     P *= 2.0
-  return recidual
+  return recid
 
 # 0.1 < num < 1.0
 def LT1DIVIDE(num):
@@ -166,9 +166,9 @@ def LT1DIVIDE(num):
 
   return recid
 
-# Only DIV call this function and num exist between (0.0,1.0)
+# Only Class_DIV call this function and num exist between (0.0,1.0)
 def RECIPROCAL(num):
-  return TNYDIVIDE(num) if num <= 0.1 else LT1DIVIDE(num)
+  return TNYDIVIDE(num) if num <= 0.1 else LT1DIVIDE(1.0-num)
 
 def Class_DIV(NN,DD):
   """ Approximate and return NN/DD and return """
