@@ -70,7 +70,7 @@ MODULE Applications
 ! |PHI_K (t) > = SUM_J exp(ie(J) t)* OVR(K,J)|PSI_J> = SUM_JL exp(iEjt)ovr(j,k)*umt(k,l)|PHI_l> !E_j=LAMDA_J
     TAU = DIV(8.0D0*PI,ABSO(HAM(1,1)))
     DO M=0,1000
-      t = REAL(M)*DIV(TAU,1.0D3)
+      t = DBLE(M)*DIV(TAU,1.0D3)
       OPEN(12,FILE='PLOT')
       DO k=1,3
         DO l=1,3  
@@ -159,7 +159,7 @@ MODULE Applications
 !     E=-1*DIV(2.0D0,RINGSZ*RINGSZ)
       DO m=-5,5
         NBS = NBS + 1
-        DIP(NBS,NBS) = REAL(M)*E 
+        DIP(NBS,NBS) = DBLE(M)*E 
       END DO
     END IF
 
@@ -201,7 +201,7 @@ MODULE Applications
           WRITE(*,*) HAM(I,I)
         END DO
       END IF
-      t = REAL(M)*DIV(TAU,5.0D1)
+      t = DBLE(M)*DIV(TAU,5.0D1)
       DO K=1,NBS
         DO L=1,NBS
           AR = 0.0D0
@@ -258,7 +258,7 @@ MODULE Applications
     WRITE(*,*) 'WELCOME TO BOX DRIVER, HOW LARGE IS YOUR BOX?'
     READ(*,*) BOXSZ
     Alpha = DIV(2*PI,BOXSZ)
-    A = REAL(M*M)*PI
+    A = DBLE(M*M)*PI
     DO I=1,NDH
       OVR(I,I) = 1.0D0
     END DO
@@ -267,7 +267,7 @@ MODULE Applications
     HAM = 0.0D0
     DO M=-4,4
       NBS = NBS + 1
-      TWOM = 2.0D0*REAL(M)*PI
+      TWOM = 2.0D0*DBLE(M)*PI
       WRITE(*,*) M,TWOM
       HAM(NBS,NBS) = DIV(TWOM,BOXSZ)*DIV(TWOM,BOXSZ)
     END DO
@@ -301,7 +301,7 @@ MODULE Applications
     TAU = DIV(8.0D0*PI,ABSO(HAM(1,1)))
     TAU = DIV(1.0D0,ABSO(DIV(HAM(1,1),4.0D0)))
     DO M=0,1000
-      t = REAL(M)*DIV(TAU,1.0D3)
+      t = DBLE(M)*DIV(TAU,1.0D3)
       OPEN(12,FILE='PLOT')
       DO K=1,3
         DO L=1,3
@@ -445,7 +445,7 @@ MODULE Applications
 ! |PHI_K (t) > = SUM_J exp(ie(J) t)* OVR(K,J)|PSI_J> = SUM_JL exp(iEjt)ovr(j,k)*umt(k,l)|PHI_l> !E_j=LAMDA_J
     TAU = DIV(8.0D0*PI,ABSO(HAM(1,1)))
     DO M=0,1000
-      t = REAL(M)*DIV(TAU,1.0D3)
+      t = DBLE(M)*DIV(TAU,1.0D3)
       OPEN(12,FILE='PLOT')
       DO K=1,3
         DO L=1,3  

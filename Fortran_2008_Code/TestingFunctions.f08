@@ -117,7 +117,7 @@ PROGRAM testing_func
       CALL RANDOM_NUMBER(N)
       CALL RANDOM_NUMBER(D)
 
-      IF (REAL(low_b) < D .AND. D < REAL(up_b)) THEN
+      IF (DBLE(low_b) < D .AND. D < DBLE(up_b)) THEN
         IF (low_b == 0.1 .AND. up_b == 1.0) D = D*factor(j)
         IF (low_b == 0.0 .AND. up_b == 0.1) D = D+factor(j)
         IF (low_b == 0.0 .AND. up_b == 1.0) D = (D+1.0D0)*factor(j)
@@ -170,7 +170,7 @@ PROGRAM testing_func
 
     INTEGER i, timer_count_rate, timer_count_max
     CALL SYSTEM_CLOCK(i, timer_count_rate, timer_count_max)
-    GetTime = REAL(i) / REAL(timer_count_rate)
+    GetTime = DBLE(i) / DBLE(timer_count_rate)
   END FUNCTION GetTime
 END PROGRAM testing_func
 
