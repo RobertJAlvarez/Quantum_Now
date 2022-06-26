@@ -86,23 +86,21 @@ def COSINE(num):
 
 def SQR(num):
   """ Return the approximation  """
-  SQA = 1.0
-  SQB = -0.1
-  SQC = -0.2
-  SQD = -0.3
+  xn = 1.0
+  xn_1 = -0.1
+  xn_2 = -0.2
 
   for i in range(100):
-    EPS = DIV(num - SQA*SQA, 2.0*SQA)
-    SQA = SQA + EPS
-    SQB = SQC
-    SQC = SQD
-    SQD = SQA
-    if SQD == SQC:
+    EPS = DIV(num - xn*xn, 2.0*xn)
+    xn += EPS
+    if xn == xn_1:
       break
-    elif SQD == SQB:
-      SQA = DIV(SQB + SQC, 2.0)
+    elif xn == xn_2:
+      xn = DIV(xn_1 + xn_2, 2.0)
       break
-  return SQA
+    xn_2 = xn_1
+    xn_1 = xn
+  return xn
 
 """
 Extra functions for reference but never used
@@ -149,7 +147,7 @@ def TNYDIVIDE(num):
   R = 1.0
   recidual = 1.0
   for i in range(64):
-    if z > R and Z < R*2.0:
+    if num > R and num < R*2.0:
       x = P*(num-R)
       recidual = P*DIVIDER(num)
     R *= 0.5

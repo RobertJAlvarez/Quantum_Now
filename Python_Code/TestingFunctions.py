@@ -17,9 +17,32 @@ def modulus_test():
       print(N%D)
       print(MOD(N,D))
   print("{} different N's were used for testing".format(len(n_nums)))
+  pass
+
+def auto_div(f, low_b, up_b):
+  j = 1
+  error = 0.0
+  nTimes = 10
+  for i in range(nTimes):
+    D = random.uniform(low_b,up_b)
+    N = random.random()
+    error += abs(N/D - f(N,D))
+  print('Error: {}'.format(error))
+  pass
 
 def div_comp():
-  print('Do something')
+  print('Division functions comparition:')
+  
+  f_names = ['Class_DIV', 'DIV']
+  f = [Class_DIV, DIV]
+  bounds = [(0.0,0.1), (0.1,1.0), (1.0,1000)]
+
+  for i in range(3):
+    for j in range(2):
+      print('\nFunction: {} - range {} < D < {}'.format(f_names[j], bounds[i][0], bounds[i][1]))
+      auto_div(f[j], bounds[i][0], bounds[i][1])
+
+  pass
 
 def newAngle(N):
   x = random.random()*720.0
@@ -33,6 +56,7 @@ def trigTest():
   for i in range(72):
     print('{:12.8f}{:12.8f}{:12.8f}{:12.8f}'.format(angle,SINE(angle),sin(angle),abs(sin(angle)-SINE(angle))))
     angle += add
+  pass
 
 def menu():
   print('You can test for:')
