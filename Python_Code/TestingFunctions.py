@@ -1,5 +1,6 @@
 from PythonFunctions import *
 from math import *
+from time import time
 import random
 
 def modulus_test():
@@ -11,7 +12,7 @@ def modulus_test():
   for i in range(5):
     N = newAngle(N)
     n_nums.add(N)
-    if abs(N%D-MOD(N,D)) > 0.00001:
+    if abs(N%D-MOD(N,D)) > 1.0E-12:
       print()
       print('NN = {}, DD = {}'.format(N,D))
       print(N%D)
@@ -22,11 +23,13 @@ def modulus_test():
 def auto_div(f, low_b, up_b):
   j = 1
   error = 0.0
-  nTimes = 10
+  nTimes = 100000
+  t = time()
   for i in range(nTimes):
     D = random.uniform(low_b,up_b)
     N = random.random()
     error += abs(N/D - f(N,D))
+  print('Time:  {}'.format(time()-t))
   print('Error: {}'.format(error))
   pass
 
