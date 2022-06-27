@@ -1,6 +1,6 @@
 from PythonFunctions import *
 
-def INVERSE4X4():
+def INVERSE():
   pass
 
 def J2x2():

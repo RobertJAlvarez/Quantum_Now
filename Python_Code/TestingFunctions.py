@@ -61,22 +61,30 @@ def trigTest():
     angle += add
   pass
 
+def inverseTest():
+  n = int(input('What is the size of the matrix?'))
+  #
+  pass
+
 def menu():
   print('You can test for:')
-  print('1. modulus, 2. division, 3. sine')
+  print('PythonFunctions: 1. Modulus, 2. Division, 3. Sin')
+  print('ArrayFunctions: 4. Inverse')
   print('Anything else to exit')
-  return int(input()) 
+  return int(input())
 
 if __name__ == "__main__":
   choose = menu()
 
-  while (1 <= choose <= 3):
+  while (1 <= choose <= 4):
     if choose == 1:
       modulus_test()
     elif choose == 2:
       div_comp()
     elif choose == 3:
       trigTest()
+    elif choose == 4:
+      inverseTest()
     else:
       print('Have a nice day:)')
       break
