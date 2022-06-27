@@ -9,15 +9,18 @@ PROGRAM testing_func
   DO
     WRITE(*,*)
     WRITE(*,*) 'You can test for:'
-    WRITE(*,*) '1. modulus, 2. division, 3. sine'
+    WRITE(*,*) 'FortranFunctions: 1. modulus, 2. division, 3. sine'
+    WRITE(*,*) 'ArrayFUnctions: 4. Inverse '
     WRITE(*,*) 'Anything else to exit'
     READ(*,*) input
     IF (input == 1) THEN
-      CALL modulus_test
+      CALL modulus_test()
     ELSE IF (input == 2) THEN
-      CALL div_comp
+      CALL div_comp()
     ELSE IF (input == 3) THEN
-      CALL trigTest
+      CALL trigTest()
+    ELSE IF (input == 4) THEN
+      CALL inverseTest()
     ELSE
       WRITE(*,*) 'Have a nice day:)'
       EXIT
@@ -25,6 +28,27 @@ PROGRAM testing_func
   END DO
 
   CONTAINS
+
+  SUBROUTINE inverseTest()
+    IMPLICIT NONE
+    
+    REAL(DBL), ALLOCATABLE :: A(:,:), B(:,:), nums(:)
+    INTEGER :: i, n
+
+    WRITE(*,*) 'What is the size of the matrix?'
+    READ(*,*) n
+
+    ALLOCATE(A(n,n), B(n,n), nums(n))
+
+    DO i=1,n
+      10 FORMAT (A,I2,A,I2)
+      WRITE(*,10) 'Enter ',n,' numbers for row ',i
+      READ(*,*) nums(:)
+      A(i,:) = nums
+    END DO
+
+    CALL INVERSE(A,B)
+  END SUBROUTINE
 
   SUBROUTINE modulus_test
     IMPLICIT NONE

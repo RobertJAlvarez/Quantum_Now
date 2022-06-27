@@ -4,41 +4,39 @@ MODULE ArrayFunctions
 
   CONTAINS
 
-  SUBROUTINE INVERSE4x4(AA, BB)
+  SUBROUTINE INVERSE(AA, BB)
     IMPLICIT NONE
 
     REAL(DBL), INTENT(IN) :: AA(:,:)   !AA holds matrix 1
     REAL(DBL), INTENT(OUT) :: BB(:,:)  !BB hold matrix 2
 
-!    INTEGER :: n = SIZE(AA)
-    REAL(DBL) :: A(4,8)                !A holds matrix 1 follow by identity matrix
-    REAL(DBL) :: CC(4,4)               !CC holds identity matrix
+    REAL(DBL), ALLOCATABLE :: A(:,:), CC(:,:)
     REAL(DBL) :: TMAX, temp
-    INTEGER :: i, j, k
+    CHARACTER(len=10) :: fmt_2D, fmt_A
+    INTEGER :: i, j, k, n
+
+    n = SIZE(AA,1)
+    ALLOCATE(A(n,2*n), CC(n,n))
 
     A = 0.0D0
 
     !Create matrix 1
-    DO i=1, 4
-      A(i,i+4) = 1.0D0    !Create identity matrix
-
-      !Set next columns of A to be the value of the previous column times x(i)
-      DO j=1, 4
-        A(i,j) = AA(i,j)
-      END DO
+    DO i=1, n
+      A(i,i+n) = 1.0D0      !Create identity matrix
+      A(i,1:n) = AA(i,1:n)  !Copy values of AA into first nxn spaces of A
     END DO
 
     !Output matrix 1 and identity matrix after it
     WRITE(*,*)
-    WRITE(*,10) (A(i,1:8), i=1,4)
-    10 FORMAT (8F12.6)
+    WRITE(fmt_A, '( "(",I2,"F12.6))" )' ) 2*n
+    WRITE(*,fmt_A) (A(i,1:2*n), i=1,n)
 
     !Find invert matrix
-    DO i=1, 4
+    DO i=1, n
       !Find largest value of column i
       TMAX = ABSO(A(i,i))
       k = i
-      DO j=i+1, 4
+      DO j=i+1, n
         IF (ABSO(A(j,i)) > TMAX) THEN
           k = j
           TMAX = ABSO(A(j,i))
@@ -46,13 +44,11 @@ MODULE ArrayFunctions
       END DO
 
       TMAX = A(k,i)
-      IF (ABSO(TMAX) < 1.0D15) THEN
-        STOP 'A row is linearly dependent of one or more other rows'
-      END IF
+      IF (TMAX == 0.0D0) STOP 'A row is linearly dependent of one or more other rows'
 
       !Swap row with highest value in column i
       IF (k /= i) THEN
-        DO j=i, 8
+        DO j=i, 2*n
           temp = A(i,j)
           A(i,j) = A(k,j)
           A(k,j) = temp
@@ -60,33 +56,32 @@ MODULE ArrayFunctions
       END IF
 
       !Normalize matrix
-      DO j=i,8
-        A(i,j) = A(i,j) / TMAX
+      DO j=i,2*n
+        A(i,j) = DIV(A(i,j),TMAX)
       END DO
-      !A(i,i:8) = A(i,i:8) / TMAX
 
-      !Subtract value A(j,i) to every column at i
-      DO j=1, 4
+      !Subtract value A(j,i) to every column at row i
+      DO j=1, n
         temp = A(j,i)
         IF (j /= i) THEN
-          A(j,i:8) = A(j,i:8) - temp*A(i,i:8)
+          A(j,i:2*n) = A(j,i:2*n) - temp*A(i,i:2*n)
         END IF
       END DO
     END DO
 
     !Copy matrix 2 to BB
-    BB(1:4,1:4) = A(1:4,5:8)
+    BB(1:n,1:n) = A(1:n,n+1:2*n)
 
     !Print matrix 2
     WRITE(*,*)
-    WRITE(*,20) (BB(i,1:4), i=1, 4)
-    20 FORMAT (4F12.6)
+    WRITE(fmt_2D, '( "(",I2,"F12.6))" )' ) n
+    WRITE(*,fmt_2D) (BB(i,1:n), i=1, n)
 
     !Dot matrix 1 with 2 to get CC, identity matrix
     CC = 0.0D0
-    DO i=1, 4
-      DO j=1, 4
-        DO k=1, 4
+    DO i=1, n
+      DO j=1, n
+        DO k=1, n
           CC(i,j) = CC(i,j) + AA(i,k)*BB(k,j)
         END DO
       END DO
@@ -94,8 +89,8 @@ MODULE ArrayFunctions
 
     !Print identity matrix, CC
     WRITE(*,*)
-    WRITE(*,20) (CC(i,1:4), i=1, 4)
-  END SUBROUTINE INVERSE4x4
+    WRITE(*,fmt_2D) (CC(i,1:4), i=1, n)
+  END SUBROUTINE INVERSE
 
   SUBROUTINE J2X2(H, E, O)
     IMPLICIT NONE
@@ -151,9 +146,7 @@ MODULE ArrayFunctions
     INTEGER :: i, j, k, l, iTry
 
     A = O(1,1)*O(2,2) - O(1,2)*O(2,1)
-    IF (A < 0.0D0) THEN
-      STOP 'Non positive overlap matrix'
-    END IF
+    IF (A < 0.0D0) STOP 'Non positive overlap matrix'
 
     B = H(1,1)*O(2,2) - O(1,2)*H(2,1) + O(1,1)*H(2,2) - H(1,2)*O(2,1)
     B = -B
@@ -522,9 +515,9 @@ MODULE ArrayFunctions
 
 !    CALL DIAGNxN(DM)
 
-    STOP 'Before INVERSE4x4'
+    STOP 'Before INVERSE'
 
-    CALL INVERSE4x4(DM, DI)
+    CALL INVERSE(DM, DI)
 
     A = 0.0D0
     DO j=1, 4
@@ -569,9 +562,7 @@ MODULE ArrayFunctions
     LOGICAL :: update(1000), new
     INTEGER :: mPair, no
 
-    IF (NDH > 1000) THEN
-      STOP 'NDH must be smaller then 1000'
-    END IF
+    IF (NDH > 1000) STOP 'NDH must be smaller then 1000'
 
     IF (NBS > NDH) THEN
       WRITE(*,*) 'NDH must be larger than ', NBS
