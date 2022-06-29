@@ -44,7 +44,9 @@ MODULE ArrayFunctions
       END DO
 
       TMAX = A(k,i)
-      IF (TMAX == 0.0D0) STOP 'A row is linearly dependent of one or more other rows'
+      IF (TMAX == 0.0D0) THEN
+        STOP 'A row is linearly dependent of one or more other rows'
+      END IF
 
       !Swap row with highest value in column i
       IF (k /= i) THEN
