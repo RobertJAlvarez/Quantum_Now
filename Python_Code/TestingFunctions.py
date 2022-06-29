@@ -1,4 +1,5 @@
 from PythonFunctions import *
+from ArrayFunctions import *
 from math import *
 from time import time
 import random
@@ -44,7 +45,6 @@ def div_comp():
     for j in range(2):
       print('\nFunction: {} - range {} < D < {}'.format(f_names[j], bounds[i][0], bounds[i][1]))
       auto_div(f[j], bounds[i][0], bounds[i][1])
-
   pass
 
 def newAngle(N):
@@ -63,7 +63,11 @@ def trigTest():
 
 def inverseTest():
   n = int(input('What is the size of the matrix?'))
-  #
+  A = [[0]*n for _ in range(n)]
+  for i in range(len(A)):
+    print('Enter {} numbers for row {} as a single input'.format(n,i+1))
+    A[i] = [float(j) for j in input().strip().split(" ")]
+  B = INVERSE(A)
   pass
 
 def menu():
@@ -71,7 +75,8 @@ def menu():
   print('PythonFunctions: 1. Modulus, 2. Division, 3. Sin')
   print('ArrayFunctions: 4. Inverse')
   print('Anything else to exit')
-  return int(input())
+  return 4
+  #return int(input())
 
 if __name__ == "__main__":
   choose = menu()
@@ -89,4 +94,5 @@ if __name__ == "__main__":
       print('Have a nice day:)')
       break
     choose = menu()
+    choose = 5
 
