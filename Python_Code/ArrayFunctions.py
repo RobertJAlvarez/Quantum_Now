@@ -16,7 +16,7 @@ def INVERSE(AA):
   for i in range(n):
     A[i][i+n] = 1.0
     A[i][:n] = deepcopy(AA[i][:n])
-  print('\nMatrix A')
+  print('\nMatrix A:')
   print_matrix(A)
 
   # Find invert matrix
@@ -53,7 +53,7 @@ def INVERSE(AA):
   BB = [[0]*n for _ in range(n)]
   for i in range(n):
     BB[i][:n] = deepcopy(A[i][n:2*n])
-  print('\nInvert matrix')
+  print('\nInvert matrix:')
   print_matrix(BB)
 
   # Dot product between AA and BB is the identity matrix
@@ -61,11 +61,33 @@ def INVERSE(AA):
     for j in range(n):
       for k in range(n):
         CC[i][j] += AA[i][k]*BB[k][j]
-  print('\nIdentity matrix')
+  print('\nIdentity matrix:')
   print_matrix(CC)
   return BB
 
-def J2x2():
+def J2x2(H, E, O):
+  # if A = [[d,e], [f,g]] 
+  # det(A) = d*g-f*e
+  # An eigenvalue satisfies:
+  # (d-E)*(g-E) - e*f = 0 <=> E^2 - E*(d+g) + (d*g-f*e) = 0
+  # From quadratic formula: b^2-4*a*c ->
+  # (D+g)^2 - 4*1*(d*g-f*e) <=> (d-g)^2 + 4*e*f
+  # E = answers of quadratic formula
+  rad = SQR((H[1][1] - H[2][2])*(H[1][1] - H[2][2]) + 4.0*(H[1][2]*H[2][1]
+  trc = H[1][1] + H[2][2]
+  E[1] = 0.5*(trc+rad)
+  E[2] = 0.5*(trc-rad)
+
+  #Explain ortagonal matrix:
+  O[1][1] = -H[1][2]
+  O[2][1] =  H[1][1] - E[1]
+  O[1][2] =  H[2][2] - E[2]
+  O[2][2] = -H[1][2]
+
+  for i in range(2);
+    dot = SQR(O[1][i]*O[1][i] + O[2][i]*O[2][i])
+    O[1][i] = DIV(O[1][i],dot)
+    O[2][i] = DIV(O[2][i],dot)
   pass
 
 def JAC2BY2GEN():
