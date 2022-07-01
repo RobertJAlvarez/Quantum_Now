@@ -101,12 +101,13 @@ MODULE ArrayFunctions
     REAL(DBL) :: dot, trc, rad
     INTEGER :: i
 
-!    det(H) = H(1,1)*H(2,2) - H(1,2)*H(2,1)
-!    An eigenvalue satisfies:
-!    (H(1,1)-E)*(H(2,2)-E) -H(1,2)*H(2,1) = 0
-!    E**2 - E*(H(1,1)+H(2,2)) - H(1,2)*H(2,1) = 0
-!    E = (H(1,1) + H(2,2) +- SQRT((H(1,1) + H(2,2))**2 - 4*H(1,1)*H(2,2) + 4*H(1,2)*H(2,1))) / 2
-!    E = (H(1,1) + H(2,2)) / 2 +- SQRT((H(1,1) + H(2,2))**2 + 4*H(1,2)*H(2,1)) / 2
+!   if A = [[d, e], [f,g]]
+!   det(A) = d*g - f*e
+!   An eigenvalue satisfies:
+!   (d-E)*(g-E) - e*f = 0 <=> E^2 - E*(d+g) + (d*g-f*e) = 0
+!   From quadratic formula: b^2-4*a*c ->
+!   (d+g)^2 - 4*1*(d*g-f*e) <=> (d-g)^2 + 4*e*f
+!   E = answers of quadratic formula
 
     rad = SQR((H(1,1) - H(2,2))*(H(1,1) - H(2,2)) + 4.0D0*H(1,2)*H(2,1))
     trc = H(1,1) + H(2,2)
