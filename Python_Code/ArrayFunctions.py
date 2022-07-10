@@ -2,12 +2,15 @@ from PythonFunctions import *
 from sys import exit
 from copy import deepcopy
 
-def print_matrix(X):
+Matrix - list[float][float]
+
+def print_matrix(X: Matrix) -> None:
+  """ Print a matrix row by row in scientific notation with 8 digits precision """
   for row in X:
-    print(str(["{0:9.6f}".format(i) for i in row]).replace("'",""))
+    print(str(["{0:14.7e}".format(num) for num in row]).replace("'",""))
   pass
 
-def INVERSE(AA):
+def INVERSE(AA: Matrix) -> Matrix:
   n = len(AA)
   A = [[0.0]*(2*n) for _ in range(n)]
   CC = [[0.0]*n for _ in range(n)]
@@ -65,15 +68,16 @@ def INVERSE(AA):
   print_matrix(CC)
   return BB
 
-def J2x2(H, E, O):
-  # if A = [[d,e], [f,g]] 
-  # det(A) = d*g-f*e
-  # An eigenvalue satisfies:
-  # (d-E)*(g-E) - e*f = 0 <=> E^2 - E*(d+g) + (d*g-f*e) = 0
-  # From quadratic formula: b^2-4*a*c ->
-  # (D+g)^2 - 4*1*(d*g-f*e) <=> (d-g)^2 + 4*e*f
-  # E = answers of quadratic formula
-  rad = SQR((H[1][1] - H[2][2])*(H[1][1] - H[2][2]) + 4.0*(H[1][2]*H[2][1]
+# if A = [[d,e], [f,g]] 
+# det(A) = d*g-f*e
+# An eigenvalue satisfies:
+# (d-E)*(g-E) - e*f = 0 <=> E^2 - E*(d+g) + (d*g-f*e) = 0
+# From quadratic formula: b^2-4*a*c ->
+# (D+g)^2 - 4*1*(d*g-f*e) <=> (d-g)^2 + 4*e*f
+# E = answers of quadratic formula
+def J2x2(H: Matrix, E: Matrix, O: Matrix) -> None:
+  """ Diagonalize a 2x2 matrix using Jacobean 2 by 2 analytic diagonalization """
+  rad = SQR((H[1][1] - H[2][2])*(H[1][1] - H[2][2]) + 4.0*(H[1][2]*H[2][1]))
   trc = H[1][1] + H[2][2]
   E[1] = 0.5*(trc+rad)
   E[2] = 0.5*(trc-rad)
@@ -84,7 +88,7 @@ def J2x2(H, E, O):
   O[1][2] =  H[2][2] - E[2]
   O[2][2] = -H[1][2]
 
-  for i in range(2);
+  for i in range(2):
     dot = SQR(O[1][i]*O[1][i] + O[2][i]*O[2][i])
     O[1][i] = DIV(O[1][i],dot)
     O[2][i] = DIV(O[2][i],dot)

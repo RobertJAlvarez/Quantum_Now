@@ -1,3 +1,11 @@
+! @file TestingFunctions.f08
+! @brief A tester driver
+! 
+! This contains the basics to test every function/subroutine used by the Quantum Now software
+!
+! @author Robert Alvarez
+! @bug No known bugs
+!
 PROGRAM testing_func
   USE FortranFunctions, ONLY: PI, DBL, FMOD, DIV, Class_DIV, SINE, COSINE
   USE ArrayFunctions
@@ -29,6 +37,7 @@ PROGRAM testing_func
 
   CONTAINS
 
+  ! Read arbitrary size matrix values from keyboard and send matrix to get inverted
   SUBROUTINE inverseTest()
     IMPLICIT NONE
     
@@ -50,6 +59,8 @@ PROGRAM testing_func
     CALL INVERSE(A,B)
   END SUBROUTINE
 
+  !Generate 10000 different numerator values from -720 to 720 and compare
+  !modulus operation with a denominator of PI and test if value is correct
   SUBROUTINE modulus_test
     IMPLICIT NONE
 
@@ -74,6 +85,8 @@ PROGRAM testing_func
     WRITE(*,*) 'None of the 10000 cases have an error greater than 1E-5'
   END SUBROUTINE modulus_test
 
+  !Print error generated and time take between Class_DIV and DIV functions for the
+  !denominator intervals of 0.0 < D < 0.1, 0.1 < D < 1.0, and 1.0 < D < 10000
   SUBROUTINE div_comp
     IMPLICIT NONE
 
@@ -122,6 +135,8 @@ PROGRAM testing_func
     CALL auto_div(p, factor, 0.0, 1.0)
   END SUBROUTINE div_comp
 
+  !Perform a division between a random numerator and denominator number in the intervals
+  !between low_b and up+b using the P_DIV function which could be Class_DIV or DIV
   SUBROUTINE auto_div(P_DIV, factor, low_b, up_b)
     IMPLICIT NONE
 
@@ -155,6 +170,8 @@ PROGRAM testing_func
     WRITE(*,*) 'error = ', error
   END SUBROUTINE auto_div
 
+  !Print angle, Fortran sine function for angle, our own sine function for angle, and the error.
+  !Angle have equally step sizes of PI/36 from -PI to PI
   SUBROUTINE trigTest
     IMPLICIT NONE
 
@@ -165,16 +182,15 @@ PROGRAM testing_func
 
     add = PI/36.0D0
     angle = -PI
-!    CALL newAngle(angle)
 
     WRITE(*,'(A,4(A9,A10))') ' ', 'angle', '', 'SINE', '', 'SIN', '', 'SIN error'
     DO i=0, 72
         WRITE(*,'(F15.10,4F20.16)') angle, SINE(angle), SIN(angle), SIN(angle)-SINE(angle)
         angle = angle + add
-!        CALL newAngle(angle)
     END DO
   END SUBROUTINE trigTest
 
+  !Generate and return a new number from -720 and 720
   SUBROUTINE newAngle(getNew)
     IMPLICIT NONE
 
@@ -189,6 +205,7 @@ PROGRAM testing_func
     END IF
   END SUBROUTINE newAngle
 
+  !Get current time
   REAL(DBL) FUNCTION GetTime()
     IMPLICIT NONE
 

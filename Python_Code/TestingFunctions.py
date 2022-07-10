@@ -10,10 +10,13 @@ def modulus_test():
   n_nums = set()
   D = PI
   N = -10.0
-  for i in range(5):
+  for i in range(100000):
     N = newAngle(N)
+    #Python modulus function can't handle a negative numerator
+    if N<0.0:
+      continue
     n_nums.add(N)
-    if abs(N%D-MOD(N,D)) > 1.0E-12:
+    if abs(N%D-MOD(N,D)) > 1.0E-9:
       print()
       print('NN = {}, DD = {}'.format(N,D))
       print(N%D)
@@ -75,8 +78,7 @@ def menu():
   print('PythonFunctions: 1. Modulus, 2. Division, 3. Sin')
   print('ArrayFunctions: 4. Inverse')
   print('Anything else to exit')
-  return 4
-  #return int(input())
+  return int(input())
 
 if __name__ == "__main__":
   choose = menu()
@@ -94,5 +96,4 @@ if __name__ == "__main__":
       print('Have a nice day:)')
       break
     choose = menu()
-    choose = 5
 

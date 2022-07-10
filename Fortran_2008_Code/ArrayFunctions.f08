@@ -12,7 +12,7 @@ MODULE ArrayFunctions
 
     REAL(DBL), ALLOCATABLE :: A(:,:), CC(:,:)
     REAL(DBL) :: TMAX, temp
-    CHARACTER(len=10) :: fmt_2D, fmt_A
+    CHARACTER(len=13) :: fmt_2D, fmt_A
     INTEGER :: i, j, k, n
 
     n = SIZE(AA,1)
@@ -28,7 +28,7 @@ MODULE ArrayFunctions
 
     !Output matrix 1 and identity matrix after it
     WRITE(*,*)
-    WRITE(fmt_A, '( "(",I2,"F12.6))" )' ) 2*n
+    WRITE(fmt_A, '( "(",I2,"ES17.8E3))" )' ) 2*n
     WRITE(*,fmt_A) (A(i,1:2*n), i=1,n)
 
     !Find invert matrix
@@ -76,7 +76,7 @@ MODULE ArrayFunctions
 
     !Print matrix 2
     WRITE(*,*)
-    WRITE(fmt_2D, '( "(",I2,"F12.6))" )' ) n
+    WRITE(fmt_2D, '( "(",I2,"ES17.8E3))" )' ) n
     WRITE(*,fmt_2D) (BB(i,1:n), i=1, n)
 
     !Dot matrix 1 with 2 to get CC, identity matrix
@@ -151,8 +151,7 @@ MODULE ArrayFunctions
     A = O(1,1)*O(2,2) - O(1,2)*O(2,1)
     IF (A < 0.0D0) STOP 'Non positive overlap matrix'
 
-    B = H(1,1)*O(2,2) - O(1,2)*H(2,1) + O(1,1)*H(2,2) - H(1,2)*O(2,1)
-    B = -B
+    B = -( H(1,1)*O(2,2) - O(1,2)*H(2,1) + O(1,1)*H(2,2) - H(1,2)*O(2,1) )
     C = H(1,1)*H(2,2) - H(1,2)*H(2,1)
 
     TRC = DIV(-B,A)
@@ -175,7 +174,7 @@ MODULE ArrayFunctions
       WRITE(*,*) T(1,1)*T(2,2) - T(1,2)*T(2,1)
     END DO
 
-    !C <V_1 | V_2> = 0 ?
+    ! <V_1 | V_2> = 0 ?
     DO iTry=1, 3
       IF (iTry <= 2) THEN
         WRITE(*,'(/,A)') 'Overlap matrix'
@@ -293,7 +292,7 @@ MODULE ArrayFunctions
       DO i=1, NDH
         DO j=i+1, NDH
           ERRPREV = ERRPREV + PRD(i,j)*PRD(j,i)
-          IF (ABSO(PRD(i,j)) .GT. 1.0D-10) THEN ! Save all indices that have values in PRD that are greater than 0
+          IF (ABSO(PRD(i,j)) > 1.0D-10) THEN ! Save all indices that have values in PRD that are greater than 0
             n = n + 1
             idxAll(1,n) = i
             idxAll(2,n) = j
@@ -308,7 +307,6 @@ MODULE ArrayFunctions
 
       CALL sort(idxAll(:,1:n), PRD, NDH*(NDH-1)/2)  !Sort with respect to PRD values
 
-!STOP 'Hi :)'
 !      WRITE(*,*) 'All indexes:'
 !      DO i=1, n
 !        WRITE(*,*) idxAll(1,i), idxAll(2,i), PRD(idxAll(1,i),idxAll(2,i))
@@ -318,7 +316,7 @@ MODULE ArrayFunctions
       useIdx = .TRUE. !No indexes has been use
       idxSize = 1     !Keep track of position to add new non-repetitive idxs
       DO j=1, n
-        IF (useIdx(idxAll(1,j)) .AND. useIdx(idxAll(2,j))) THEN !If any of this two indexes has been used
+        IF (useIdx(idxAll(1,j)) .AND. useIdx(idxAll(2,j))) THEN !If none of this two indexes has been used
           useIdx(idxAll(:,j)) = .False. !Set both to false because they would be used
           idx(:,idxSize) = idxAll(:,j)  !Save both indexes in idx array
           idxSize = idxSize + 1         !Update position for next indexes
@@ -549,7 +547,7 @@ MODULE ArrayFunctions
   END SUBROUTINE LEASTSQUARE
 
 !
-!Only difference is the way of sorting idxs
+!Only difference is when sorting idxs
 !
   SUBROUTINE Class_DIAGNxN(NDH, NBS, HAM, OVR, UMT, PRD, SPC)
     IMPLICIT NONE

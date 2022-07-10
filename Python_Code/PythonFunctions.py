@@ -2,7 +2,7 @@ from sys import exit
 
 PI = 3.14159265358979
 
-def MOD(NN,DD):
+def MOD(NN: float, DD: float) -> float:
   """ NN = numerator, DD = denominator. Calculate and return |N|%|D|. """
   #Make N and D positive
   if NN<0.0 or DD<0.0:
@@ -29,12 +29,13 @@ def MOD(NN,DD):
 
   return fact * N
 
-def ABS(num):
+def ABS(num: float) -> float:
   """ Calculate and return |number| """
   return -num if num < 0.0 else num
 
-def DIV(NN,DD):
-  """ NN = numerator, DD = denominator. Calculate and return N/D """
+def DIV(NN: float, DD: float) -> float:
+  """ Use Goldschmidt division to calculate and return NN/DD,
+  where NN = numerator, DD = denominator """
   if DD == 0.0:
     try:
       ans = NN/DD
@@ -58,16 +59,9 @@ def DIV(NN,DD):
     D *= F
   return N
 
-# Bhaskara approx:  temp = (PI-x)*x
-#                   sin(x) = (16*temp) / (5*PI*PI - 4*temp)
-# second approx:    temp = (x/PI)*(36*temp - 31)
-#                   sin(x) = (temp/10)*(36*temp - 31)
-# Weight average: Bhaskara -> 0.385 Second -> 0.615
-#
-# sin(x) approx with weight average: temp = (x/PI)*(x/PI - 1)
-#   sin(x) = temp*(2.21652(temp - 31/36) - 1.5372/(1.25 + temp))
-def SINE(num):
-  """ Use weights in a first and second degree equation in p where p=x(180-x)/8100 to approximate sine(x) """
+def SINE(num: float) -> float:
+  """ Use weights in a first and second degree equation in p where
+  p=x(180-x)/8100 to approximate sine(x) """
   x = MOD(ABS(num),PI)
 
   temp = DIV(x,PI)
@@ -80,24 +74,26 @@ def SINE(num):
     return -ans if MOD(num,2.0*PI) > PI else ans
   return -ans if MOD(num,2.0*PI) > -PI else ans
 
-def COSINE(num):
+def COSINE(num: float) -> float:
   """ Return cosine(x) by using sine(x) function """
   return SINE(DIV(PI,2.0) - num)
 
-def SQR(num):
-  """ Return the approximation  """
+def SQR(num: float) -> float:
+  """ Approximation the square root of a number and return it """
   xn = 1.0
   xn_1 = -0.1
   xn_2 = -0.2
 
-  for i in range(100):
-    EPS = DIV(num - xn*xn, 2.0*xn)
-    xn += EPS
+  for _ in range(100):
+    EPS = DIV(num - xn*xn, 2.0*xn)  #Get E base on x_n
+    xn += EPS       #Update x_n
+    #Exit loop if values are cycling
     if xn == xn_1:
       break
     elif xn == xn_2:
       xn = DIV(xn_1 + xn_2, 2.0)
       break
+    #Update x_ns
     xn_2 = xn_1
     xn_1 = xn
   return xn
@@ -105,10 +101,8 @@ def SQR(num):
 """
 Extra functions for reference but never used
 """
-
 def SINB(num):
-  """ Bhaskara approximation: temp = (PI-x)x
-  sin(x) = (16*temp) / (5*PI*PI - 4*temp)"""
+  """ Bhaskara approximation: temp = (PI-x)x; sin(x) = (16*temp) / (5*PI*PI - 4*temp)"""
   x = MOD(ABS(num),PI)
   temp = (PI-x)*x
   ans = (16.0*temp) / (5.0*PI*PI - 4.0*temp)
