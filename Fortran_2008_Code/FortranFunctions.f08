@@ -108,8 +108,7 @@ MODULE FortranFunctions
   REAL(DBL) FUNCTION SINE(num)
     IMPLICIT NONE
     REAL(DBL), INTENT(IN) :: num
-    REAL(DBL) :: x
-    REAL(DBL) :: temp
+    REAL(DBL) :: x, temp
 
     x = FMOD(ABSO(num),PI)
 
