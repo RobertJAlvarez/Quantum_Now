@@ -3,7 +3,6 @@ MODULE FortranFunctions
   PUBLIC :: DBL, PI, ABSO, COSINE, SINE, DIV, SQR, FMOD
   PUBLIC :: Class_DIV !Only use at TestingFunctions.f08
 
-  INTEGER, PARAMETER :: INT_QD = SELECTED_INT_KIND(18)  ! Use 64 bits, quadruple integer precision
   INTEGER, PARAMETER :: DBL = SELECTED_REAL_KIND(p=15)  ! Use 64 bits, double real precision
   REAL(DBL), PARAMETER :: PI = 3.14159265358979D0
 
@@ -90,26 +89,21 @@ MODULE FortranFunctions
     DIV = N
   END FUNCTION DIV
 
-  REAL(DBL) FUNCTION COSINE(num)
-    IMPLICIT NONE
-    REAL(DBL), INTENT(IN) :: num
-
-    COSINE = SINE(DIV(PI,2.0D0) - num)
-  END FUNCTION COSINE
-
-!Bhaskara approx:   temp = (PI-x)*x
-!                   sin(x) = (16*temp) / (5*PI*PI - 4*temp)
-!Second approx:     temp = (x/PI)*(x/PI - 1)
-!                   sin(x) = (temp/10)*(36*temp - 31)
+!Bhaskara approx: temp = (PI-x)*x
+!                 sin(x) = (16*temp) / (5*PI*PI - 4*temp)
+!Second approx:   temp = (x/PI)*(x/PI - 1)
+!                 sin(x) = (temp/10)*(36*temp - 31)
 !Weight average: Bhaskara -> 0.385  Second -> 0.615
 !
 !sin(x) approx with weight average: temp = (x/PI)*(x/PI - 1)
 ! sin(x) = temp(2.21652(temp - 31/36) - 1.5372/(1.25 + temp))
+
+  !Use weights in a first and second degree equation in p where
+  !p=x(180-x)/8100 to approximate sine(x)
   REAL(DBL) FUNCTION SINE(num)
     IMPLICIT NONE
     REAL(DBL), INTENT(IN) :: num
-    REAL(DBL) :: x
-    REAL(DBL) :: temp
+    REAL(DBL) :: x, temp
 
     x = FMOD(ABSO(num),PI)
 
@@ -126,6 +120,14 @@ MODULE FortranFunctions
     END IF
   END FUNCTION SINE
 
+  !Return cosine(x) by using sine(x) function
+  REAL(DBL) FUNCTION COSINE(num)
+    IMPLICIT NONE
+    REAL(DBL), INTENT(IN) :: num
+
+    COSINE = SINE(DIV(PI,2.0D0) - num)
+  END FUNCTION COSINE
+
   !Return square root of num
   REAL(DBL) FUNCTION SQR(num) !SQR = xn
     IMPLICIT NONE
@@ -133,9 +135,9 @@ MODULE FortranFunctions
     REAL(DBL) :: xn_1, xn_2, EPS  !xn_1 = x_(n-1), xn_2 = x_(n-2)
     INTEGER :: i
 
-    SQR = 1.0D0   !SQR needs a first value to start the iterations
-    xn_1 = -0.1D0 !SQA, SQB & SQC are dummy variables to keep track
-    xn_2 = -0.2D0 !of how SQR evolves through the iterations.
+    SQR = 1.0D0
+    xn_1 = -0.1D0
+    xn_2 = -0.2D0
 
 !      X =~(num)^0.5
 !  X + E = (num)^0.5
@@ -146,25 +148,24 @@ MODULE FortranFunctions
 ! So by repeating this multiple times we will get num^0.5
 
     DO i=1, 100
-      EPS = DIV(num - SQR*SQR, 2.0D0*SQR) !Get the value of E according to the current S
-      SQR = SQR + EPS         !Update x_n to x_(n+1)
-      IF(SQR == xn_1) THEN        !If the last two values are the same then the code stops.
+      EPS = DIV(num - SQR*SQR, 2.0D0*SQR) !Get E based on x_n
+      SQR = SQR + EPS !Update x_n
+      !Exit loop if values are cycling
+      IF(SQR == xn_1) THEN
         EXIT
-      ELSE IF (SQR == xn_2) THEN  !If the ith and ith-2 value are the same, then the
-        SQR = DIV(xn_2 + xn_1, 2.0D0) !code is cycling, so we stop it and average between this values
+      ELSE IF (SQR == xn_2) THEN
+        SQR = DIV(xn_2 + xn_1, 2.0D0)
         EXIT
       END IF
-      !Update dummy variables so they reflect the two previous values of SQR
+      !Update x_ns
       xn_2 = xn_1 !x_(n-2) = x_(n-1)
       xn_1 = SQR  !x_(n-1) = x_n
     END DO
-    write(*,*) i
   END FUNCTION SQR
 
 !!!
 !Extra functions for reference but never used
 !!!
-
   !Returns A/B
   REAL(DBL) FUNCTION Class_DIV(AA,BB)
     IMPLICIT NONE
