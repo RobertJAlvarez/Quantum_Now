@@ -12,7 +12,12 @@ PROGRAM testing_func
   USE Applications
   IMPLICIT NONE
 
-  INTEGER :: input
+  INTEGER :: input, NBS
+
+DO input=-5,5 
+NBS = NBS + 1
+END DO
+WRITE(*,*) NBS
 
   DO
     WRITE(*,*)
@@ -56,7 +61,7 @@ PROGRAM testing_func
       A(i,:) = nums
     END DO
 
-    CALL INVERSE(A,B)
+    B = INVERSE(A)
   END SUBROUTINE
 
   !Generate 10000 different numerator values from -720 to 720 and compare
