@@ -39,7 +39,7 @@ def auto_div(f, low_b, up_b):
 
 def div_comp():
   print('Division functions comparition:')
-  
+
   f_names = ['Class_DIV', 'DIV']
   f = [Class_DIV, DIV]
   bounds = [(0.0,0.1), (0.1,1.0), (1.0,1000)]

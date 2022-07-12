@@ -2,7 +2,12 @@ from PythonFunctions import *
 from sys import exit
 from copy import deepcopy
 
-Matrix - list[float][float]
+"""
+Author: Robert Alvarez
+Date:   July 11th, 2022
+"""
+
+Matrix = list[list[float]]
 
 def print_matrix(X: Matrix) -> None:
   """ Print a matrix row by row in scientific notation with 8 digits precision """

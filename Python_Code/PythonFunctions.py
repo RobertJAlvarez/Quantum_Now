@@ -1,5 +1,10 @@
 from sys import exit
 
+"""
+Author: Robert Alvarez
+Date:   Jun 26th, 2022
+"""
+
 PI = 3.14159265358979
 
 def MOD(NN: float, DD: float) -> float:
@@ -85,8 +90,7 @@ def SQR(num: float) -> float:
   xn_2 = -0.2
 
   for _ in range(100):
-    EPS = DIV(num - xn*xn, 2.0*xn)  #Get E base on x_n
-    xn += EPS       #Update x_n
+    xn += DIV(num - xn*xn, 2.0*xn)
     #Exit loop if values are cycling
     if xn == xn_1:
       break

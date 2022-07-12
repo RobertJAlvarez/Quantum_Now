@@ -12,7 +12,7 @@ MODULE Applications
     REAL(DBL), DIMENSION(NDH,NDH) :: HAM, OVR, UMT, PRD, DIP
     REAL(DBL) :: EFIELD, G, X, P, TXR, t, DIPOLE
     REAL(DBL) :: AI, AR, DI, DR, phs, tau
-    INTEGER :: i, j, k, l, m, NBS
+    INTEGER :: i, j, k, m, NBS
 
     WRITE(*,*) 'WELCOME TO STARK DRIVER, EFIELD=?'
     READ(*,*) EFIELD
@@ -46,7 +46,7 @@ MODULE Applications
     HAM(3,2) = HAM(2,3)
     NBS = 3
 
-    CALL DIAGNxN(NDH,NBS,HAM,OVR,UMT,PRD)
+    CALL DIAGNxN(NDH,NBS,HAM,UMT,PRD)
 
     WRITE(*,*) "UPDATED HAM"
     DO i=1,NBS
@@ -73,14 +73,14 @@ MODULE Applications
       t = DBLE(M)*DIV(TAU,1.0D3)
       OPEN(12,FILE='PLOT')
       DO k=1,3
-        DO l=1,3  
+        DO j=1,3  
           AR = 0.0D0
           AI = 0.0D0
           DO i=1,3
-            AR = AR + COSINE(HAM(i,i)*t)*UMT(k,i)*UMT(l,i) 
-            AI = AI + SINE(HAM(i,i)*t)*UMT(k,i)*UMT(l,i) 
+            AR = AR + COSINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i) 
+            AI = AI + SINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i) 
           END DO
-          PRD(k,l) = AR*AR + AI*AI
+          PRD(k,j) = AR*AR + AI*AI
         END DO
       END DO
 ! |phi_2t> = Sum_i u(2,i)exp(i eps_i t) |psi_i>
@@ -123,7 +123,7 @@ MODULE Applications
     REAL(DBL), DIMENSION(NDH,NDH) :: HAM, OVR, UMT, PRD, DIP
     REAL(DBL) :: RINGSZ, E, aM, phs, DIPOLE
     REAL(DBL) :: AI, AR, DI, DR, t, TAU
-    INTEGER :: i, j, k, l, m, NBS, iAP
+    INTEGER :: i, j, k, m, NBS, iAP
 
     WRITE(*,*) 'HOW LARGE IS YOUR RING?'
     READ(*,*)  RINGSZ
@@ -168,7 +168,7 @@ MODULE Applications
     END DO
 
     DIP = DIP + HAM
-    CALL DIAGNxN(NDH,NBS,HAM,OVR,UMT,PRD)
+    CALL DIAGNxN(NDH,NBS,HAM,UMT,PRD)
     WRITE(*,*) "UPDATED HAM"
     DO I=1,NBS
       WRITE(*,'(10F12.4)') (HAM(J,I),J=1,NBS)  !LAMDA_J
@@ -196,21 +196,21 @@ MODULE Applications
         DO I=1,NBS
           OVR(I,I) = 1.0D0
         END DO
-        CALL DIAGNxN(NDH,NBS,HAM,OVR,UMT,PRD)
+        CALL DIAGNxN(NDH,NBS,HAM,UMT,PRD)
         DO I=1,NBS
           WRITE(*,*) HAM(I,I)
         END DO
       END IF
       t = DBLE(M)*DIV(TAU,5.0D1)
       DO K=1,NBS
-        DO L=1,NBS
+        DO j=1,NBS
           AR = 0.0D0
           AI = 0.0D0
           DO I=1,NBS
-            AR = AR + COSINE(HAM(i,i)*t)*UMT(k,i)*UMT(l,i) 
-            AI = AI + SINE(HAM(i,i)*t)*UMT(k,i)*UMT(l,i) 
+            AR = AR + COSINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i) 
+            AI = AI + SINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i) 
           END DO
-          PRD(K,L) = AR*AR + AI*AI
+          PRD(K,j) = AR*AR + AI*AI
         END DO
       END DO
 ! |phi_2t> = Sum_i u(2,i)exp(i eps_i t) |psi_i>
@@ -253,7 +253,7 @@ MODULE Applications
     INTEGER, PARAMETER :: NDH = 10
     REAL(DBL), DIMENSION(NDH,NDH) :: HAM, OVR, UMT, PRD, DIP
     REAL(DBL) :: alpha, a, twom, tau, dr, di, ai, ar, boxsz, dipole, phs, t
-    INTEGER :: i, j, k, l, m, NBS
+    INTEGER :: i, j, k, m, NBS
 
     WRITE(*,*) 'WELCOME TO BOX DRIVER, HOW LARGE IS YOUR BOX?'
     READ(*,*) BOXSZ
@@ -276,7 +276,7 @@ MODULE Applications
     DO I=1,NBS
       WRITE(*,'(10F12.4)') (HAM(J,I),J=1,NBS)  !LAMDA_J
     END DO
-    CALL DIAGNxN(NDH,NBS,HAM,OVR,UMT,PRD)
+    CALL DIAGNxN(NDH,NBS,HAM,UMT,PRD)
 
     WRITE(*,*) "UPDATED HAM"
     DO I=1,NBS
@@ -304,14 +304,14 @@ MODULE Applications
       t = DBLE(M)*DIV(TAU,1.0D3)
       OPEN(12,FILE='PLOT')
       DO K=1,3
-        DO L=1,3
+        DO J=1,3
           AR = 0.0D0
           AI = 0.0d0
           DO I=1,3
-            AR = AR + COSINE(HAM(i,i)*t)*UMT(k,i)*UMT(l,i)
-            AI = AI + SINE(HAM(i,i)*t)*UMT(k,i)*UMT(l,i)
+            AR = AR + COSINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i)
+            AI = AI + SINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i)
           END DO
-          PRD(K,L) = AR*AR + AI*AI
+          PRD(K,J) = AR*AR + AI*AI
         END DO
       END DO
 ! |phi_2t> = Sum_i u(2,i)exp(i eps_i t) |psi_i>
@@ -354,7 +354,7 @@ MODULE Applications
     REAL(DBL), DIMENSION(NDH,NDH) :: HAM, OVR, UMT, PRD, DIP
     REAL(DBL) :: rkmx, rkmn, emax, emin, energy, hmass, ai, ar, di, dr
     REAL(DBL) :: dipole, efield, guess, phs, scale, t, tau
-    INTEGER :: i, j, ii, k, l, m, NBS
+    INTEGER :: i, j, k, m, NBS
 
     WRITE(*,*) 'NRLMOL:',DIV(0.36005D0*1.6D-19,6.626D-34)
     rkmx = 1.0D30
@@ -372,13 +372,12 @@ MODULE Applications
     WRITE(*,*) 'Strength of Electric field?'
     hmass = 1.67D-27!*(35.)/(36.)
     WRITE(*,*) EField
-    DO II=1,30
+    DO k=1,30
       WRITE(*,*) 'Guess the spring constant in (Newtons/Meter)'
       WRITE(*,*) 'Guess should be between:',rkmn,' and ',rkmx
       READ(*,*) guess
       DIP(1,2) = 1.0D-2
       DIP(2,1) = DIP(1,2)
-      OVR = 0.0D0
       OVR = 0.0D0
       DO I=1,2
         DO J=I+1,2
@@ -404,7 +403,7 @@ MODULE Applications
           HAM(I,J) = DIV(HAM(I,J),scale)
         END DO
       END DO
-      CALL DIAGNxN(NDH,NBS,HAM,OVR,UMT,PRD)
+      CALL DIAGNxN(NDH,NBS,HAM,UMT,PRD)
       DO I=1,NBS
         HAM(I,I) = HAM(I,I)*scale
       END DO
@@ -447,15 +446,15 @@ MODULE Applications
     DO M=0,1000
       t = DBLE(M)*DIV(TAU,1.0D3)
       OPEN(12,FILE='PLOT')
-      DO K=1,3
-        DO L=1,3  
+      DO k=1,3
+        DO j=1,3  
           AR = 0.0D0
           AI = 0.0D0
-          DO I=1,3
-            AR = AR + COSINE(HAM(i,i)*t)*UMT(k,i)*UMT(l,i) 
-            AI = AI + SINE(HAM(i,i)*t)*UMT(k,i)*UMT(l,i) 
+          DO i=1,3
+            AR = AR + COSINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i) 
+            AI = AI + SINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i) 
           END DO
-          PRD(K,L) = AR*AR + AI*AI
+          PRD(k,j) = AR*AR + AI*AI
         END DO
       END DO
 !   |phi_2t> = Sum_i u(2,i)exp(i eps_i t) |psi_i>
@@ -481,11 +480,5 @@ MODULE Applications
     CALL system('gnuplot <plot_directions')
     STOP
   END SUBROUTINE HMODVR
-
-  SUBROUTINE Make_Plot()
-    IMPLICIT NONE
-
-    !
-  END SUBROUTINE
 END MODULE Applications
 

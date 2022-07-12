@@ -1,15 +1,16 @@
 MODULE FortranFunctions
   PRIVATE
   PUBLIC :: DBL, PI, ABSO, COSINE, SINE, DIV, SQR, FMOD
-  PUBLIC :: Class_DIV !Only use at TestingFunctions.f08
+  PUBLIC :: Class_DIV !Only TestingFunctions use it
 
   INTEGER, PARAMETER :: DBL = SELECTED_REAL_KIND(p=15)  ! Use 64 bits, double real precision
   REAL(DBL), PARAMETER :: PI = 3.14159265358979D0
 
   CONTAINS
 
-  !Return |N|%|D|
-  REAL(DBL) FUNCTION FMOD(NN,DD)
+  !Author: Robert Alvarez
+  !Last modification: Jun 7th, 2022
+  REAL(DBL) FUNCTION FMOD(NN,DD)  !Return |N|%|D|
     IMPLICIT NONE
     REAL(DBL), INTENT(IN) :: NN, DD !NN = numerator, DD = denominator
     REAL(DBL) :: N, D
@@ -41,8 +42,7 @@ MODULE FortranFunctions
     FMOD = FMOD * N
   END FUNCTION FMOD
 
-  !Return absolute value of num
-  REAL(DBL) FUNCTION ABSO(num)
+  REAL(DBL) FUNCTION ABSO(num)  !Return absolute value of num
     IMPLICIT NONE
     REAL(DBL), INTENT(IN) :: num
 
@@ -53,8 +53,9 @@ MODULE FortranFunctions
     END IF
   END FUNCTION ABSO
 
-  !Goldschmidt division, return N/D
-  REAL(DBL) FUNCTION DIV(NN,DD)
+  !Author: Robert Alvarez
+  !Last modification: Jun 20th, 2022
+  REAL(DBL) FUNCTION DIV(NN,DD) !Goldschmidt division, return N/D
     IMPLICIT NONE
     REAL(DBL), INTENT(IN) :: NN, DD !NN = numerator, DD = denominator
     REAL(DBL) :: F,N,D
@@ -98,8 +99,8 @@ MODULE FortranFunctions
 !sin(x) approx with weight average: temp = (x/PI)*(x/PI - 1)
 ! sin(x) = temp(2.21652(temp - 31/36) - 1.5372/(1.25 + temp))
 
-  !Use weights in a first and second degree equation in p where
-  !p=x(180-x)/8100 to approximate sine(x)
+  !Author: Robert Alvarez
+  !Date: January 12th, 2022
   REAL(DBL) FUNCTION SINE(num)
     IMPLICIT NONE
     REAL(DBL), INTENT(IN) :: num
@@ -120,54 +121,55 @@ MODULE FortranFunctions
     END IF
   END FUNCTION SINE
 
-  !Return cosine(x) by using sine(x) function
-  REAL(DBL) FUNCTION COSINE(num)
+  !Author: Robert Alvarez
+  !Last modification: January 12th, 2022
+  REAL(DBL) FUNCTION COSINE(num)  !Return cosine(x) by using sine(x) function
     IMPLICIT NONE
     REAL(DBL), INTENT(IN) :: num
 
     COSINE = SINE(DIV(PI,2.0D0) - num)
   END FUNCTION COSINE
 
-  !Return square root of num
-  REAL(DBL) FUNCTION SQR(num) !SQR = xn
+  !Author: Dr. Mark Pederson
+  !Date:September 8th, 2021
+  !Last modification: Reduction of variables and comments improvement.
+  !Modifier: Robert Alvarez / July 9th, 2022
+  REAL(DBL) FUNCTION SQR(num) RESULT(xn)
     IMPLICIT NONE
     REAL(DBL), INTENT(IN) :: num
-    REAL(DBL) :: xn_1, xn_2, EPS  !xn_1 = x_(n-1), xn_2 = x_(n-2)
+    REAL(DBL) :: xn_1, xn_2 !xn_1 = x_(n-1), xn_2 = x_(n-2)
     INTEGER :: i
 
-    SQR = 1.0D0
+    xn = 1.0D0
     xn_1 = -0.1D0
     xn_2 = -0.2D0
 
-!      X =~(num)^0.5
+!     X ~=(num)^0.5
 !  X + E = (num)^0.5
 ! (X + E)^2 = num
-!  X^2 + 2XE + E^2 = num, But E is very small, so E^2=0:
-!        E = DIV(num - X^2,2X), this way:
-!  X =~ num^0.5 = X + E -> X =~ X + E, this updates X to a new value.
-! So by repeating this multiple times we will get num^0.5
+! X^2 + 2XE + E^2 = num, But E is very small, so E^2=0:
+!      E = (num - X^2)/2X, this way:
+!     X ~= num^0.5 = X + E -> X =~ X + E
 
     DO i=1, 100
-      EPS = DIV(num - SQR*SQR, 2.0D0*SQR) !Get E based on x_n
-      SQR = SQR + EPS !Update x_n
+      xn = xn + DIV(num - xn*xn, 2.0D0*xn)
       !Exit loop if values are cycling
-      IF(SQR == xn_1) THEN
+      IF(xn == xn_1) THEN
         EXIT
-      ELSE IF (SQR == xn_2) THEN
-        SQR = DIV(xn_2 + xn_1, 2.0D0)
+      ELSE IF (xn == xn_2) THEN
+        xn = DIV(xn_2 + xn_1, 2.0D0)
         EXIT
       END IF
       !Update x_ns
       xn_2 = xn_1 !x_(n-2) = x_(n-1)
-      xn_1 = SQR  !x_(n-1) = x_n
+      xn_1 = xn   !x_(n-1) = x_n
     END DO
   END FUNCTION SQR
 
 !!!
 !Extra functions for reference but never used
 !!!
-  !Returns A/B
-  REAL(DBL) FUNCTION Class_DIV(AA,BB)
+  REAL(DBL) FUNCTION Class_DIV(AA,BB) !Returns A/B
     IMPLICIT NONE
     REAL(DBL), INTENT(IN) :: AA, BB
 
@@ -202,8 +204,7 @@ MODULE FortranFunctions
     RECIPROCAL = RECIP
   END FUNCTION RECIPROCAL
 
-  !DIVIDER (1/(1+x))   0<x<1
-  REAL(DBL) FUNCTION DIVIDER(X)
+  REAL(DBL) FUNCTION DIVIDER(X) !DIVIDER (1/(1+x))   0<x<1
     IMPLICIT NONE
     REAL(DBL), INTENT(IN) :: X
     REAL(DBL) :: TWOTHIRDS
@@ -222,8 +223,7 @@ MODULE FortranFunctions
     END IF
   END FUNCTION DIVIDER
 
-  !DIVIDE (1/(1+x))   0<x<0.5
-  REAL(DBL) FUNCTION DIVIDE(X)
+  REAL(DBL) FUNCTION DIVIDE(X)  !DIVIDE (1/(1+x))   0<x<0.5
     IMPLICIT NONE
 
     REAL(DBL), INTENT(IN) :: X
@@ -323,9 +323,7 @@ MODULE FortranFunctions
     END IF
   END FUNCTION GT1DIVIDE
 
-!Bhaskara approx: temp = (PI-x)*x
-!                 sin(x) = (16*temp) / (5*PI*PI - 4*temp)
-  REAL(DBL) FUNCTION SINB(num)
+  REAL(DBL) FUNCTION SINB(num)  !Bhaskara approximation
     IMPLICIT NONE
     REAL(DBL), INTENT(IN) :: num
     REAL(DBL) :: x

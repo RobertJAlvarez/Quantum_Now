@@ -4,15 +4,22 @@ MODULE ArrayFunctions
 
   CONTAINS
 
-  SUBROUTINE INVERSE(AA, BB)
+  !Author (Fortran 77): Dr. Mark Pederson
+  !Date:  September 8th, 2021
+  !Modifications:
+  !   Convert Subroutine to function
+  !   Generalization of 4x4 matrix to nxn matrix
+  !   Improve matrix printing style for nxn matrices
+  !Modifier: Robert Alvarez / July 9th, 2022
+  FUNCTION INVERSE(AA) RESULT(B)
     IMPLICIT NONE
 
-    REAL(DBL), INTENT(IN) :: AA(:,:)   !AA holds matrix 1
-    REAL(DBL), INTENT(OUT) :: BB(:,:)  !BB hold matrix 2
+    REAL(DBL), INTENT(IN) :: AA(:,:)
 
+    REAL(DBL) :: B(SIZE(AA,1),SIZE(AA,1))
     REAL(DBL), ALLOCATABLE :: A(:,:), CC(:,:)
     REAL(DBL) :: TMAX, temp
-    CHARACTER(len=13) :: fmt_2D, fmt_A
+    CHARACTER(len=13) :: fmt_mt
     INTEGER :: i, j, k, n
 
     n = SIZE(AA,1)
@@ -20,7 +27,7 @@ MODULE ArrayFunctions
 
     A = 0.0D0
 
-    !Create matrix 1
+    !Create matrix A = [AA|I]
     DO i=1, n
       A(i,i+n) = 1.0D0      !Create identity matrix
       A(i,1:n) = AA(i,1:n)  !Copy values of AA into first nxn spaces of A
@@ -28,8 +35,8 @@ MODULE ArrayFunctions
 
     !Output matrix 1 and identity matrix after it
     WRITE(*,*)
-    WRITE(fmt_A, '( "(",I2,"ES17.8E3))" )' ) 2*n
-    WRITE(*,fmt_A) (A(i,1:2*n), i=1,n)
+    WRITE(fmt_mt, '( "(",I2,"ES17.8E3))" )' ) 2*n
+    WRITE(*,fmt_mt) (A(i,1:2*n), i=1,n)
 
     !Find invert matrix
     DO i=1, n
@@ -71,29 +78,31 @@ MODULE ArrayFunctions
       END DO
     END DO
 
-    !Copy matrix 2 to BB
-    BB(1:n,1:n) = A(1:n,n+1:2*n)
+    !Copy inverse matrix into B
+    B(1:n,1:n) = A(1:n,n+1:2*n)
 
-    !Print matrix 2
+    !Print inverse matrix
     WRITE(*,*)
-    WRITE(fmt_2D, '( "(",I2,"ES17.8E3))" )' ) n
-    WRITE(*,fmt_2D) (BB(i,1:n), i=1, n)
+    WRITE(fmt_mt, '( "(",I2,"ES17.8E3))" )' ) n
+    WRITE(*,fmt_mt) (B(i,1:n), i=1, n)
 
-    !Dot matrix 1 with 2 to get CC, identity matrix
+    !Multiplication of A and A inverse gives identity matrix
     CC = 0.0D0
     DO i=1, n
       DO j=1, n
         DO k=1, n
-          CC(i,j) = CC(i,j) + AA(i,k)*BB(k,j)
+          CC(i,j) = CC(i,j) + AA(i,k)*B(k,j)
         END DO
       END DO
     END DO
 
     !Print identity matrix, CC
     WRITE(*,*)
-    WRITE(*,fmt_2D) (CC(i,1:4), i=1, n)
-  END SUBROUTINE INVERSE
+    WRITE(*,fmt_mt) (CC(i,1:4), i=1, n)
+  END FUNCTION INVERSE
 
+  !Author (Fortran 77): Dr. Mark Pederson
+  !Date:  September 15th, 2021
   SUBROUTINE J2X2(H, E, O)
     IMPLICIT NONE
     REAL(DBL), INTENT(IN) :: H(:,:)
@@ -126,6 +135,7 @@ MODULE ArrayFunctions
 !Notice that we can do the same using the second equation to obtain O_n(1) and O_n(2)
 !And we will have that: O_n(1)=(H(2,2)-E(n)) and O_n(2)=-H(1,2), so
 !       Left handed
+
     O(1,1) = -H(1,2)
     O(2,1) =  H(1,1) - E(1)
     O(1,2) =  H(2,2) - E(2)
@@ -257,10 +267,10 @@ MODULE ArrayFunctions
     END IF
   END FUNCTION MergeIdx
 
-  SUBROUTINE DIAGNxN(NDH, NBS, HAM, OVR, UMT, PRD)
+  SUBROUTINE DIAGNxN(NDH, NBS, HAM, UMT, PRD)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NDH, NBS
-    REAL(DBL), INTENT(INOUT) :: HAM(:,:), OVR(:,:)
+    REAL(DBL), INTENT(INOUT) :: HAM(:,:)
     REAL(DBL), INTENT(OUT) :: UMT(:,:), PRD(:,:)
 
     REAL(DBL) :: SPC(NDH,NDH)
@@ -420,7 +430,6 @@ MODULE ArrayFunctions
     IMPLICIT NONE
     INTEGER, PARAMETER :: NDH = 10
     REAL(DBL) :: HAM(NDH,NDH)  !Hamiltonian
-    REAL(DBL) :: OVR(NDH,NDH)  !Overlap
     REAL(DBL) :: UMT(NDH,NDH)  !Unitary matrix
     REAL(DBL) :: PRD(NDH,NDH)  !Product
 
@@ -431,13 +440,7 @@ MODULE ArrayFunctions
     X = -0.5D0  !Exited
     P =  0.1D0  !Perturbation
     TXR = 0.2D0 !Transfer
-
-    OVR = 0.0D0
     HAM = 0.0D0
-
-    DO i=1,NDH
-      OVR(i,i) = 1.0D0
-    END DO
 
     HAM(1,1) = G
     HAM(2,2) = X
@@ -463,7 +466,7 @@ MODULE ArrayFunctions
       WRITE(*,'(10F7.2)') (HAM(i,j),j=1,NBS)
     END DO
 
-    CALL DIAGNxN(NDH, NBS, HAM, OVR, UMT, PRD)
+    CALL DIAGNxN(NDH, NBS, HAM, UMT, PRD)
 
     WRITE(*,*) 'Updated Hamiltonian:'
     DO i=1,NBS
@@ -518,7 +521,7 @@ MODULE ArrayFunctions
 
     STOP 'Before INVERSE'
 
-    CALL INVERSE(DM, DI)
+    DI = INVERSE(DM)
 
     A = 0.0D0
     DO j=1, 4
@@ -549,10 +552,10 @@ MODULE ArrayFunctions
 !
 !Only difference is when sorting idxs
 !
-  SUBROUTINE Class_DIAGNxN(NDH, NBS, HAM, OVR, UMT, PRD, SPC)
+  SUBROUTINE Class_DIAGNxN(NDH, NBS, HAM, UMT, PRD, SPC)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NDH, NBS
-    REAL(DBL), INTENT(INOUT) :: HAM(:,:), OVR(:,:) !OVR is not used yet
+    REAL(DBL), INTENT(INOUT) :: HAM(:,:)
     REAL(DBL), INTENT(OUT) :: UMT(:,:), PRD(:,:), SPC(:,:)
 
     REAL(DBL) :: H(2,2), O(2,2), E(2)!, V(2,2), T(2,2), D(2,2)  !J2X2
