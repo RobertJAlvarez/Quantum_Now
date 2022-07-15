@@ -9,24 +9,10 @@ PI = 3.14159265358979
 
 def MOD(NN: float, DD: float) -> float:
   """ NN = numerator, DD = denominator. Calculate and return |N|%|D|. """
+
   #Make N and D positive
-  if NN<0.0 or DD<0.0:
-    if NN<0.0 and DD<0.0: #If both are negative
-      N = -NN
-      D = -DD
-      fact = 1.0
-    elif NN<0.0:   #If N is negative and D positive
-      N = -NN
-      D = DD
-      fact = -1.0
-    else:
-      N = NN
-      D = -DD
-      fact = -1.0
-  else:           #If both are positive
-    N = NN
-    D = DD
-    fact = 1.0
+  N, fact = (-NN, -1.0) if NN<0.0 else (NN, 1.0)
+  D, fact = (-DD, -fact) if DD<0.0 else (DD, fact)
 
   #Calculate residual of N/D
   while N > D:
