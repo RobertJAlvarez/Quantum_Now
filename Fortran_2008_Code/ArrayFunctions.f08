@@ -86,7 +86,7 @@ MODULE ArrayFunctions
     WRITE(fmt_mt, '( "(",I2,"ES17.8E3))" )' ) n
     WRITE(*,fmt_mt) (B(i,1:n), i=1, n)
 
-    !Multiplication of A and A inverse gives identity matrix
+    !Multiplication of A and A inverse = identity matrix
     CC = 0.0D0
     DO i=1, n
       DO j=1, n

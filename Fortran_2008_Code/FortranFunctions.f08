@@ -15,25 +15,18 @@ MODULE FortranFunctions
     REAL(DBL), INTENT(IN) :: NN, DD !NN = numerator, DD = denominator
     REAL(DBL) :: N, D
 
+    N = NN
+    D = DD
+    FMOD = 1.0D0  !Save a factor of 1 or -1
+
     !Make N and D positive
-    IF (NN < 0.0D0 .OR. DD < 0.0D0) THEN
-      IF (NN < 0.0D0 .AND. DD < 0.0D0) THEN !If both are negative
-        N = -NN
-        D = -DD
-        FMOD = 1.0D0
-      ELSE IF (NN < 0.0D0) THEN !If N is negative and D positive
-        N = -NN
-        D = DD
-        FMOD = -1.0D0
-      ELSE                      !If N is positive and D negative
-        N = NN
-        D = -DD
-        FMOD = -1.0D0
-      END IF
-    ELSE  !If both are positive
-      N = NN
-      D = DD
-      FMOD = 1.0D0
+    IF (N < 0.0D0) THEN
+      N = -N
+      FMOD = -FMOD
+    END IF
+    IF (D < 0.0D0) THEN
+      D = -D
+      FMOD = -FMOD
     END IF
 
     DO WHILE (N > D)
