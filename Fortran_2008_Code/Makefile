@@ -14,7 +14,7 @@ WFLAGS = -Wall -Wconversion -std=f2008 -fall-intrinsics -Warray-temporaries -Wch
 	$(FC) $(OFLAGS) $(WFLAGS) -c $*.f08
 
 # Object modules
-OBJ = FortranFunctions.o ArrayFunctions.o Applications.o TestingFunctions.o
+OBJ = FortranFunctions.o retireFunctions.o ArrayFunctions.o Applications.o TestingFunctions.o
 
 # Default target
 all: Quantum_Now

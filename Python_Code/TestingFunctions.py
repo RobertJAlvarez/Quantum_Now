@@ -1,8 +1,9 @@
-from PythonFunctions import *
-from ArrayFunctions import *
-from math import *
+from PythonFunctions import PI, MOD, DIV, SQR, SINE
+from retireFunctions import Class_DIV
+from ArrayFunctions import INVERSE
+from math import sin
 from time import time
-import random
+from random import random, uniform
 
 def modulus_test():
   print('modulus_test')
@@ -25,33 +26,27 @@ def modulus_test():
   pass
 
 def auto_div(f, low_b, up_b):
-  j = 1
-  error = 0.0
-  nTimes = 100000
-  t = time()
-  for i in range(nTimes):
-    D = random.uniform(low_b,up_b)
-    N = random.random()
-    error += abs(N/D - f(N,D))
-  print('Time:  {}'.format(time()-t))
-  print('Error: {}'.format(error))
-  pass
+  D = uniform(low_b,up_b)
+  N = random()
+  return abs(N/D - f(N,D))
 
-def div_comp():
-  print('Division functions comparition:')
-
-  f_names = ['Class_DIV', 'DIV']
-  f = [Class_DIV, DIV]
+def func_comp(f):
   bounds = [(0.0,0.1), (0.1,1.0), (1.0,1000)]
 
-  for i in range(3):
-    for j in range(2):
-      print('\nFunction: {} - range {} < D < {}'.format(f_names[j], bounds[i][0], bounds[i][1]))
-      auto_div(f[j], bounds[i][0], bounds[i][1])
+  for i in range(len(bounds)):
+    for j in range(len(f)):
+      print('\nFunction: {} - range {} < D < {}'.format(f[j].__name__, bounds[i][0], bounds[i][1]))
+      error = 0.0
+      nTimes = 100000
+      t = time()
+      for _ in range(nTimes):
+        error += auto_div(f[j], bounds[i][0], bounds[i][1])
+      print('Time:  {}'.format(time()-t))
+      print('Error: {}'.format(error))
   pass
 
 def newAngle(N):
-  x = random.random()*720.0
+  x = random()*720.0
   return -x if N > 0.0 else x
 
 def trigTest():
@@ -74,7 +69,7 @@ def inverseTest():
   pass
 
 def menu():
-  print('You can test for:')
+  print('\nYou can test for:')
   print('PythonFunctions: 1. Modulus, 2. Division, 3. Sin')
   print('ArrayFunctions: 4. Inverse')
   print('Anything else to exit')
@@ -87,7 +82,8 @@ if __name__ == "__main__":
     if choose == 1:
       modulus_test()
     elif choose == 2:
-      div_comp()
+      print('Division functions comparison:')
+      func_comp([Class_DIV, DIV])
     elif choose == 3:
       trigTest()
     elif choose == 4:
