@@ -7,17 +7,13 @@
 ! @bug No known bugs
 !
 PROGRAM testing_func
-  USE FortranFunctions, ONLY: PI, DBL, FMOD, DIV, Class_DIV, SINE, COSINE
+  USE FortranFunctions, ONLY: PI, DBL, FMOD, DIV, SINE, COSINE
+  USE retireFunctions, ONLY: Class_DIV
   USE ArrayFunctions
   USE Applications
   IMPLICIT NONE
 
-  INTEGER :: input, NBS
-
-DO input=-5,5 
-NBS = NBS + 1
-END DO
-WRITE(*,*) NBS
+  INTEGER :: input
 
   DO
     WRITE(*,*)
@@ -89,55 +85,53 @@ WRITE(*,*) NBS
     END DO
     WRITE(*,*) 'None of the 10000 cases have an error greater than 1E-5'
   END SUBROUTINE modulus_test
-
+  
   !Print error generated and time take between Class_DIV and DIV functions for the
-  !denominator intervals of 0.0 < D < 0.1, 0.1 < D < 1.0, and 1.0 < D < 10000
+  !denominator with intervals of 0.0 < D < 0.1, 0.1 < D < 1.0, and 1.0 < D < 100000.0
   SUBROUTINE div_comp
     IMPLICIT NONE
 
     PROCEDURE(DIV), POINTER :: p
-    REAL(DBL) :: factor(10)
+    REAL(DBL), DIMENSION(10) :: factor1, factor2, factor3
+    INTEGER :: i, j
 
-    WRITE(*,*) 'Division functions comparition:'
+    factor1 = [1.0D-1,1.0D-2,1.0D-3,1.0D-4,1.0D-5,1.0D-6,1.0D-7,1.0D-8,1.0D-9,1.0D-10]
+    factor2 = [0.15D0,0.2D0,0.3D0,0.4D0,0.5D0,0.55D0,0.6D0,0.7D0,0.8D0,0.85D0]
+    factor3 = [1.0D1,5.0D1,1.0D2,5.0D2,1.0D3,5.0D3,1.0D4,5.0D4,1.0D5,1.0D5]
 
-    !Class_DIV with 0.0 < D < 0.1
-    WRITE(*,*)
-    WRITE(*,*) 'Function: Class_DIV - range 0.0 < D < 0.1'
-    p => Class_DIV
-    factor = [1.0D-1,1.0D-2,1.0D-3,1.0D-4,1.0D-5,1.0D-6,1.0D-7,1.0D-8,1.0D-9,1.0D-10]
-    CALL auto_div(p, factor, 0.1, 1.0)
-
-    !DIV with 0.0 < D < 0.1
-    WRITE(*,*)
-    WRITE(*,*) 'Function: DIV - range: 0.0 < D < 0.1'
-    p => DIV
-    CALL auto_div(p, factor, 0.1, 1.0)
-
-    !Class_DIV with 0.1 < D < 1.0
-    WRITE(*,*)
-    WRITE(*,*) 'Function: Class_DIV - range 0.1 < D < 1.0'
-    p => Class_DIV
-    factor = [0.15D0,0.2D0,0.3D0,0.4D0,0.5D0,0.55D0,0.6D0,0.7D0,0.8D0,0.85D0]
-    CALL auto_div(p, factor, 0.0, 0.1)
-
-    !DIV with 0.1 < D < 1.0
-    WRITE(*,*)
-    WRITE(*,*) 'Function: DIV - range 0.1 < D < 1.0'
-    p => DIV
-    CALL auto_div(p, factor, 0.0, 0.1)
-
-    !Class_DIV with 1.0 < D < 1,000
-    WRITE(*,*)
-    WRITE(*,*) 'Function: Class_DIV - range 1.0 < D < 1,600'
-    p => Class_DIV
-    factor = [1.0D1,2.0D1,4.0D1,6.0D1,8.0D1,1.0D2,2.0D2,4.0D2,6.0D2,8.0D2]
-    CALL auto_div(p, factor, 0.0, 1.0)
-
-    !DIV with 1.0 < D < 10,000
-    WRITE(*,*)
-    WRITE(*,*) 'Function: DIV - range 1.0 < D < 1,600'
-    p => DIV
-    CALL auto_div(p, factor, 0.0, 1.0)
+    DO i=1,3
+      DO j=1,2
+        WRITE(*,*)
+        SELECT CASE (j)
+        CASE (1)
+          p => Class_DIV
+          SELECT CASE (i)
+          CASE (1)
+            WRITE(*,*) 'Function: Class_DIV - range 0.0 < D < 0.1'
+            CALL auto_div(p, factor1, 0.1, 1.0)
+          CASE (2)
+            WRITE(*,*) 'Function: Class_DIV - range 0.1 < D < 1.0'
+            CALL auto_div(p, factor2, 0.0, 0.1)
+          CASE (3)
+            WRITE(*,*) 'Function: Class_DIV - range 1.0 < D < 100000.0'
+            CALL auto_div(p, factor3, 0.0, 1.0)
+          END SELECT
+        CASE (2)
+          p => DIV
+          SELECT CASE (i)
+          CASE (1)
+            WRITE(*,*) 'Function: DIV - range 0.0 < D < 0.1'
+            CALL auto_div(p, factor1, 0.1, 1.0)
+          CASE (2)
+            WRITE(*,*) 'Function: DIV - range 0.1 < D < 1.0'
+            CALL auto_div(p, factor2, 0.0, 0.1)
+          CASE (3)
+            WRITE(*,*) 'Function: DIV - range 1.0 < D < 100000.0'
+            CALL auto_div(p, factor3, 0.0, 1.0)
+          END SELECT
+        END SELECT
+      END DO
+    END DO
   END SUBROUTINE div_comp
 
   !Perform a division between a random numerator and denominator number in the intervals
