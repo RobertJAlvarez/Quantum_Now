@@ -7,6 +7,8 @@
 ! @bug No known bugs
 !
 MODULE FortranFunctions
+  IMPLICIT NONE
+
   PRIVATE
   PUBLIC :: DBL, PI, ABSO, COSINE, SINE, DIV, SQR, FMOD
 
@@ -17,7 +19,7 @@ MODULE FortranFunctions
 
   !Last modification: Jun 7th, 2022
   !  Simplification on copying NN and DD
-  REAL(DBL) FUNCTION FMOD(NN,DD)  !Return |N|%|D|
+  REAL(DBL) PURE FUNCTION FMOD(NN,DD)  !Return |N|%|D|
     IMPLICIT NONE
     REAL(DBL), INTENT(IN) :: NN, DD !NN = numerator, DD = denominator
     REAL(DBL) :: N, D
@@ -44,7 +46,7 @@ MODULE FortranFunctions
 
   !Last modification: July 14th, 2022
   !  Simplification on IF statement
-  REAL(DBL) FUNCTION ABSO(num)  !Return absolute value of num
+  REAL(DBL) PURE FUNCTION ABSO(num)  !Return absolute value of num
     IMPLICIT NONE
     REAL(DBL), INTENT(IN) :: num
 

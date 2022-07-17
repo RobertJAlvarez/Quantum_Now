@@ -5,7 +5,7 @@ MODULE retireFunctions
   USE FortranFunctions, ONLY: PI, DBL, FMOD, ABSO, DIV
 
   PRIVATE
-  PUBLIC :: Class_DIV !Only TestingFunctions.f08 use it
+  PUBLIC :: Class_DIV, Class_DIAGNxN !Only TestingFunctions.f08 use it
 
   CONTAINS
 
@@ -213,5 +213,183 @@ MODULE retireFunctions
       IF (FMOD(num,2.D0*PI) > -PI) SINB = -SINB
     END IF
   END FUNCTION SINB
+
+!
+!Only difference is when sorting idxs
+!
+  SUBROUTINE Class_DIAGNxN(NDH, NBS, HAM, UMT, PRD, SPC)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: NDH, NBS
+    REAL(DBL), INTENT(INOUT) :: HAM(:,:)
+    REAL(DBL), INTENT(OUT) :: UMT(:,:), PRD(:,:), SPC(:,:)
+
+    REAL(DBL) :: H(2,2), O(2,2), E(2)!, V(2,2), T(2,2), D(2,2)  !J2X2
+    REAL(DBL) :: OFF_MAX, ERRPREV, ERRNW, FOM(1000)    !fom = Figure of marite
+
+    INTEGER :: i, j, k, l, m, n, iTry
+    INTEGER :: MXIT, nPair, idx(2,1000)
+    LOGICAL :: update(1000), new
+    INTEGER :: mPair, no
+
+    IF (NDH > 1000) STOP 'NDH must be smaller then 1000'
+
+    IF (NBS > NDH) THEN
+      WRITE(*,*) 'NDH must be larger than ', NBS
+      STOP
+    END IF
+
+    UMT = 0.D0
+    DO i=1, NBS
+      UMT(i,i) = 1.D0
+    END DO
+
+    PRD = HAM
+    MXIT = NBS*NBS*2
+
+    DO iTry = 1, MXIT
+      update = .TRUE.
+      OFF_MAX = 0.D0
+      ERRPREV = 0.D0
+      nPair = 0
+
+      DO i=1, NBS
+        IF (update(i)) THEN
+          new = .FALSE.
+          DO j=1, NBS
+!            IF (update(j)) THEN
+            IF (j /= i) THEN
+              ERRPREV = ERRPREV + PRD(i,j)*PRD(j,i)
+              IF (ABSO(PRD(i,j)) >= OFF_MAX) THEN
+                k = i
+                l = j
+                OFF_MAX = ABSO(PRD(i,j))
+                new = .TRUE.
+              END IF
+            END IF
+          END DO
+
+          IF (new) THEN
+            mPair = 0
+            DO j=1, nPair
+              no = 0
+              IF (idx(1,j) == k) no=1
+              IF (idx(2,j) == k) no=1
+              IF (idx(1,j) == l) no=1
+              IF (idx(2,j) == l) no=1
+              IF (no == 0) THEN
+                mPair = mPair + 1
+                idx(1,mPair) = idx(1,j)
+                idx(2,mPair) = idx(2,j)
+                FOM(mPair) = FOM(j)
+              ELSE
+                update(idx(1,j)) = .TRUE.
+                update(idx(2,j)) = .TRUE.
+              END IF
+            END DO
+
+            nPair = mPair + 1
+            DO j=nPair, 2, -1
+              idx(1,j) = idx(1,j-1)
+              idx(2,j) = idx(2,j-1)
+              FOM(j) = FOM(j-1)
+            END DO
+
+            update(k) = .FALSE.
+            update(l) = .FALSE.
+
+            idx(1,1) = MIN(k,l)
+            idx(2,1) = MAX(k,l)
+
+            FOM(1) = OFF_MAX
+          END IF
+        END IF
+      END DO
+
+      DO i=1, nPair
+        WRITE(*,*) idx(1,i), idx(2,i), PRD(idx(1,i),idx(2,i))
+      END DO
+
+      k = idx(1,1)
+      l = idx(2,1)
+
+      H(1,1) = PRD(k,k)
+      H(1,2) = PRD(k,l)
+      H(2,1) = PRD(l,k)
+      H(2,2) = PRD(l,l)
+      CALL J2X2(H, E, O)
+
+!      WRITE(*,*) 'E and O values:'
+!      DO i=1, 2
+!        WRITE(*,*) E(i), (O(i,j),j=1,2)
+!      END DO
+
+      SPC = 0.D0
+      DO i=1, NBS
+        SPC(i,i) = 1.D0
+      END DO
+
+      SPC(k,k) = O(1,1)
+      SPC(l,k) = O(2,1)
+      SPC(l,l) = O(2,2)
+      SPC(k,l) = O(1,2)
+
+      !Get new unitary matrix
+      PRD = 0.D0
+      DO m=1, NBS
+        IF (m /= k .AND. m /= l) THEN
+          DO n=1, NBS
+            PRD(n,m) = UMT(n,m)
+          END DO
+        END IF
+      END DO
+
+      DO n=1, NBS
+        PRD(n,k) = PRD(n,k) + UMT(n,k)*O(1,1)
+        PRD(n,k) = PRD(n,k) + UMT(n,l)*O(2,1)
+        PRD(n,l) = PRD(n,l) + UMT(n,k)*O(1,2)
+        PRD(n,l) = PRD(n,l) + UMT(n,l)*O(2,2)
+      END DO
+
+      UMT = PRD
+      DO i=1, NBS
+        DO k=1, NBS
+          SPC(k,i) = 0.D0
+          DO l=1, NBS
+            SPC(k,i) = SPC(k,i) + UMT(l,i)*HAM(l,k) !l,k better than k,l base on memory allocation
+          END DO
+        END DO
+      END DO
+
+      PRD = 0.D0
+      !Make new HAM
+      DO i=1, NBS
+        DO j=1, NBS
+          DO k=1, NBS
+            PRD(j,i) = PRD(j,i) + UMT(k,j)*SPC(k,i)
+          END DO
+        END DO
+      END DO
+
+      ERRNW = 0.D0
+      DO i=1,NBS
+        DO j=i+1, NBS
+          ERRNW = ERRNW + PRD(i,j)*PRD(j,i)
+        END DO
+      END DO
+
+      WRITE(*,30) iTry, ERRNW, ERRPREV, ERRPREV - OFF_MAX*OFF_MAX
+      30 FORMAT(I3, 3G15.6)
+
+      IF (ERRNW < 1.D-12) EXIT
+    END DO
+
+    IF (iTry == MXIT) THEN
+      WRITE(*,*) 'Warning: No Convergence'
+    END IF
+
+    WRITE(*,*) iTry, NBS, float(iTry)/float(NBS*NBS), 'Diag Eff'
+
+    HAM = PRD
+  END SUBROUTINE Class_DIAGNxN
 END MODULE retireFunctions
 
