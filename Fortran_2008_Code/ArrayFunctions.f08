@@ -25,11 +25,11 @@ MODULE ArrayFunctions
     n = SIZE(AA,1)
     ALLOCATE(A(n,2*n), CC(n,n))
 
-    A = 0.0D0
+    A = 0.D0
 
     !Create matrix A = [AA|I]
     DO i=1, n
-      A(i,i+n) = 1.0D0      !Create identity matrix
+      A(i,i+n) = 1.D0      !Create identity matrix
       A(i,1:n) = AA(i,1:n)  !Copy values of AA into first nxn spaces of A
     END DO
 
@@ -51,7 +51,7 @@ MODULE ArrayFunctions
       END DO
 
       TMAX = A(k,i)
-      IF (TMAX == 0.0D0) THEN
+      IF (TMAX == 0.D0) THEN
         STOP 'A row is linearly dependent of one or more other rows'
       END IF
 
@@ -87,7 +87,7 @@ MODULE ArrayFunctions
     WRITE(*,fmt_mt) (B(i,1:n), i=1, n)
 
     !Multiplication of A and A inverse = identity matrix
-    CC = 0.0D0
+    CC = 0.D0
     DO i=1, n
       DO j=1, n
         DO k=1, n
@@ -118,7 +118,7 @@ MODULE ArrayFunctions
 !   (d+g)^2 - 4*1*(d*g-f*e) <=> (d-g)^2 + 4*e*f
 !   E = answers of quadratic formula
 
-    rad = SQR((H(1,1) - H(2,2))*(H(1,1) - H(2,2)) + 4.0D0*H(1,2)*H(2,1))
+    rad = SQR((H(1,1) - H(2,2))*(H(1,1) - H(2,2)) + 4.D0*H(1,2)*H(2,1))
     trc = H(1,1) + H(2,2)
     E(1) = (0.5D0)*(trc+rad)
     E(2) = (0.5D0)*(trc-rad)
@@ -159,13 +159,13 @@ MODULE ArrayFunctions
     INTEGER :: i, j, k, l, iTry
 
     A = O(1,1)*O(2,2) - O(1,2)*O(2,1)
-    IF (A < 0.0D0) STOP 'Non positive overlap matrix'
+    IF (A < 0.D0) STOP 'Non positive overlap matrix'
 
     B = -( H(1,1)*O(2,2) - O(1,2)*H(2,1) + O(1,1)*H(2,2) - H(1,2)*O(2,1) )
     C = H(1,1)*H(2,2) - H(1,2)*H(2,1)
 
     TRC = DIV(-B,A)
-    RAD = DIV(SQR(B*B - 4.0D0*A*C),A)
+    RAD = DIV(SQR(B*B - 4.D0*A*C),A)
 
     E(1) = (0.5D0)*(TRC + RAD)
     E(2) = (0.5D0)*(TRC - RAD)
@@ -194,7 +194,7 @@ MODULE ArrayFunctions
 
       DO i=1, 2
         DO j=1, 2
-          D(i,j) = 0.0D0
+          D(i,j) = 0.D0
           DO k=1, 2
             DO l=1, 2
               IF (iTry <= 2) THEN
@@ -288,9 +288,9 @@ MODULE ArrayFunctions
       STOP
     END IF
 
-    UMT = 0.0D0
+    UMT = 0.D0
     DO i=1, NBS
-      UMT(i,i) = 1.0D0
+      UMT(i,i) = 1.D0
     END DO
 
     PRD = HAM
@@ -298,11 +298,11 @@ MODULE ArrayFunctions
 
     DO iTry = 1, MXIT
       n = 0
-      ERRPREV = 0.0D0
+      ERRPREV = 0.D0
       DO i=1, NDH
         DO j=i+1, NDH
           ERRPREV = ERRPREV + PRD(i,j)*PRD(j,i)
-          IF (ABSO(PRD(i,j)) > 1.0D-10) THEN ! Save all indices that have values in PRD that are greater than 0
+          IF (ABSO(PRD(i,j)) > 1.D-10) THEN ! Save all indices that have values in PRD that are greater than 0
             n = n + 1
             idxAll(1,n) = i
             idxAll(2,n) = j
@@ -356,9 +356,9 @@ MODULE ArrayFunctions
 !        WRITE(*,*) E(i), (O(i,j),j=1,2)
 !      END DO
 
-      SPC = 0.0D0
+      SPC = 0.D0
       DO i=1, NBS
-        SPC(i,i) = 1.0D0
+        SPC(i,i) = 1.D0
       END DO
 
       SPC(k,k) = O(1,1)
@@ -367,7 +367,7 @@ MODULE ArrayFunctions
       SPC(k,l) = O(1,2)
 
       !Get new unitary matrix
-      PRD = 0.0D0
+      PRD = 0.D0
       DO m=1, NBS
         IF (m /= k .AND. m /= l) THEN
           DO n=1, NBS
@@ -386,14 +386,14 @@ MODULE ArrayFunctions
       UMT = PRD
       DO i=1, NBS
         DO k=1, NBS
-          SPC(k,i) = 0.0D0
+          SPC(k,i) = 0.D0
           DO l=1, NBS
             SPC(k,i) = SPC(k,i) + UMT(l,i)*HAM(l,k) !l,k better than k,l base on memory allocation
           END DO
         END DO
       END DO
 
-      PRD = 0.0D0
+      PRD = 0.D0
 
       !Make new HAM
       DO i=1, NBS
@@ -404,7 +404,7 @@ MODULE ArrayFunctions
         END DO
       END DO
 
-      ERRNW = 0.0D0
+      ERRNW = 0.D0
       DO i=1,NBS
         DO j=i+1, NBS
           ERRNW = ERRNW + PRD(i,j)*PRD(j,i)
@@ -414,7 +414,7 @@ MODULE ArrayFunctions
       WRITE(*,30) iTry, ERRNW, ERRPREV
       30 FORMAT(I3, 3G15.6)
 
-      IF (ERRNW < 1.0D-12) EXIT
+      IF (ERRNW < 1.D-12) EXIT
     END DO
 
     IF (iTry == MXIT) THEN
@@ -436,11 +436,11 @@ MODULE ArrayFunctions
     REAL(DBL) :: G, X, P, TXR
     INTEGER :: i, j, NBS
 
-    G = -1.0D0  !Ground
+    G = -1.D0  !Ground
     X = -0.5D0  !Exited
     P =  0.1D0  !Perturbation
     TXR = 0.2D0 !Transfer
-    HAM = 0.0D0
+    HAM = 0.D0
 
     HAM(1,1) = G
     HAM(2,2) = X
@@ -488,13 +488,13 @@ MODULE ArrayFunctions
     WRITE(*,*) 'xMin, xMax=?'
     READ(*,*) xMin, xMax
 
-    dx = DIV(xMax - xMin, 99.0D0)
+    dx = DIV(xMax - xMin, 99.D0)
     x = xMin - dx
 
     DO i=1, 100
       x = x + dx
       F(i) = x*x*x*x
-      pow = 1.0D0
+      pow = 1.D0
 
       DO j=1, 4
         P(i,j) = pow
@@ -503,10 +503,10 @@ MODULE ArrayFunctions
     END DO
 
     !Evaluate design matrix
-    B = 0.0D0
+    B = 0.D0
     DO j=1, 4
       DO k=1, 4
-        DM(k,j) = 0.0D0
+        DM(k,j) = 0.D0
         DO i=1, 100
           DM(k,j) = DM(k,j) + P(i,k)*P(i,j)
         END DO
@@ -523,7 +523,7 @@ MODULE ArrayFunctions
 
     DI = INVERSE(DM)
 
-    A = 0.0D0
+    A = 0.D0
     DO j=1, 4
       DO k=1, 4
         A(j) = A(j) + DI(j,k)*B(k)
@@ -536,8 +536,8 @@ MODULE ArrayFunctions
       WRITE(*,*) 'x=?'
       READ(*,*) x
 
-      fit = 0.0D0
-      pow = 1.0D0
+      fit = 0.D0
+      pow = 1.D0
 
       DO j=1, 4
         fit = fit + A(j)*pow
@@ -573,9 +573,9 @@ MODULE ArrayFunctions
       STOP
     END IF
 
-    UMT = 0.0D0
+    UMT = 0.D0
     DO i=1, NBS
-      UMT(i,i) = 1.0D0
+      UMT(i,i) = 1.D0
     END DO
 
     PRD = HAM
@@ -583,8 +583,8 @@ MODULE ArrayFunctions
 
     DO iTry = 1, MXIT
       update = .TRUE.
-      OFF_MAX = 0.0D0
-      ERRPREV = 0.0D0
+      OFF_MAX = 0.D0
+      ERRPREV = 0.D0
       nPair = 0
 
       DO i=1, NBS
@@ -658,9 +658,9 @@ MODULE ArrayFunctions
 !        WRITE(*,*) E(i), (O(i,j),j=1,2)
 !      END DO
 
-      SPC = 0.0D0
+      SPC = 0.D0
       DO i=1, NBS
-        SPC(i,i) = 1.0D0
+        SPC(i,i) = 1.D0
       END DO
 
       SPC(k,k) = O(1,1)
@@ -669,7 +669,7 @@ MODULE ArrayFunctions
       SPC(k,l) = O(1,2)
 
       !Get new unitary matrix
-      PRD = 0.0D0
+      PRD = 0.D0
       DO m=1, NBS
         IF (m /= k .AND. m /= l) THEN
           DO n=1, NBS
@@ -688,14 +688,14 @@ MODULE ArrayFunctions
       UMT = PRD
       DO i=1, NBS
         DO k=1, NBS
-          SPC(k,i) = 0.0D0
+          SPC(k,i) = 0.D0
           DO l=1, NBS
             SPC(k,i) = SPC(k,i) + UMT(l,i)*HAM(l,k) !l,k better than k,l base on memory allocation
           END DO
         END DO
       END DO
 
-      PRD = 0.0D0
+      PRD = 0.D0
       !Make new HAM
       DO i=1, NBS
         DO j=1, NBS
@@ -705,7 +705,7 @@ MODULE ArrayFunctions
         END DO
       END DO
 
-      ERRNW = 0.0D0
+      ERRNW = 0.D0
       DO i=1,NBS
         DO j=i+1, NBS
           ERRNW = ERRNW + PRD(i,j)*PRD(j,i)
@@ -715,7 +715,7 @@ MODULE ArrayFunctions
       WRITE(*,30) iTry, ERRNW, ERRPREV, ERRPREV - OFF_MAX*OFF_MAX
       30 FORMAT(I3, 3G15.6)
 
-      IF (ERRNW < 1.0D-12) EXIT
+      IF (ERRNW < 1.D-12) EXIT
     END DO
 
     IF (iTry == MXIT) THEN

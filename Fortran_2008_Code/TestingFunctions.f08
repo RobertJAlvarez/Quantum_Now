@@ -72,12 +72,12 @@ PROGRAM testing_func
 
     D = PI
     DO i = 1,10000
-      N = -10.0D0
+      N = -10.D0
       CALL newAngle(N)
 
       ans = MOD(N,D)
       ans1 = FMOD(N,D)
-      IF (ABS(ans-ans1) > 1.0D-5) THEN
+      IF (ABS(ans-ans1) > 1.D-5) THEN
         WRITE(*,*)  'N = ', N, 'D = ', D
         WRITE(*,*) MOD(N,D)
         WRITE(*,*) FMOD(N,D)
@@ -95,9 +95,9 @@ PROGRAM testing_func
     REAL(DBL), DIMENSION(10) :: factor1, factor2, factor3
     INTEGER :: i, j
 
-    factor1 = [1.0D-1,1.0D-2,1.0D-3,1.0D-4,1.0D-5,1.0D-6,1.0D-7,1.0D-8,1.0D-9,1.0D-10]
+    factor1 = [1.D-1,1.D-2,1.D-3,1.D-4,1.D-5,1.D-6,1.D-7,1.D-8,1.D-9,1.D-10]
     factor2 = [0.15D0,0.2D0,0.3D0,0.4D0,0.5D0,0.55D0,0.6D0,0.7D0,0.8D0,0.85D0]
-    factor3 = [1.0D1,5.0D1,1.0D2,5.0D2,1.0D3,5.0D3,1.0D4,5.0D4,1.0D5,1.0D5]
+    factor3 = [1.D1,5.D1,1.D2,5.D2,1.D3,5.D3,1.D4,5.D4,1.D5,1.D5]
 
     DO i=1,3
       DO j=1,2
@@ -147,7 +147,7 @@ PROGRAM testing_func
     REAL(DBL) :: N, D, t, error
 
     j = 1
-    error = 0.0D0
+    error = 0.D0
     nTimes = 100000
     t = GetTime()
 
@@ -158,7 +158,7 @@ PROGRAM testing_func
       IF (DBLE(low_b) < D .AND. D < DBLE(up_b)) THEN
         IF (low_b == 0.1 .AND. up_b == 1.0) D = D*factor(j)
         IF (low_b == 0.0 .AND. up_b == 0.1) D = D+factor(j)
-        IF (low_b == 0.0 .AND. up_b == 1.0) D = (D+1.0D0)*factor(j)
+        IF (low_b == 0.0 .AND. up_b == 1.0) D = (D+1.D0)*factor(j)
         j = j + 1
         IF (j >= 11) j=1
       END IF
@@ -179,7 +179,7 @@ PROGRAM testing_func
 
     WRITE(*,*) 'trigTest:'
 
-    add = PI/36.0D0
+    add = PI/36.D0
     angle = -PI
 
     WRITE(*,'(A,4(A9,A10))') ' ', 'angle', '', 'SINE', '', 'SIN', '', 'SIN error'
@@ -195,12 +195,12 @@ PROGRAM testing_func
 
     REAL(DBL), INTENT(INOUT) :: getNew
 
-    IF (getNew >= 0.0D0) THEN
+    IF (getNew >= 0.D0) THEN
       CALL RANDOM_NUMBER(getNew)
-      getNew = -getNew*720D0
+      getNew = -getNew*7.D0
     ELSE
       CALL RANDOM_NUMBER(getNew)
-      getNew = getNew*720D0
+      getNew = getNew*7.D0
     END IF
   END SUBROUTINE newAngle
 

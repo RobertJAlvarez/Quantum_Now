@@ -17,13 +17,13 @@ MODULE Applications
     WRITE(*,*) 'WELCOME TO STARK DRIVER, EFIELD=?'
     READ(*,*) EFIELD
 
-    G = -1.0D0
+    G = -1.D0
     X = -0.5D0
     P = 0.1D0
     TXR = 0.2D0
-    HAM = 0.0D0
-    OVR = 0.0D0
-    DIP = 0.0D0
+    HAM = 0.D0
+    OVR = 0.D0
+    DIP = 0.D0
     DIP(1,3) = 0.01D0
     DIP(2,3) = 0.03D0
 
@@ -34,7 +34,7 @@ MODULE Applications
     END DO
 
     DO i=1,NDH
-      OVR(i,i) = 1.0D0
+      OVR(i,i) = 1.D0
     END DO
 
     HAM(1,1) = -0.5D0
@@ -68,14 +68,14 @@ MODULE Applications
     WRITE(*,*) (OVR(2,k),k=1,3)
 ! AT TIME=0, OCCUPY THE 2S FUNCTION:
 ! |PHI_K (t) > = SUM_J exp(ie(J) t)* OVR(K,J)|PSI_J> = SUM_JL exp(iEjt)ovr(j,k)*umt(k,l)|PHI_l> !E_j=LAMDA_J
-    TAU = DIV(8.0D0*PI,ABSO(HAM(1,1)))
+    TAU = DIV(8.D0*PI,ABSO(HAM(1,1)))
     DO M=0,1000
-      t = DBLE(M)*DIV(TAU,1.0D3)
+      t = DBLE(M)*DIV(TAU,1.D3)
       OPEN(12,FILE='PLOT')
       DO k=1,3
         DO j=1,3  
-          AR = 0.0D0
-          AI = 0.0D0
+          AR = 0.D0
+          AI = 0.D0
           DO i=1,3
             AR = AR + COSINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i) 
             AI = AI + SINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i) 
@@ -85,8 +85,8 @@ MODULE Applications
       END DO
 ! |phi_2t> = Sum_i u(2,i)exp(i eps_i t) |psi_i>
 ! <phi_2t| phi_2t> = sum_ij exp(i (eps_i-eps_j)t <psi_j|d|phi_i>*u(2,i)*u(2,j)
-      DR = 0.0D0       
-      DI = 0.0D0
+      DR = 0.D0       
+      DI = 0.D0
       DO i=1,3
         DO j=1,3
           phs = (HAM(i,i) - HAM(j,j))*t
@@ -94,7 +94,7 @@ MODULE Applications
           DI = DI + SINE(phs)*UMT(2,i)*UMT(2,j)*DIP(i,j) 
         END DO
       END DO
-      DIPOLE = SQR(DR*DR + DI*DI)*1.0D3
+      DIPOLE = SQR(DR*DR + DI*DI)*1.D3
       WRITE(*,'(10F12.4)') t,(PRD(k,2),k=1,NBS),DR,DI             
       WRITE(12,'(10F12.4)') t,(PRD(k,2),k=1,NBS),DIPOLE               
     END DO
@@ -132,31 +132,31 @@ MODULE Applications
     WRITE(*,*) 'HOW BIG THE FIELD?'
     READ(*,*) E
 
-    DIP = 0.0D0
+    DIP = 0.D0
     DO i=1,NDH
-      OVR(i,i) = 1.0D0
+      OVR(i,i) = 1.D0
     END DO
 
     NBS = 0
-    HAM = 0.0D0
-    aM = -5.0d0
+    HAM = 0.D0
+    aM = -5.D0
     DO m=-5,5 
       NBS = NBS + 1
 
       IF (NBS > 1) THEN
-        DIP(NBS-1,NBS) = DIV(E*RINGSZ,2.0D0)
+        DIP(NBS-1,NBS) = DIV(E*RINGSZ,2.D0)
         DIP(NBS,NBS-1) = DIP(NBS-1,NBS)
-!       HAM(NBS-1,NBS) = DIV(E*RINGSZ,2.0D0)
+!       HAM(NBS-1,NBS) = DIV(E*RINGSZ,2.D0)
 !       HAM(NBS,NBS-1) = HAM(NBS-1,NBS)
       END IF
       HAM(NBS,NBS) = DIV(aM*aM,RINGSZ*RINGSZ)
-      aM = aM + 1.0D0
+      aM = aM + 1.D0
     END DO
 
     IF (iAP == 2)THEN
-      DIP = 0.0D0
+      DIP = 0.D0
       NBS = 0
-!     E=-1*DIV(2.0D0,RINGSZ*RINGSZ)
+!     E=-1*DIV(2.D0,RINGSZ*RINGSZ)
       DO m=-5,5
         NBS = NBS + 1
         DIP(NBS,NBS) = DBLE(M)*E 
@@ -187,25 +187,25 @@ MODULE Applications
     WRITE(*,*) (OVR(2,K),K=1,NBS)
 ! AT TIME=0, OCCUPY THE 2S FUNCTION:
 ! |PHI_K (t) > = SUM_J exp(ie(J) t)* OVR(K,J)|PSI_J> = SUM_JL exp(iEjt)ovr(j,k)*umt(k,l)|PHI_l> !E_j=LAMDA_J
-    TAU = DIV(8.0D0*PI,ABSO(HAM(1,1)))
+    TAU = DIV(8.D0*PI,ABSO(HAM(1,1)))
     OPEN(12,FILE='PLOT')
     DO M=-100,100000
       IF (M == 0)THEN
         HAM = DIP
-        OVR = 0.0D0
+        OVR = 0.D0
         DO I=1,NBS
-          OVR(I,I) = 1.0D0
+          OVR(I,I) = 1.D0
         END DO
         CALL DIAGNxN(NDH,NBS,HAM,UMT,PRD)
         DO I=1,NBS
           WRITE(*,*) HAM(I,I)
         END DO
       END IF
-      t = DBLE(M)*DIV(TAU,5.0D1)
+      t = DBLE(M)*DIV(TAU,5.D1)
       DO K=1,NBS
         DO j=1,NBS
-          AR = 0.0D0
-          AI = 0.0D0
+          AR = 0.D0
+          AI = 0.D0
           DO I=1,NBS
             AR = AR + COSINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i) 
             AI = AI + SINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i) 
@@ -215,8 +215,8 @@ MODULE Applications
       END DO
 ! |phi_2t> = Sum_i u(2,i)exp(i eps_i t) |psi_i>
 ! <phi_2t| phi_2t> = sum_ij exp(i (eps_i-eps_j)t <psi_j|d|phi_i>*u(2,i)*u(2,j)
-      DR = 0.0D0       
-      DI = 0.0D0
+      DR = 0.D0       
+      DI = 0.D0
       DO i=1,NBS
         DO j=1,NBS
           phs = (HAM(i,i) - HAM(j,j))*t
@@ -224,7 +224,7 @@ MODULE Applications
           DI = DI + SINE(phs)*UMT(2,i)*UMT(2,j)*DIP(i,j) 
         END DO
       END DO
-      DIPOLE = SQR(DR*DR + DI*DI)*1.0D2
+      DIPOLE = SQR(DR*DR + DI*DI)*1.D2
       WRITE(*,'(12F12.4)') t,(PRD(K,2),K=1,NBS),DR,DI             
 !     WRITE(12,"(3F12.4)")t,PRD(2,2),PRD(6,2)!,K=1,NBS)!,DIPOLE               
       WRITE(12,'(12F12.4)') t,(PRD(K,2),K=1,NBS)!,DIPOLE               
@@ -260,14 +260,14 @@ MODULE Applications
     Alpha = DIV(2*PI,BOXSZ)
     A = DBLE(M*M)*PI
     DO I=1,NDH
-      OVR(I,I) = 1.0D0
+      OVR(I,I) = 1.D0
     END DO
 
     NBS = 0
-    HAM = 0.0D0
+    HAM = 0.D0
     DO M=-4,4
       NBS = NBS + 1
-      TWOM = 2.0D0*DBLE(M)*PI
+      TWOM = 2.D0*DBLE(M)*PI
       WRITE(*,*) M,TWOM
       HAM(NBS,NBS) = DIV(TWOM,BOXSZ)*DIV(TWOM,BOXSZ)
     END DO
@@ -298,15 +298,15 @@ MODULE Applications
     WRITE(*,*) (OVR(2,K),K=1,3)
 ! AT TIME=0, OCCUPY THE 2S FUNCTION:
 ! |PHI_K (t) > = SUM_J exp(ie(J) t)* OVR(K,J)|PSI_J> = SUM_JL exp(iEjt)ovr(j,k)*umt(k,l)|PHI_l> !E_j=LAMDA_J
-    TAU = DIV(8.0D0*PI,ABSO(HAM(1,1)))
-    TAU = DIV(1.0D0,ABSO(DIV(HAM(1,1),4.0D0)))
+    TAU = DIV(8.D0*PI,ABSO(HAM(1,1)))
+    TAU = DIV(1.D0,ABSO(DIV(HAM(1,1),4.D0)))
     DO M=0,1000
-      t = DBLE(M)*DIV(TAU,1.0D3)
+      t = DBLE(M)*DIV(TAU,1.D3)
       OPEN(12,FILE='PLOT')
       DO K=1,3
         DO J=1,3
-          AR = 0.0D0
-          AI = 0.0d0
+          AR = 0.D0
+          AI = 0.D0
           DO I=1,3
             AR = AR + COSINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i)
             AI = AI + SINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i)
@@ -316,8 +316,8 @@ MODULE Applications
       END DO
 ! |phi_2t> = Sum_i u(2,i)exp(i eps_i t) |psi_i>
 ! <phi_2t| phi_2t> = sum_ij exp(i (eps_i-eps_j)t <psi_j|d|phi_i>*u(2,i)*u(2,j)
-      DR = 0.0D0
-      DI = 0.0D0
+      DR = 0.D0
+      DI = 0.D0
       DO i=1,3
         DO j=1,3
           phs = (HAM(i,i) - HAM(j,j))*t
@@ -325,7 +325,7 @@ MODULE Applications
           DI = DI + SINE(phs)*UMT(2,i)*UMT(2,j)*DIP(i,j)
         END DO
       END DO
-      DIPOLE = SQR(DR*DR + DI*DI)*1.0D3
+      DIPOLE = SQR(DR*DR + DI*DI)*1.D3
       WRITE(*,'(10F12.4)') t,(PRD(K,2),K=1,NBS),DR,DI
       WRITE(12,'(10F12.4)') t,(PRD(K,2),K=1,NBS),DIPOLE
     END DO
@@ -357,10 +357,10 @@ MODULE Applications
     INTEGER :: i, j, k, m, NBS
 
     WRITE(*,*) 'NRLMOL:',DIV(0.36005D0*1.6D-19,6.626D-34)
-    rkmx = 1.0D30
-    rkmn = 0.0D0
-    emax = 1.0D30
-    emin = 0.0D0
+    rkmx = 1.D30
+    rkmn = 0.D0
+    emax = 1.D30
+    emin = 0.D0
     WRITE(*,*) 'WELCOME TO HARMONIC OSCILLATOR DRIVER, EFIELD=?'
     WRITE(*,*) 'HCl Diatomic in and Electric Field' 
     WRITE(*,*) 'Clorine atom has infinite mass'
@@ -376,24 +376,24 @@ MODULE Applications
       WRITE(*,*) 'Guess the spring constant in (Newtons/Meter)'
       WRITE(*,*) 'Guess should be between:',rkmn,' and ',rkmx
       READ(*,*) guess
-      DIP(1,2) = 1.0D-2
+      DIP(1,2) = 1.D-2
       DIP(2,1) = DIP(1,2)
-      OVR = 0.0D0
+      OVR = 0.D0
       DO I=1,2
         DO J=I+1,2
           DIP(J,I) = DIP(I,J)
         END DO
       END DO
       DO I=1,NDH
-        OVR(I,I) = 1.0D13
+        OVR(I,I) = 1.D13
       END DO
-      HAM = 0.0D0
+      HAM = 0.D0
       WRITE(*,'(4G15.6)') guess, hmass, DIV(guess,hmass),SQR(DIV(guess,hmass))
       scale = SQR(DIV(guess,hmass))
-      HAM(1,1) = DIV(0.5D0*SQR(DIV(guess,hmass)),(2.0D0*PI))
-      HAM(2,2) = DIV(1.5D0*SQR(DIV(guess,hmass)),(2.0D0*PI))
-      HAM(1,2) = 0.0D0 !DIP(1,2)
-      HAM(2,1) = 0.0D0 !DIP(2,1)
+      HAM(1,1) = DIV(0.5D0*SQR(DIV(guess,hmass)),(2.D0*PI))
+      HAM(2,2) = DIV(1.5D0*SQR(DIV(guess,hmass)),(2.D0*PI))
+      HAM(1,2) = 0.D0 !DIP(1,2)
+      HAM(2,1) = 0.D0 !DIP(2,1)
       NBS = 2
       DO I=1,NBS
         WRITE(*,*) (HAM(I,J),J=1,NBS)
@@ -442,14 +442,14 @@ MODULE Applications
     WRITE(*,*) (OVR(2,K),K=1,3)
 ! AT TIME=0, OCCUPY THE 2S FUNCTION:
 ! |PHI_K (t) > = SUM_J exp(ie(J) t)* OVR(K,J)|PSI_J> = SUM_JL exp(iEjt)ovr(j,k)*umt(k,l)|PHI_l> !E_j=LAMDA_J
-    TAU = DIV(8.0D0*PI,ABSO(HAM(1,1)))
+    TAU = DIV(8.D0*PI,ABSO(HAM(1,1)))
     DO M=0,1000
-      t = DBLE(M)*DIV(TAU,1.0D3)
+      t = DBLE(M)*DIV(TAU,1.D3)
       OPEN(12,FILE='PLOT')
       DO k=1,3
         DO j=1,3  
-          AR = 0.0D0
-          AI = 0.0D0
+          AR = 0.D0
+          AI = 0.D0
           DO i=1,3
             AR = AR + COSINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i) 
             AI = AI + SINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i) 
@@ -459,8 +459,8 @@ MODULE Applications
       END DO
 !   |phi_2t> = Sum_i u(2,i)exp(i eps_i t) |psi_i>
 !   <phi_2t| phi_2t> = sum_ij exp(i (eps_i-eps_j)t <psi_j|d|phi_i>*u(2,i)*u(2,j)
-      DR = 0.0D0       
-      DI = 0.0D0
+      DR = 0.D0       
+      DI = 0.D0
       DO i=1,3
         DO j=1,3
           phs = (HAM(i,i) - HAM(j,j))*t
@@ -468,7 +468,7 @@ MODULE Applications
           DI = DI + SINE(phs)*UMT(2,i)*UMT(2,j)*DIP(i,j) 
         END DO
       END DO
-      DIPOLE = SQR(DR*DR + DI*DI)*1.0D3
+      DIPOLE = SQR(DR*DR + DI*DI)*1.D3
       WRITE(*,'(10F12.4)') t,(PRD(K,2),K=1,NBS),DR,DI             
       WRITE(12,'(10F12.4)') t,(PRD(K,2),K=1,NBS),DIPOLE               
     END DO

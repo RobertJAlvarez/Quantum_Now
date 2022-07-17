@@ -24,14 +24,14 @@ MODULE FortranFunctions
 
     N = NN
     D = DD
-    FMOD = 1.0D0  !Save a factor of 1 or -1
+    FMOD = 1.D0  !Save a factor of 1 or -1
 
     !Make N and D positive
-    IF (N < 0.0D0) THEN
+    IF (N < 0.D0) THEN
       N = -N
       FMOD = -FMOD
     END IF
-    IF (D < 0.0D0) THEN
+    IF (D < 0.D0) THEN
       D = -D
       FMOD = -FMOD
     END IF
@@ -48,8 +48,8 @@ MODULE FortranFunctions
     IMPLICIT NONE
     REAL(DBL), INTENT(IN) :: num
 
-    ABSO = num
-    IF (num < 0.0D0) ABSO = -ABSO
+    ABSO = num  !Assume num is positive
+    IF (num < 0.D0) ABSO = -ABSO
   END FUNCTION ABSO
 
   !Last modification: Jun 20th, 2022
@@ -57,14 +57,13 @@ MODULE FortranFunctions
   REAL(DBL) FUNCTION DIV(NN,DD) !Goldschmidt division, return N/D
     IMPLICIT NONE
     REAL(DBL), INTENT(IN) :: NN, DD !NN = numerator, DD = denominator
-    REAL(DBL) :: F,N,D
+    REAL(DBL) :: F, N, D
 
     !Stop if denominator is 0
-    IF (ABSO(DD) < 1.0D-15) THEN
-      STOP "Can't divide by 0"
-    END IF
+    IF (ABSO(DD) < 1.D-15) STOP "Can't divide by 0"
 
-    IF (DD < 0.0D0) THEN  !If DD < 0 multiply D and N by -1 so D > 0
+    !If DD < 0 multiply D and N by -1 so D > 0
+    IF (DD < 0.D0) THEN
       N = -NN
       D = -DD
     ELSE
@@ -72,22 +71,32 @@ MODULE FortranFunctions
       D = DD
     END IF
 
-    DO WHILE(D > 1.0D0)   !Scale N and D so 0<D<1
+    DO WHILE(D > 1.D0)   !Scale N and D so 0<D<1
       N = N*0.1D0
       D = D*0.1D0
     END DO
 
-    DO WHILE(D + 1.0D-15 <= 1.0D0) !Make D = 1
-      IF (D <= 0.1D0) THEN
-        F = 10.0D0
-      ELSE
-        F = 2.0D0 - D
-      END IF
+    DO WHILE(D + 1.D-15 <= 1.D0) !Make D = 1
+      F = 2.D0 - D
       N = N*F
       D = D*F
     END DO
     DIV = N
   END FUNCTION DIV
+
+  !Last modification: July 15th, 2022
+  !  Algorithm simplification
+  REAL(DBL) FUNCTION SQR(num) RESULT(xn)
+    IMPLICIT NONE
+    REAL(DBL), INTENT(IN) :: num
+    INTEGER :: i
+
+    xn = 1.D0
+
+    DO i=1, 10
+      xn = xn + DIV(num - xn*xn, 2.D0*xn)
+    END DO
+  END FUNCTION SQR
 
 !Bhaskara approx: temp = (PI-x)*x
 !                 sin(x) = (16*temp) / (5*PI*PI - 4*temp)
@@ -108,15 +117,14 @@ MODULE FortranFunctions
     x = FMOD(ABSO(num),PI)
 
     temp = DIV(x,PI)
-    temp = temp*(temp - 1.0D0)
-    SINE = temp*(2.21652D0*(temp - DIV(31.0D0,36.0D0)) - DIV(1.5372D0,1.25D0 + temp))
+    temp = temp*(temp - 1.D0)
+    SINE = temp*(2.21652D0*(temp - DIV(31.D0,36.D0)) - DIV(1.5372D0,1.25D0 + temp)) + 2.563D-5
 
-    !Adjust for negative angles and shift the graph down by 2.6D-5
-    SINE = SINE + 2.6D-5
-    IF (num > 0.0D0) THEN
-      IF (FMOD(num,2.0D0*PI) > PI) SINE = -SINE
+    !Adjust for negative angles
+    IF (num > 0.D0) THEN
+      IF (FMOD(num,2.D0*PI) > PI) SINE = -SINE
     ELSE
-      IF (FMOD(num,2.0D0*PI) > -PI) SINE = -SINE
+      IF (FMOD(num,2.D0*PI) > -PI) SINE = -SINE
     END IF
   END FUNCTION SINE
 
@@ -126,20 +134,6 @@ MODULE FortranFunctions
     IMPLICIT NONE
     REAL(DBL), INTENT(IN) :: num
 
-    COSINE = SINE(DIV(PI,2.0D0) - num)
+    COSINE = SINE(DIV(PI,2.D0) - num)
   END FUNCTION COSINE
-
-  !Last modification: July 15th, 2022
-  !  Algorithm simplification
-  REAL(DBL) FUNCTION SQR(num) RESULT(xn)
-    IMPLICIT NONE
-    REAL(DBL), INTENT(IN) :: num
-    INTEGER :: i
-
-    xn = 1.0D0
-
-    DO i=1, 10
-      xn = xn + DIV(num - xn*xn, 2.0D0*xn)
-    END DO
-  END FUNCTION SQR
 END MODULE FortranFunctions
