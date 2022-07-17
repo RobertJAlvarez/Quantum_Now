@@ -1,7 +1,7 @@
 from PythonFunctions import PI, MOD, DIV, SQR, SINE
 from retireFunctions import Class_DIV
 from ArrayFunctions import INVERSE
-from math import sin
+from math import sin, sqrt
 from time import time
 from random import random, uniform
 
