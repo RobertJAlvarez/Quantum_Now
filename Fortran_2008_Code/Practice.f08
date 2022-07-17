@@ -18,7 +18,7 @@ MODULE Practice
     INTEGER :: i, j, k, l, iTry
 
     A = O(1,1)*O(2,2) - O(1,2)*O(2,1)
-    IF (A .LT. 0.0D0) THEN
+    IF (A .LT. 0.D0) THEN
       WRITE(*,*) 'Non positive overlap matrix'
       STOP
     END IF
@@ -28,7 +28,7 @@ MODULE Practice
     C = H(1,1)*H(2,2) - H(1,2)*H(2,1)
 
     TRC = -B/A                    !DIV(-B,A)
-    RAD = SQRT(B*B - 4.0D0*A*C)/A !DIV(SQR(B*B - 4.0D0*A*C),A)
+    RAD = SQRT(B*B - 4.D0*A*C)/A !DIV(SQR(B*B - 4.D0*A*C),A)
 
     E(1) = (0.5D0)*(TRC + RAD)
     E(2) = (0.5D0)*(TRC - RAD)
@@ -57,7 +57,7 @@ MODULE Practice
 
       DO i=1, 2
         DO j=1, 2
-          D(i,j) = 0.0D0
+          D(i,j) = 0.D0
           DO k=1, 2
             DO l=1, 2
               IF (iTry .LE. 2) THEN
@@ -89,7 +89,7 @@ MODULE Practice
     REAL(DBL) :: dot, trc, rad
     INTEGER :: i
 
-    rad = SQRT((H(1,1) - H(2,2))*(H(1,1) - H(2,2)) + 4.0D0*H(1,2)*H(2,1))
+    rad = SQRT((H(1,1) - H(2,2))*(H(1,1) - H(2,2)) + 4.D0*H(1,2)*H(2,1))
     trc = H(1,1) + H(2,2)
     E(1) = (0.5D0)*(trc+rad)
     E(2) = (0.5D0)*(trc-rad)
@@ -118,16 +118,16 @@ MODULE Practice
     REAL(DBL) :: G, X, P, TXR
     INTEGER :: i, j, NBS
 
-    G = -1.0D0  !Ground
+    G = -1.D0  !Ground
     X = -0.5D0  !Exited
     P =  0.1D0  !Perturbation
     TXR = 0.2D0 !Transfer
 
-    OVR = 0.0D0
-    HAM = 0.0D0
+    OVR = 0.D0
+    HAM = 0.D0
 
     DO i=1,NDH
-      OVR(i,i) = 1.0D0
+      OVR(i,i) = 1.D0
     END DO
 
     HAM(1,1) = G
@@ -182,9 +182,9 @@ MODULE Practice
       STOP
     END IF
 
-    UMT = 0.0D0
+    UMT = 0.D0
     DO i=1, NBS
-      UMT(i,i) = 1.0D0
+      UMT(i,i) = 1.D0
     END DO
 
     PRD = HAM
@@ -192,11 +192,11 @@ MODULE Practice
 
     DO iTry = 1, MXIT
       n = 0
-      ERRPREV = 0.0D0
+      ERRPREV = 0.D0
       DO i=1, NDH
         DO j=i+1, NDH
           ERRPREV = ERRPREV + PRD(i,j)*PRD(j,i)
-          IF (ABSO(PRD(i,j)) .GT. 1.0D-10) THEN ! Save all indices that have values in PRD that are greater than 0
+          IF (ABSO(PRD(i,j)) .GT. 1.D-10) THEN ! Save all indices that have values in PRD that are greater than 0
             n = n + 1
             idxAll(1,n) = i
             idxAll(2,n) = j
@@ -251,9 +251,9 @@ MODULE Practice
 !        WRITE(*,*) E(i), (O(i,j),j=1,2)
 !      END DO
 
-      SPC = 0.0D0
+      SPC = 0.D0
       DO i=1, NBS
-        SPC(i,i) = 1.0D0
+        SPC(i,i) = 1.D0
       END DO
 
       SPC(k,k) = O(1,1)
@@ -262,7 +262,7 @@ MODULE Practice
       SPC(k,l) = O(1,2)
 
       !Get new unitary matrix
-      PRD = 0.0D0
+      PRD = 0.D0
       DO m=1, NBS
         IF (m .NE. k .AND. m .NE. l) THEN
           DO n=1, NBS
@@ -281,14 +281,14 @@ MODULE Practice
       UMT = PRD
       DO i=1, NBS
         DO k=1, NBS
-          SPC(k,i) = 0.0D0
+          SPC(k,i) = 0.D0
           DO l=1, NBS
             SPC(k,i) = SPC(k,i) + UMT(l,i)*HAM(l,k) !l,k better than k,l base on memory allocation
           END DO
         END DO
       END DO
 
-      PRD = 0.0D0
+      PRD = 0.D0
 
       !Make new HAM
       DO i=1, NBS
@@ -299,7 +299,7 @@ MODULE Practice
         END DO
       END DO
 
-      ERRNW = 0.0D0
+      ERRNW = 0.D0
       DO i=1,NBS
         DO j=i+1, NBS
           ERRNW = ERRNW + PRD(i,j)*PRD(j,i)
@@ -309,7 +309,7 @@ MODULE Practice
       WRITE(*,30) iTry, ERRNW, ERRPREV
       30 FORMAT(I3, 3G15.6)
 
-      IF (ERRNW .LT. 1.0D-12) EXIT
+      IF (ERRNW .LT. 1.D-12) EXIT
     END DO
 
     IF (iTry == MXIT) THEN

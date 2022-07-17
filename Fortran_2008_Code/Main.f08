@@ -48,27 +48,27 @@ PROGRAM Main
       DO i=1, ND
         DO j=i, ND
           HAM(i,j) = rand() - 0.5D0
-          OVR(i,j) = 0.3D0*(rand() - 0.0D0)
+          OVR(i,j) = 0.3D0*(rand() - 0.D0)
           HAM(j,i) = HAM(i,j)
           OVR(j,i) = OVR(i,j)
         END DO
-        HAM(i,i) = 5.0D0*HAM(i,i)
-        OVR(i,i) = 1.0D0 + rand()
+        HAM(i,i) = 5.D0*HAM(i,i)
+        OVR(i,i) = 1.D0 + rand()
         WRITE(*,'(12F10.3)') (OVR(i,j),j=1,ND)
       END DO
 
       DO i=1, ND
         DO j=1, ND
-          EVC(i,j) = 0.0D0
+          EVC(i,j) = 0.D0
         END DO
-        EVC(i,i) = 1.0D0
+        EVC(i,i) = 1.D0
       END DO
 
       DO ITRY=1, 100
         DO i=1, ND
           DO j=i+1, ND
-            H = 0.0D0
-            O = 0.0D0
+            H = 0.D0
+            O = 0.D0
             DO k=1, ND
               DO l=1, ND
                 H(1,1) = H(1,1) + EVC(k,i)*EVC(l,i)*HAM(k,l)
@@ -84,9 +84,9 @@ PROGRAM Main
 
             CALL JAC2BY2GEN(H,O,V,E)
 
-            UPD = 0.0D0
+            UPD = 0.D0
             DO k=1, ND
-              UPD(k,k) = 1.0D0
+              UPD(k,k) = 1.D0
             END DO
 
             UPD(i,i) = V(1,1)
@@ -97,7 +97,7 @@ PROGRAM Main
             ! RST1(l,k) = V1_ml HAM(m,n) V1_nk
             ! RST2(q,p) = V2_lq RST!(l,k) V2_kp = V1_ml V2_lq [Hmn V1_nk V2_kp]_np
             ! V2_ji V1i
-            TST = 0.0D0
+            TST = 0.D0
             DO in=1,ND
               DO ip=1,ND
                 DO k=1, ND
@@ -112,7 +112,7 @@ PROGRAM Main
               IF (ITST == 2) TST = HAM
               DO k=1, ND
                 DO l=1, ND
-                  RST(l,k) = 0.0D0
+                  RST(l,k) = 0.D0
                   DO m=1, ND
                     DO n=1, ND
                       RST(l,k) = RST(l,k) + EVC(m,k)*EVC(n,l)*TST(m,n)
@@ -121,7 +121,7 @@ PROGRAM Main
                 END DO
                 WRITE(*,'(12F10.3)') (RST(l,k),l=1,ND)
               END DO
-              ERR = 0.0D0
+              ERR = 0.D0
               DO m=1, ND
                 DO n=m+1,ND
                   ERR = ERR + RST(m,n)*RST(n,m)
