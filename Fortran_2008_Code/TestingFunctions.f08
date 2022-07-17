@@ -8,9 +8,9 @@
 !
 PROGRAM testing_func
   USE FortranFunctions, ONLY: PI, DBL, FMOD, DIV, SINE, COSINE
-  USE retireFunctions, ONLY: Class_DIV
-  USE ArrayFunctions
-  USE Applications
+  !USE retireFunctions, ONLY: Class_DIV, Class_DIAGNxN
+  USE ArrayFunctions, ONLY: INVERSE, J2x2, JAC2BY2GEN, DIAGNxN, LEASTSQUARE
+  USE Applications, ONLY: STARKDVR, RINGDVR, HMODVR, BOXDVR
   IMPLICIT NONE
 
   INTEGER :: input
@@ -19,7 +19,8 @@ PROGRAM testing_func
     WRITE(*,*)
     WRITE(*,*) 'You can test for:'
     WRITE(*,*) 'FortranFunctions: 1. modulus, 2. division, 3. sine'
-    WRITE(*,*) 'ArrayFUnctions: 4. Inverse '
+    WRITE(*,*) 'ArrayFunctions: 4. Inverse, 5. J2x2, 6. JAC2BY2GEN, 7. DIAGNxN, 8. LEASTSQUARE '
+    WRITE(*,*) '9. STARKDVR, 10. RINGDVR, 11. BOXDVR, 12. HMODVR'
     WRITE(*,*) 'Anything else to exit'
     READ(*,*) input
     IF (input == 1) THEN
@@ -30,6 +31,22 @@ PROGRAM testing_func
       CALL trigTest()
     ELSE IF (input == 4) THEN
       CALL inverseTest()
+    ELSE IF (input == 5) THEN
+      CALL J2x2_test()
+    ELSE IF (input == 6) THEN
+      CALL gen_J2x2_test()
+    ELSE IF (input == 7) THEN
+      CALL DIAGDVR()
+    ELSE IF (input == 8) THEN
+      CALL LSA_test()
+    ELSE IF (input == 9) THEN
+      CALL STARKDVR()
+    ELSE IF (input == 10) THEN
+      CALL RINGDVR()
+    ELSE IF (input == 11) THEN
+      CALL BOXDVR()
+    ELSE IF (input == 12) THEN
+      CALL HMODVR()
     ELSE
       WRITE(*,*) 'Have a nice day:)'
       EXIT
@@ -37,29 +54,21 @@ PROGRAM testing_func
   END DO
 
   CONTAINS
-
-  ! Read arbitrary size matrix values from keyboard and send matrix to get inverted
-  SUBROUTINE inverseTest()
+!
+! Extra functions
+!
+  !Get current time
+  REAL(DBL) FUNCTION GetTime()
     IMPLICIT NONE
-    
-    REAL(DBL), ALLOCATABLE :: A(:,:), B(:,:), nums(:)
-    INTEGER :: i, n
 
-    WRITE(*,*) 'What is the size of the matrix?'
-    READ(*,*) n
+    INTEGER i, timer_count_rate, timer_count_max
+    CALL SYSTEM_CLOCK(i, timer_count_rate, timer_count_max)
+    GetTime = DBLE(i) / DBLE(timer_count_rate)
+  END FUNCTION GetTime
 
-    ALLOCATE(A(n,n), B(n,n), nums(n))
-
-    DO i=1,n
-      10 FORMAT (A,I2,A,I2)
-      WRITE(*,10) 'Enter ',n,' numbers for row ',i
-      READ(*,*) nums(:)
-      A(i,:) = nums
-    END DO
-
-    B = INVERSE(A)
-  END SUBROUTINE
-
+!
+! FortranFunctions.f08
+!
   !Generate 10000 different numerator values from -720 to 720 and compare
   !modulus operation with a denominator of PI and test if value is correct
   SUBROUTINE modulus_test
@@ -93,30 +102,30 @@ PROGRAM testing_func
 
     PROCEDURE(DIV), POINTER :: p
     REAL(DBL), DIMENSION(10) :: factor1, factor2, factor3
-    INTEGER :: i, j
+    INTEGER :: i!, j
 
     factor1 = [1.D-1,1.D-2,1.D-3,1.D-4,1.D-5,1.D-6,1.D-7,1.D-8,1.D-9,1.D-10]
     factor2 = [0.15D0,0.2D0,0.3D0,0.4D0,0.5D0,0.55D0,0.6D0,0.7D0,0.8D0,0.85D0]
     factor3 = [1.D1,5.D1,1.D2,5.D2,1.D3,5.D3,1.D4,5.D4,1.D5,1.D5]
 
     DO i=1,3
-      DO j=1,2
+!      DO j=1,2
         WRITE(*,*)
-        SELECT CASE (j)
-        CASE (1)
-          p => Class_DIV
-          SELECT CASE (i)
-          CASE (1)
-            WRITE(*,*) 'Function: Class_DIV - range 0.0 < D < 0.1'
-            CALL auto_div(p, factor1, 0.1, 1.0)
-          CASE (2)
-            WRITE(*,*) 'Function: Class_DIV - range 0.1 < D < 1.0'
-            CALL auto_div(p, factor2, 0.0, 0.1)
-          CASE (3)
-            WRITE(*,*) 'Function: Class_DIV - range 1.0 < D < 100000.0'
-            CALL auto_div(p, factor3, 0.0, 1.0)
-          END SELECT
-        CASE (2)
+!        SELECT CASE (j)
+!        CASE (1)
+!          p => Class_DIV
+!          SELECT CASE (i)
+!          CASE (1)
+!            WRITE(*,*) 'Function: Class_DIV - range 0.0 < D < 0.1'
+!            CALL auto_div(p, factor1, 0.1, 1.0)
+!          CASE (2)
+!            WRITE(*,*) 'Function: Class_DIV - range 0.1 < D < 1.0'
+!            CALL auto_div(p, factor2, 0.0, 0.1)
+!          CASE (3)
+!            WRITE(*,*) 'Function: Class_DIV - range 1.0 < D < 100000.0'
+!            CALL auto_div(p, factor3, 0.0, 1.0)
+!          END SELECT
+!        CASE (2)
           p => DIV
           SELECT CASE (i)
           CASE (1)
@@ -129,8 +138,8 @@ PROGRAM testing_func
             WRITE(*,*) 'Function: DIV - range 1.0 < D < 100000.0'
             CALL auto_div(p, factor3, 0.0, 1.0)
           END SELECT
-        END SELECT
-      END DO
+!        END SELECT
+!      END DO
     END DO
   END SUBROUTINE div_comp
 
@@ -204,13 +213,92 @@ PROGRAM testing_func
     END IF
   END SUBROUTINE newAngle
 
-  !Get current time
-  REAL(DBL) FUNCTION GetTime()
+!
+! ArrayFunctions.f08
+!
+  ! Read arbitrary size matrix values from keyboard and send matrix to get inverted
+  SUBROUTINE inverseTest()
     IMPLICIT NONE
+    
+    REAL(DBL), ALLOCATABLE :: A(:,:), B(:,:), nums(:)
+    INTEGER :: i, n
 
-    INTEGER i, timer_count_rate, timer_count_max
-    CALL SYSTEM_CLOCK(i, timer_count_rate, timer_count_max)
-    GetTime = DBLE(i) / DBLE(timer_count_rate)
-  END FUNCTION GetTime
+    WRITE(*,*) 'What is the size of the matrix?'
+    READ(*,*) n
+
+    ALLOCATE(A(n,n), B(n,n), nums(n))
+
+    DO i=1,n
+      10 FORMAT (A,I2,A,I2)
+      WRITE(*,10) 'Enter ',n,' numbers for row ',i
+      READ(*,*) nums(:)
+      A(i,:) = nums
+    END DO
+
+    B = INVERSE(A)
+  END SUBROUTINE
+
+  SUBROUTINE J2x2_test()
+    IMPLICIT NONE
+    !
+  END SUBROUTINE J2x2_test
+ 
+  SUBROUTINE gen_J2x2_test()
+    IMPLICIT NONE
+    !
+  END SUBROUTINE gen_J2x2_test
+
+  SUBROUTINE DIAGDVR()  !Diag driver
+    IMPLICIT NONE
+    INTEGER, PARAMETER :: NDH = 10
+    REAL(DBL) :: HAM(NDH,NDH)  !Hamiltonian
+    REAL(DBL) :: UMT(NDH,NDH)  !Unitary matrix
+    REAL(DBL) :: PRD(NDH,NDH)  !Product
+
+    REAL(DBL) :: G, X, P, TXR
+    INTEGER :: i, j, NBS
+
+    G = -1.D0   !Ground
+    X = -0.5D0  !Exited
+    P =  0.1D0  !Perturbation
+    TXR = 0.2D0 !Transfer
+    HAM = 0.D0
+
+    HAM(1,1) = G
+    HAM(2,2) = X
+    HAM(3,3) = X
+    HAM(4,4) = G
+    HAM(5,5) = X
+    HAM(6,6) = X
+    HAM(7,7) = G
+
+    HAM(1,2) = P
+    HAM(2,3) = TXR
+    HAM(3,4) = P
+    HAM(4,5) = P
+    HAM(5,6) = TXR
+    HAM(6,7) = P
+
+    NBS = 7
+
+    DO i=1, NBS
+      DO j=i, NBS
+        HAM(j,i) = HAM(i,j)
+      END DO
+      WRITE(*,'(10F7.2)') (HAM(i,j),j=1,NBS)
+    END DO
+
+    CALL DIAGNxN(NDH, NBS, HAM, UMT, PRD)
+
+    WRITE(*,*) 'Updated Hamiltonian:'
+    DO i=1,NBS
+      WRITE(*,'(10F12.4)') (HAM(j,i), j=1,NBS)
+    END DO
+  END SUBROUTINE DIAGDVR
+
+  SUBROUTINE LSA_test()
+    IMPLICIT NONE
+    !
+  END SUBROUTINE
 END PROGRAM testing_func
 

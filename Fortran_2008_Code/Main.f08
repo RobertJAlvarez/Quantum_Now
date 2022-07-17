@@ -1,6 +1,6 @@
 PROGRAM Main
-  USE Applications, ONLY: STARKDVR, RINGDVR, HMODVR, BOXDVR
   USE ArrayFunction, ONLY: JAC2BY2GEN
+  USE Applications, ONLY: STARKDVR, RINGDVR, HMODVR, BOXDVR
   IMPLICIT NONE
 
   INTEGER :: OPT
@@ -41,8 +41,8 @@ PROGRAM Main
     READ(*,*) ND
 
     BLOCK
-      REAL*8, DIMENSION(ND,ND) :: HAM, OVR, EVC, TST, RST, UPD
-      REAL*8 :: ERR
+      REAL(DBL), DIMENSION(ND,ND) :: HAM, OVR, EVC, TST, RST, UPD
+      REAL(DBL) :: ERR
       INTEGER :: i,j, k, l, m, n, ITST, ITRY, in, ip
  
       DO i=1, ND
