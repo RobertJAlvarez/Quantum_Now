@@ -130,13 +130,13 @@ PROGRAM testing_func
           SELECT CASE (i)
           CASE (1)
             WRITE(*,*) 'Function: DIV - range 0.0 < D < 0.1'
-            CALL auto_div(p, factor1, 0.1, 1.0)
+            CALL auto_div(p, factor1, 0.D0, 0.1D0,i)
           CASE (2)
             WRITE(*,*) 'Function: DIV - range 0.1 < D < 1.0'
-            CALL auto_div(p, factor2, 0.0, 0.1)
+            CALL auto_div(p, factor2, 0.1D0, 1.D0,i)
           CASE (3)
             WRITE(*,*) 'Function: DIV - range 1.0 < D < 100000.0'
-            CALL auto_div(p, factor3, 0.0, 1.0)
+            CALL auto_div(p, factor3, 1.D0, 1.D5,i)
           END SELECT
 !        END SELECT
 !      END DO
@@ -145,12 +145,13 @@ PROGRAM testing_func
 
   !Perform a division between a random numerator and denominator number in the intervals
   !between low_b and up+b using the P_DIV function which could be Class_DIV or DIV
-  SUBROUTINE auto_div(P_DIV, factor, low_b, up_b)
+  SUBROUTINE auto_div(P_DIV, factor, low_b, up_b, n_case)
     IMPLICIT NONE
 
     PROCEDURE(DIV), POINTER, INTENT(IN) :: P_DIV
     REAL(DBL), INTENT(IN) :: factor(:)
-    REAL, INTENT(IN) :: low_b, up_b
+    REAL(DBL), INTENT(IN) :: low_b, up_b
+    INTEGER, INTENT(IN) :: n_case
 
     INTEGER :: i, j, nTimes
     REAL(DBL) :: N, D, t, error
@@ -164,10 +165,15 @@ PROGRAM testing_func
       CALL RANDOM_NUMBER(N)
       CALL RANDOM_NUMBER(D)
 
-      IF (DBLE(low_b) < D .AND. D < DBLE(up_b)) THEN
-        IF (low_b == 0.1 .AND. up_b == 1.0) D = D*factor(j)
-        IF (low_b == 0.0 .AND. up_b == 0.1) D = D+factor(j)
-        IF (low_b == 0.0 .AND. up_b == 1.0) D = (D+1.D0)*factor(j)
+      IF (DBLE(low_b) < D .OR. D > DBLE(up_b)) THEN
+        SELECT CASE(n_case)
+        CASE (1)
+          D = D*factor(j)
+        CASE (2)
+          D = D + factor(j)
+        CASE (3)
+          D = (D+1.D0)*factor(j)
+        END SELECT
         j = j + 1
         IF (j >= 11) j=1
       END IF
