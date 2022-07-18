@@ -1,5 +1,6 @@
 PROGRAM Main
-  USE ArrayFunction, ONLY: JAC2BY2GEN
+  USE FortranFunctions, ONLY: DBL, FMOD, DIV, SINE, COSINE
+  USE ArrayFunctions, ONLY: JAC2BY2GEN
   USE Applications, ONLY: STARKDVR, RINGDVR, HMODVR, BOXDVR
   IMPLICIT NONE
 
@@ -24,7 +25,7 @@ PROGRAM Main
     END IF
   END DO
 
-!  CALL SOLVEGEN()
+  CALL SOLVEGEN()
 
   CONTAINS
  
@@ -47,13 +48,13 @@ PROGRAM Main
  
       DO i=1, ND
         DO j=i, ND
-          HAM(i,j) = rand() - 0.5D0
-          OVR(i,j) = 0.3D0*(rand() - 0.D0)
+          HAM(i,j) = DBLE(rand()) - 0.5D0
+          OVR(i,j) = 0.3D0*(DBLE(rand()) - 0.D0)
           HAM(j,i) = HAM(i,j)
           OVR(j,i) = OVR(i,j)
         END DO
         HAM(i,i) = 5.D0*HAM(i,i)
-        OVR(i,i) = 1.D0 + rand()
+        OVR(i,i) = 1.D0 + DBLE(rand())
         WRITE(*,'(12F10.3)') (OVR(i,j),j=1,ND)
       END DO
 

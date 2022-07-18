@@ -54,9 +54,7 @@ MODULE ArrayFunctions
       END DO
 
       TMAX = A(k,i)
-      IF (TMAX == 0.D0) THEN
-        STOP 'A row is linearly dependent of one or more other rows'
-      END IF
+      IF (TMAX < 1.D-15) STOP 'A row is linearly dependent of one or more other rows'
 
       !Swap row with highest value in column i
       IF (k /= i) THEN
@@ -286,7 +284,7 @@ MODULE ArrayFunctions
     INTEGER :: i, j, k, l, m, n, idxSize
     INTEGER :: iTry, MXIT
 
-    IF (NBS > NDH) THEN
+    IF (NBS > NDH) THEN 
       WRITE(*,*) 'NDH must be larger than ', NBS
       STOP
     END IF
