@@ -1,6 +1,6 @@
 from PythonFunctions import PI, MOD, DIV, SQR, SINE
 from retireFunctions import Class_DIV
-from ArrayFunctions import INVERSE, J2x2, JAC2BY2GEN, DIAGNxN, LEASTSQUARE
+from ArrayFunctions import INVERSE, J2x2, JAC2BY2GEN, DIAGNxN, LEASTSQUARE, print_matrix
 from Applications import STARKDVR, RINGDVR, HMODVR, BOXDVR
 from math import sin, sqrt
 from time import time

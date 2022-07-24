@@ -1,12 +1,12 @@
 from PythonFunctions import *
 from sys import exit
-from copy import deepcopy
 
 """
 Author: Robert Alvarez
 Date:   July 11th, 2022
 """
 
+Vector = list[float]
 Matrix = list[list[float]]
 
 def print_matrix(X: Matrix) -> None:
@@ -17,13 +17,9 @@ def print_matrix(X: Matrix) -> None:
 
 def INVERSE(AA: Matrix) -> Matrix:
   n = len(AA)
-  A = [[0.]*(2*n) for _ in range(n)]
-  CC = [[0.]*n for _ in range(n)]
 
   # Copy matrix AA in first n columns and an identity matrix after it
-  for i in range(n):
-    A[i][i+n] = 1.
-    A[i][:n] = deepcopy(AA[i][:n])
+  A = [[num for num in row]+[1 if i == j else 0 for j in range(n)] for i,row in enumerate(AA)]
   print('\nMatrix A:')
   print_matrix(A)
 
@@ -58,13 +54,12 @@ def INVERSE(AA: Matrix) -> Matrix:
           A[j][k] -= temp*A[i][k]
 
   # Copy inverse matrix
-  BB = [[0.]*n for _ in range(n)]
-  for i in range(n):
-    BB[i][:n] = deepcopy(A[i][n:2*n])
+  BB = [[num for num in row[n:]] for row in A]
   print('\nInvert matrix:')
   print_matrix(BB)
 
-  # Dot product between AA and BB is the identity matrix
+  # Multiplication of A and A inverse = identity matrix
+  CC = [[0.]*n for _ in range(n)]
   for i in range(n):
     for j in range(n):
       for k in range(n):
@@ -99,16 +94,68 @@ def J2x2(H: Matrix, E: Matrix, O: Matrix) -> None:
     O[2][i] = DIV(O[2][i],dot)
   pass
 
-def JAC2BY2GEN():
+def JAC2BY2GEN(H: Matrix, O: Matrix, V: Matrix, E: Vector) -> None:
+  #
+  T = [[0.]*2 for _ in range(2)]
+  D = [[0.]*2 for _ in range(2)]
+  
+  A = O(1,1)*O(2,2) - O(1,2)*(2,1)
+  if A < 1.E-15:
+    exit('Non positive overlap matrix')
+
+  B = -( H(1,1)*O(2,2) - O(1,2)*H(2,1) + O(1,1)*H(2,2) - H(1,2)*O(2,1) )
+  C = H(1,1)*H(2,2) - H(1,2)*H(2,1)
+
+  trc = DIV(-B,A)
+  rad = DIV(SQR(B*B - 4.*A*C),A)
+
+  E[1] = 0.5*(trc + rad)
+  E[2] = 0.5*(trc - rad)
+
+  print("Eigenvalues: {0:14.7e} {0:14.7e}".format(E[1],E[2]))
+
+  #Calculate eigenvectors
+  #
+
   pass
 
 def DIAGDVR():
   pass
 
-def sort():
-  pass
+def SortIdex(mtx: Matrix, PRD: Matrix) -> None:
+  if len(mtx[0]) > 1:
+    mid = len(mtx[0])//2  #Find middle of columns
 
-def MergeIdx():
+    L = [[num for num in row[:mid]] for row in mtx]
+    R = [[num for num in row[mid:]] for row in mtx]
+
+    SortIdex(L, PRD)  #Sort first half
+    SortIdex(R, PRD)  #Sort second half
+
+    i = j = k = 0
+
+    while i < len(L[0]) and j < len(R[0]):
+      if ABS(PRD[L[0][i],L[1][i]]) > ABS(PRD[R[0][j],R[1][j]]):
+        mtx[0][k] = L[0][i]
+        mtx[1][k] = L[1][i]
+        i += 1
+      else:
+        mtx[0][k] = R[0][j]
+        mtx[1][k] = R[1][j]
+        j += 1
+      k += 1
+
+    while i < len(L[0]):
+        mtx[0][k] = L[0][i]
+        mtx[1][k] = L[1][i]
+        i += 1
+        k += 1
+
+    while j < len(L[0]):
+        mtx[0][k] = R[0][j]
+        mtx[1][k] = R[1][j]
+        j += 1
+        k += 1
   pass
 
 def DIAGNxN():
