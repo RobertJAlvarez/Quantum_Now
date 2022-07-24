@@ -41,7 +41,7 @@ MODULE ArrayFunctions
     WRITE(fmt_mt, '( "(",I2,"ES17.8E3))" )' ) 2*n
     WRITE(*,fmt_mt) (A(i,1:2*n), i=1,n)
 
-    !Find invert matrix
+    !Find invert matrix using Gaussian eliminaiton
     DO i=1, n
       !Find largest value of column i
       TMAX = ABSO(A(i,i))

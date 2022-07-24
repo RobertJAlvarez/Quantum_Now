@@ -56,10 +56,10 @@ MODULE FortranFunctions
 
   !Last modification: Jun 20th, 2022
   !  Simplification on coping NN and DD
-  REAL(DBL) FUNCTION DIV(NN,DD) !Goldschmidt division, return N/D
+  REAL(DBL) FUNCTION DIV(NN,DD) RESULT(N) !Goldschmidt division, return N/D
     IMPLICIT NONE
     REAL(DBL), INTENT(IN) :: NN, DD !NN = numerator, DD = denominator
-    REAL(DBL) :: F, N, D
+    REAL(DBL) :: F, D
 
     !Stop if denominator is 0
     IF (ABSO(DD) < 1.D-15) STOP "Can't divide by 0"
@@ -83,7 +83,6 @@ MODULE FortranFunctions
       N = N*F
       D = D*F
     END DO
-    DIV = N
   END FUNCTION DIV
 
   !Last modification: July 15th, 2022
@@ -136,6 +135,6 @@ MODULE FortranFunctions
     IMPLICIT NONE
     REAL(DBL), INTENT(IN) :: num
 
-    COSINE = SINE(DIV(PI,2.D0) - num)
+    COSINE = SINE(0.5D0*PI - num)
   END FUNCTION COSINE
 END MODULE FortranFunctions

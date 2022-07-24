@@ -1,13 +1,13 @@
-! @file TestingFunctions.f08
-! @brief A tester driver
+! file:   TestingFunctions.f08
+! brief:  A tester driver
 ! 
 ! This contains the basics to test every function/subroutine used by the Quantum Now software
 !
-! @author Robert Alvarez
-! @bug No known bugs
+! author: Robert Alvarez
+! bug:    No known bugs
 !
 PROGRAM testing_func
-  USE FortranFunctions, ONLY: PI, DBL, FMOD, DIV, SINE, COSINE
+  USE FortranFunctions, ONLY: PI, DBL, FMOD, DIV, SINE
   !USE retireFunctions, ONLY: Class_DIV, Class_DIAGNxN
   USE ArrayFunctions, ONLY: INVERSE, J2x2, JAC2BY2GEN, DIAGNxN, LEASTSQUARE
   USE Applications, ONLY: STARKDVR, RINGDVR, HMODVR, BOXDVR
@@ -20,37 +20,39 @@ PROGRAM testing_func
     WRITE(*,*) 'You can test for:'
     WRITE(*,*) 'FortranFunctions: 1. modulus, 2. division, 3. sine'
     WRITE(*,*) 'ArrayFunctions: 4. Inverse, 5. J2x2, 6. JAC2BY2GEN, 7. DIAGNxN, 8. LEASTSQUARE '
-    WRITE(*,*) '9. STARKDVR, 10. RINGDVR, 11. BOXDVR, 12. HMODVR'
+    WRITE(*,*) 'Applications: 9. STARKDVR, 10. RINGDVR, 11. BOXDVR, 12. HMODVR'
     WRITE(*,*) 'Anything else to exit'
     READ(*,*) input
-    IF (input == 1) THEN
+ 
+    SELECT CASE (input)
+    CASE (1)
       CALL modulus_test()
-    ELSE IF (input == 2) THEN
+    CASE (2)
       CALL div_comp()
-    ELSE IF (input == 3) THEN
+    CASE (3)
       CALL trigTest()
-    ELSE IF (input == 4) THEN
+    CASE (4)
       CALL inverseTest()
-    ELSE IF (input == 5) THEN
+    CASE (5)
       CALL J2x2_test()
-    ELSE IF (input == 6) THEN
+    CASE (6)
       CALL gen_J2x2_test()
-    ELSE IF (input == 7) THEN
+    CASE (7)
       CALL DIAGDVR()
-    ELSE IF (input == 8) THEN
+    CASE (8)
       CALL LSA_test()
-    ELSE IF (input == 9) THEN
+    CASE (9)
       CALL STARKDVR()
-    ELSE IF (input == 10) THEN
+    CASE (10)
       CALL RINGDVR()
-    ELSE IF (input == 11) THEN
+    CASE (11)
       CALL BOXDVR()
-    ELSE IF (input == 12) THEN
+    CASE (12)
       CALL HMODVR()
-    ELSE
+    CASE DEFAULT
       WRITE(*,*) 'Have a nice day:)'
       EXIT
-    END IF
+    END SELECT
   END DO
 
   CONTAINS
