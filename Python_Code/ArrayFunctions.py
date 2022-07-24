@@ -17,12 +17,12 @@ def print_matrix(X: Matrix) -> None:
 
 def INVERSE(AA: Matrix) -> Matrix:
   n = len(AA)
-  A = [[0.0]*(2*n) for _ in range(n)]
-  CC = [[0.0]*n for _ in range(n)]
+  A = [[0.]*(2*n) for _ in range(n)]
+  CC = [[0.]*n for _ in range(n)]
 
   # Copy matrix AA in first n columns and an identity matrix after it
   for i in range(n):
-    A[i][i+n] = 1.0
+    A[i][i+n] = 1.
     A[i][:n] = deepcopy(AA[i][:n])
   print('\nMatrix A:')
   print_matrix(A)
@@ -38,7 +38,7 @@ def INVERSE(AA: Matrix) -> Matrix:
         MAX = ABS(A[j][i])
 
     MAX = A[k][i]
-    if MAX == 0.0:
+    if MAX == 0.:
       exit('A row is linearly dependent of one or more other rows')
 
     # Swap row with highest value in column i
@@ -58,7 +58,7 @@ def INVERSE(AA: Matrix) -> Matrix:
           A[j][k] -= temp*A[i][k]
 
   # Copy inverse matrix
-  BB = [[0]*n for _ in range(n)]
+  BB = [[0.]*n for _ in range(n)]
   for i in range(n):
     BB[i][:n] = deepcopy(A[i][n:2*n])
   print('\nInvert matrix:')
@@ -82,7 +82,7 @@ def INVERSE(AA: Matrix) -> Matrix:
 # E = answers of quadratic formula
 def J2x2(H: Matrix, E: Matrix, O: Matrix) -> None:
   """ Diagonalize a 2x2 matrix using Jacobean 2 by 2 analytic diagonalization """
-  rad = SQR((H[1][1] - H[2][2])*(H[1][1] - H[2][2]) + 4.0*(H[1][2]*H[2][1]))
+  rad = SQR((H[1][1] - H[2][2])*(H[1][1] - H[2][2]) + 4.*(H[1][2]*H[2][1]))
   trc = H[1][1] + H[2][2]
   E[1] = 0.5*(trc+rad)
   E[2] = 0.5*(trc-rad)
