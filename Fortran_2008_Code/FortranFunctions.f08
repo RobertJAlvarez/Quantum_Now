@@ -1,10 +1,10 @@
-! @file FortranFunctions.f08
-! @brief Contain elementary functions
+! File:   FortranFunctions.f08
+! Brief:  Contain elementary functions
 ! 
 ! See line 11 for all public functions
 !
-! @author Robert Alvarez
-! @bug No known bugs
+! Author: Robert Alvarez
+! Bugs:   No known bugs
 !
 MODULE FortranFunctions
   IMPLICIT NONE

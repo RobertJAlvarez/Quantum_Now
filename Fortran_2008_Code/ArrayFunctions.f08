@@ -9,39 +9,37 @@ MODULE ArrayFunctions
 
   !Author (Fortran 77): Dr. Mark Pederson
   !Date:  September 8th, 2021
-  !Modifications:
+  !Modifier: Robert Alvarez / July 9th, 2022
+  ! Modifications:
   !   Convert Subroutine to function
   !   Generalization of 4x4 matrix to nxn matrix
-  !   Improve matrix printing style for nxn matrices
-  !Modifier: Robert Alvarez / July 9th, 2022
+  !   Improve matrix printing format
   FUNCTION INVERSE(AA) RESULT(B)
     IMPLICIT NONE
 
     REAL(DBL), INTENT(IN) :: AA(:,:)
 
-    REAL(DBL) :: B(SIZE(AA,1),SIZE(AA,1))
-    REAL(DBL), ALLOCATABLE :: A(:,:), CC(:,:)
+    REAL(DBL), DIMENSION(SIZE(AA,1),SIZE(AA,1)) :: B, CC
+    REAL(DBL), DIMENSION(SIZE(AA,1),SIZE(AA,1)*2) :: A
     REAL(DBL) :: TMAX, temp
     CHARACTER(len=13) :: fmt_mt
     INTEGER :: i, j, k, n
 
     n = SIZE(AA,1)
-    ALLOCATE(A(n,2*n), CC(n,n))
-
     A = 0.D0
 
     !Create matrix A = [AA|I]
     DO i=1, n
-      A(i,i+n) = 1.D0      !Create identity matrix
+      A(i,i+n) = 1.D0       !Create identity matrix
       A(i,1:n) = AA(i,1:n)  !Copy values of AA into first nxn spaces of A
     END DO
 
-    !Output matrix 1 and identity matrix after it
+    !Print matrix A
     WRITE(*,*)
     WRITE(fmt_mt, '( "(",I2,"ES17.8E3))" )' ) 2*n
     WRITE(*,fmt_mt) (A(i,1:2*n), i=1,n)
 
-    !Find invert matrix using Gaussian eliminaiton
+    !Find invert matrix using Gaussian elimination
     DO i=1, n
       !Find largest value of column i
       TMAX = ABSO(A(i,i))
@@ -160,7 +158,7 @@ MODULE ArrayFunctions
     INTEGER :: i, j, k, l, iTry
 
     A = O(1,1)*O(2,2) - O(1,2)*O(2,1)
-    IF (A < 0.D0) STOP 'Non positive overlap matrix'
+    IF (A < 1.D-15) STOP 'Non positive overlap matrix'
 
     B = -( H(1,1)*O(2,2) - O(1,2)*H(2,1) + O(1,1)*H(2,2) - H(1,2)*O(2,1) )
     C = H(1,1)*H(2,2) - H(1,2)*H(2,1)
@@ -219,7 +217,7 @@ MODULE ArrayFunctions
     END DO
   END SUBROUTINE JAC2BY2GEN
 !
-!SUbroutine sort and MergeIdx are only used for DIAGNxN
+!Subroutine sort and MergeIdx are only used for DIAGNxN
 !
   RECURSIVE SUBROUTINE sort(idx, PRD, high)
     IMPLICIT NONE
@@ -239,32 +237,31 @@ MODULE ArrayFunctions
 
   FUNCTION MergeIdx(a, b, PRD, a_high, b_high)
     IMPLICIT NONE
-    INTEGER, DIMENSION(:,:), INTENT(INOUT) :: a, b
+    INTEGER, DIMENSION(:,:), INTENT(IN) :: a, b
     REAL(DBL), INTENT(IN) :: PRD(:,:)
     INTEGER, INTENT(IN) :: a_high, b_high
 
-    INTEGER :: MergeIdx(2,a_high+b_high)
-    INTEGER :: a_ptr, b_ptr, c_ptr
+    INTEGER :: MergeIdx(2,a_high+b_high), ai, bi, ci
 
-    a_ptr = 1
-    b_ptr = 1
-    c_ptr = 1
+    ai = 1
+    bi = 1
+    ci = 1
 
-    DO WHILE (a_ptr <= a_high .AND. b_ptr <= b_high)
-      IF (ABSO(PRD(a(1,a_ptr),a(2,a_ptr))) > ABSO(PRD(b(1,b_ptr),b(2,b_ptr)))) THEN
-        MergeIdx(:,c_ptr) = a(:,a_ptr)
-        a_ptr = a_ptr + 1
+    DO WHILE (ai <= a_high .AND. bi <= b_high)
+      IF (ABSO(PRD(a(1,ai),a(2,ai))) > ABSO(PRD(b(1,bi),b(2,bi)))) THEN
+        MergeIdx(:,ci) = a(:,ai)
+        ai = ai + 1
       ELSE
-        MergeIdx(:,c_ptr) = b(:,b_ptr)
-        b_ptr = b_ptr + 1
+        MergeIdx(:,ci) = b(:,bi)
+        bi = bi + 1
       END IF
-      c_ptr = c_ptr + 1
+      ci = ci + 1
     END DO
 
-    IF (a_ptr > a_high) THEN
-      MergeIdx(:,c_ptr:) = b(:,b_ptr:b_high)
+    IF (ai > a_high) THEN
+      MergeIdx(:,ci:) = b(:,bi:b_high)
     ELSE
-      MergeIdx(:,c_ptr:) = a(:,a_ptr:a_high)
+      MergeIdx(:,ci:) = a(:,ai:a_high)
     END IF
   END FUNCTION MergeIdx
 
