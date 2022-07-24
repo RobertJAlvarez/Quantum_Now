@@ -3,6 +3,7 @@
 !!!
 MODULE retireFunctions
   USE FortranFunctions, ONLY: PI, DBL, FMOD, ABSO, DIV
+  USE ArrayFunctions, ONLY: J2x2
 
   PRIVATE
   PUBLIC :: Class_DIV, Class_DIAGNxN !Only TestingFunctions.f08 use it
