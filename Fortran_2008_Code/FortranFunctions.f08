@@ -78,7 +78,7 @@ MODULE FortranFunctions
       D = D*0.1D0
     END DO
 
-    DO WHILE(D + 1.D-15 <= 1.D0) !Make D = 1
+    DO WHILE(D + 1.D-15 < 1.D0) !Make D = 1
       F = 2.D0 - D
       N = N*F
       D = D*F

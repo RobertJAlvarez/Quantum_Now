@@ -7,6 +7,20 @@ MODULE ArrayFunctions
 
   CONTAINS
 
+  SUBROUTINE print_mtx(X)
+    IMPLICIT NONE
+
+    REAL(DBL), INTENT(IN) :: X(:,:)
+    CHARACTER(len=13) :: fmt_mt
+    INTEGER :: i, n_r, n_c
+
+    n_r = SIZE(X,1)
+    n_c = SIZE(X,2)
+
+    WRITE(fmt_mt, '( "(",I2,"ES17.8E3))" )' ) n_c
+    WRITE(*,fmt_mt) (X(i,1:n_c), i=1,n_r)
+  END SUBROUTINE print_mtx
+
   !Author (Fortran 77): Dr. Mark Pederson
   !Date:  September 8th, 2021
   !Modifier: Robert Alvarez / July 9th, 2022
@@ -22,7 +36,6 @@ MODULE ArrayFunctions
     REAL(DBL), DIMENSION(SIZE(AA,1),SIZE(AA,1)) :: B, CC
     REAL(DBL), DIMENSION(SIZE(AA,1),SIZE(AA,1)*2) :: A
     REAL(DBL) :: TMAX, temp
-    CHARACTER(len=13) :: fmt_mt
     INTEGER :: i, j, k, n
 
     n = SIZE(AA,1)
@@ -36,8 +49,7 @@ MODULE ArrayFunctions
 
     !Print matrix A
     WRITE(*,*)
-    WRITE(fmt_mt, '( "(",I2,"ES17.8E3))" )' ) 2*n
-    WRITE(*,fmt_mt) (A(i,1:2*n), i=1,n)
+    CALL print_mtx(A)
 
     !Find invert matrix using Gaussian elimination
     DO i=1, n
@@ -82,8 +94,7 @@ MODULE ArrayFunctions
 
     !Print inverse matrix
     WRITE(*,*)
-    WRITE(fmt_mt, '( "(",I2,"ES17.8E3))" )' ) n
-    WRITE(*,fmt_mt) (B(i,1:n), i=1, n)
+    CALL print_mtx(B)
 
     !Multiplication of A and A inverse = identity matrix
     CC = 0.D0
@@ -97,7 +108,7 @@ MODULE ArrayFunctions
 
     !Print identity matrix, CC
     WRITE(*,*)
-    WRITE(*,fmt_mt) (CC(i,1:4), i=1, n)
+    CALL print_mtx(CC)
   END FUNCTION INVERSE
 
   !Author (Fortran 77): Dr. Mark Pederson
@@ -219,32 +230,34 @@ MODULE ArrayFunctions
 !
 !Subroutine sort and MergeIdx are only used for DIAGNxN
 !
-  RECURSIVE SUBROUTINE sort(idx, PRD, high)
+  RECURSIVE SUBROUTINE sort(idx, PRD)
     IMPLICIT NONE
     INTEGER, INTENT(INOUT) :: idx(:,:)
     REAL(DBL), INTENT(IN) :: PRD(:,:)
-    INTEGER, INTENT(IN) :: high
-    INTEGER :: low, mid
+    INTEGER :: low, mid, high
 
     low = 1
+    high = SIZE(idx,2)
     IF (low < high) THEN
       mid = low + (high-low)/2
-      CALL sort(idx(:,low:mid), PRD, mid)
-      CALL sort(idx(:,mid+1:high), PRD, high-mid)
-      idx(:,low:high) = MergeIdx(idx(:,low:mid), idx(:,mid+1:high), PRD, mid, high-mid)
+      CALL sort(idx(:,low:mid), PRD)
+      CALL sort(idx(:,mid+1:high), PRD)
+      idx(:,low:high) = MergeIdx(idx(:,low:mid), idx(:,mid+1:high), PRD)
     END IF
   END SUBROUTINE sort
 
-  FUNCTION MergeIdx(a, b, PRD, a_high, b_high)
+  FUNCTION MergeIdx(a, b, PRD)
     IMPLICIT NONE
     INTEGER, DIMENSION(:,:), INTENT(IN) :: a, b
     REAL(DBL), INTENT(IN) :: PRD(:,:)
-    INTEGER, INTENT(IN) :: a_high, b_high
 
-    INTEGER :: MergeIdx(2,a_high+b_high), ai, bi, ci
+    INTEGER :: MergeIdx(2,SIZE(a,2)+SIZE(b,2))
+    INTEGER :: ai, a_high, bi, b_high, ci
 
     ai = 1
+    a_high = SIZE(a,2)
     bi = 1
+    b_high = SIZE(b,2)
     ci = 1
 
     DO WHILE (ai <= a_high .AND. bi <= b_high)
@@ -259,32 +272,28 @@ MODULE ArrayFunctions
     END DO
 
     IF (ai > a_high) THEN
-      MergeIdx(:,ci:) = b(:,bi:b_high)
+      MergeIdx(:,ci:) = b(:,bi:)
     ELSE
-      MergeIdx(:,ci:) = a(:,ai:a_high)
+      MergeIdx(:,ci:) = a(:,ai:)
     END IF
   END FUNCTION MergeIdx
 
-  SUBROUTINE DIAGNxN(NDH, NBS, HAM, UMT, PRD)
+  SUBROUTINE DIAGNxN(NBS, HAM, UMT, PRD)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: NDH, NBS
+    INTEGER, INTENT(IN) :: NBS
     REAL(DBL), INTENT(INOUT) :: HAM(:,:)
     REAL(DBL), INTENT(OUT) :: UMT(:,:), PRD(:,:)
 
-    REAL(DBL) :: SPC(NDH,NDH)
-    REAL(DBL) :: H(2,2), E(2), O(2,2)!, V(2,2), T(2,2), D(2,2)  !J2X2
+    CHARACTER(len=13) :: fmt_mt
+    REAL(DBL) :: SPC(NBS,NBS)
+    REAL(DBL) :: H(2,2), E(2), O(2,2) !J2X2
     REAL(DBL) :: ERRPREV, ERRNW
 
-    LOGICAL :: useIdx(NDH)
-    INTEGER :: idxAll(2,NDH*(NDH-1)/2)
-    INTEGER :: idx(2,NDH/2)
-    INTEGER :: i, j, k, l, m, n, idxSize
+    LOGICAL :: useIdx(NBS)
+    INTEGER :: idxAll(2,NBS*(NBS-1)/2)
+    INTEGER :: idx(2,NBS/2)
+    INTEGER :: i, j, k, l, n, idxSize
     INTEGER :: iTry, MXIT
-
-    IF (NBS > NDH) THEN 
-      WRITE(*,*) 'NDH must be larger than ', NBS
-      STOP
-    END IF
 
     UMT = 0.D0
     DO i=1, NBS
@@ -294,13 +303,14 @@ MODULE ArrayFunctions
     PRD = HAM
     MXIT = NBS*NBS*2
 
+    WRITE(fmt_mt, '( "(",I2,"F10.5))" )' ) NBS
     DO iTry = 1, MXIT
       n = 0
       ERRPREV = 0.D0
-      DO i=1, NDH
-        DO j=i+1, NDH
-          ERRPREV = ERRPREV + PRD(i,j)*PRD(j,i)
-          IF (ABSO(PRD(i,j)) > 1.D-10) THEN ! Save all indices that have values in PRD that are greater than 0
+      DO i=1, NBS
+        DO j=i+1, NBS
+          ERRPREV = ERRPREV + PRD(j,i)*PRD(j,i)
+          IF (ABSO(PRD(i,j)) > 1.D-10) THEN     !Save indices of PRD entries whose absolute value is greater than 0
             n = n + 1
             idxAll(1,n) = i
             idxAll(2,n) = j
@@ -313,7 +323,7 @@ MODULE ArrayFunctions
 !        WRITE(*,*) idxAll(1,i), idxAll(2,i), PRD(idxAll(1,i),idxAll(2,i))
 !      END DO
 
-      CALL sort(idxAll(:,1:n), PRD, NDH*(NDH-1)/2)  !Sort with respect to PRD values
+      CALL sort(idxAll(:,1:n), PRD)  !Sort with respect to PRD values
 
 !      WRITE(*,*) 'All indexes:'
 !      DO i=1, n
@@ -328,16 +338,16 @@ MODULE ArrayFunctions
           useIdx(idxAll(:,j)) = .False. !Set both to false because they would be used
           idx(:,idxSize) = idxAll(:,j)  !Save both indexes in idx array
           idxSize = idxSize + 1         !Update position for next indexes
-          IF(idxSize > NDH/2) EXIT      !Exit the loop if NDH (even) or NDH-1 (odd) indexes had been used
+          IF(idxSize > NBS/2) EXIT      !Exit the loop if NBS (even) or NBS-1 (odd) indexes had been used
         END IF
       END DO
 
-!      WRITE(*,*) 'Non repetitive indexes with highest values:'
-!      idxSize = idxSize - 1
-!      DO i=1, idxSize
-!        WRITE(*,*) idx(1,i), idx(2,i), PRD(idx(1,i),idx(2,i))
-!      END DO
-!      STOP 'Hi:)'
+      WRITE(*,*) 'Non repetitive indexes with highest values:'
+      idxSize = idxSize - 1
+      DO i=1, idxSize
+        WRITE(*,*) idx(1,i), idx(2,i), PRD(idx(1,i),idx(2,i))
+      END DO
+!      IF (ITRY >= 3) STOP 'Hi:)'
 
       !Use best two indexes
       k = idx(1,1)
@@ -349,10 +359,10 @@ MODULE ArrayFunctions
       H(2,2) = PRD(l,l)
       CALL J2X2(H, E, O)
 
-!      WRITE(*,*) 'E and O values:'
-!      DO i=1, 2
-!        WRITE(*,*) E(i), (O(i,j),j=1,2)
-!      END DO
+      WRITE(*,*) 'E and O values:'
+      DO i=1, 2
+        WRITE(*,'(3ES20.12E2)') E(i), (O(i,j),j=1,2)
+      END DO
 
       SPC = 0.D0
       DO i=1, NBS
@@ -366,19 +376,19 @@ MODULE ArrayFunctions
 
       !Get new unitary matrix
       PRD = 0.D0
-      DO m=1, NBS
-        IF (m /= k .AND. m /= l) THEN
-          DO n=1, NBS
-            PRD(n,m) = UMT(n,m)
+      DO i=1, NBS
+        IF (i /= k .AND. i /= l) THEN
+          DO j=1, NBS
+            PRD(j,i) = UMT(j,i)
           END DO
         END IF
       END DO
 
-      DO n=1, NBS
-        PRD(n,k) = PRD(n,k) + UMT(n,k)*O(1,1)
-        PRD(n,k) = PRD(n,k) + UMT(n,l)*O(2,1)
-        PRD(n,l) = PRD(n,l) + UMT(n,k)*O(1,2)
-        PRD(n,l) = PRD(n,l) + UMT(n,l)*O(2,2)
+      DO i=1, NBS
+        PRD(i,k) = PRD(i,k) + UMT(i,k)*O(1,1)
+        PRD(i,k) = PRD(i,k) + UMT(i,l)*O(2,1)
+        PRD(i,l) = PRD(i,l) + UMT(i,k)*O(1,2)
+        PRD(i,l) = PRD(i,l) + UMT(i,l)*O(2,2)
       END DO
 
       UMT = PRD
@@ -386,13 +396,12 @@ MODULE ArrayFunctions
         DO k=1, NBS
           SPC(k,i) = 0.D0
           DO l=1, NBS
-            SPC(k,i) = SPC(k,i) + UMT(l,i)*HAM(l,k) !l,k better than k,l base on memory allocation
+            SPC(k,i) = SPC(k,i) + UMT(l,i)*HAM(l,k)
           END DO
         END DO
       END DO
 
       PRD = 0.D0
-
       !Make new HAM
       DO i=1, NBS
         DO j=1, NBS
@@ -405,10 +414,14 @@ MODULE ArrayFunctions
       ERRNW = 0.D0
       DO i=1,NBS
         DO j=i+1, NBS
-          ERRNW = ERRNW + PRD(i,j)*PRD(j,i)
+          ERRNW = ERRNW + PRD(j,i)*PRD(j,i)
         END DO
       END DO
 
+      DO I=1,NBS
+        WRITE(*,fmt_mt) (PRD(j,i), j=1,NBS)
+      END DO
+      
       WRITE(*,30) iTry, ERRNW, ERRPREV
       30 FORMAT(I3, 3G15.6)
 

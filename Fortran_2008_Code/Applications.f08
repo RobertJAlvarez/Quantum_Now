@@ -49,7 +49,7 @@ MODULE Applications
     HAM(3,2) = HAM(2,3)
     NBS = 3
 
-    CALL DIAGNxN(NDH,NBS,HAM,UMT,PRD)
+    CALL DIAGNxN(NBS,HAM,UMT,PRD)
 
     WRITE(*,*) "UPDATED HAM"
     DO i=1,NBS
@@ -171,7 +171,7 @@ MODULE Applications
     END DO
 
     DIP = DIP + HAM
-    CALL DIAGNxN(NDH,NBS,HAM,UMT,PRD)
+    CALL DIAGNxN(NBS,HAM,UMT,PRD)
     WRITE(*,*) "UPDATED HAM"
     DO I=1,NBS
       WRITE(*,'(10F12.4)') (HAM(J,I),J=1,NBS)  !LAMDA_J
@@ -199,7 +199,7 @@ MODULE Applications
         DO I=1,NBS
           OVR(I,I) = 1.D0
         END DO
-        CALL DIAGNxN(NDH,NBS,HAM,UMT,PRD)
+        CALL DIAGNxN(NBS,HAM,UMT,PRD)
         DO I=1,NBS
           WRITE(*,*) HAM(I,I)
         END DO
@@ -279,7 +279,7 @@ MODULE Applications
     DO I=1,NBS
       WRITE(*,'(10F12.4)') (HAM(J,I),J=1,NBS)  !LAMDA_J
     END DO
-    CALL DIAGNxN(NDH,NBS,HAM,UMT,PRD)
+    CALL DIAGNxN(NBS,HAM,UMT,PRD)
 
     WRITE(*,*) "UPDATED HAM"
     DO I=1,NBS
@@ -406,7 +406,7 @@ MODULE Applications
           HAM(I,J) = DIV(HAM(I,J),scale)
         END DO
       END DO
-      CALL DIAGNxN(NDH,NBS,HAM,UMT,PRD)
+      CALL DIAGNxN(NBS,HAM,UMT,PRD)
       DO I=1,NBS
         HAM(I,I) = HAM(I,I)*scale
       END DO

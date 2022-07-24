@@ -1,6 +1,0 @@
- gnuplot -p << END
- set terminal png
- set output "output.png"
- p for [col=2:5] "PLOT" u 1:col w lp
- quit
- END

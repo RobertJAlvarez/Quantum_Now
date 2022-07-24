@@ -8,7 +8,7 @@
 !
 PROGRAM testing_func
   USE FortranFunctions, ONLY: PI, DBL, FMOD, DIV, SINE
-  !USE retireFunctions, ONLY: Class_DIV, Class_DIAGNxN
+  USE retireFunctions, ONLY: Class_DIV, Class_DIAGNxN
   USE ArrayFunctions, ONLY: INVERSE, J2x2, JAC2BY2GEN, DIAGNxN, LEASTSQUARE
   USE Applications, ONLY: STARKDVR, RINGDVR, HMODVR, BOXDVR
   IMPLICIT NONE
@@ -22,8 +22,9 @@ PROGRAM testing_func
     WRITE(*,*) 'ArrayFunctions: 4. Inverse, 5. J2x2, 6. JAC2BY2GEN, 7. DIAGNxN, 8. LEASTSQUARE '
     WRITE(*,*) 'Applications: 9. STARKDVR, 10. RINGDVR, 11. BOXDVR, 12. HMODVR'
     WRITE(*,*) 'Anything else to exit'
-    READ(*,*) input
- 
+    !READ(*,*) input
+    input = 0
+    CALL DIAGDVR()
     SELECT CASE (input)
     CASE (1)
       CALL modulus_test()
@@ -104,30 +105,30 @@ PROGRAM testing_func
 
     PROCEDURE(DIV), POINTER :: p
     REAL(DBL), DIMENSION(10) :: factor1, factor2, factor3
-    INTEGER :: i!, j
+    INTEGER :: i, j
 
     factor1 = [1.D-1,1.D-2,1.D-3,1.D-4,1.D-5,1.D-6,1.D-7,1.D-8,1.D-9,1.D-10]
     factor2 = [0.15D0,0.2D0,0.3D0,0.4D0,0.5D0,0.55D0,0.6D0,0.7D0,0.8D0,0.85D0]
     factor3 = [1.D1,5.D1,1.D2,5.D2,1.D3,5.D3,1.D4,5.D4,1.D5,1.D5]
 
     DO i=1,3
-!      DO j=1,2
+      DO j=1,2
         WRITE(*,*)
-!        SELECT CASE (j)
-!        CASE (1)
-!          p => Class_DIV
-!          SELECT CASE (i)
-!          CASE (1)
-!            WRITE(*,*) 'Function: Class_DIV - range 0.0 < D < 0.1'
-!            CALL auto_div(p, factor1, 0.1, 1.0)
-!          CASE (2)
-!            WRITE(*,*) 'Function: Class_DIV - range 0.1 < D < 1.0'
-!            CALL auto_div(p, factor2, 0.0, 0.1)
-!          CASE (3)
-!            WRITE(*,*) 'Function: Class_DIV - range 1.0 < D < 100000.0'
-!            CALL auto_div(p, factor3, 0.0, 1.0)
-!          END SELECT
-!        CASE (2)
+        SELECT CASE (j)
+        CASE (1)
+          p => Class_DIV
+          SELECT CASE (i)
+          CASE (1)
+            WRITE(*,*) 'Function: Class_DIV - range 0.0 < D < 0.1'
+            CALL auto_div(p, factor1, 0.D0, 0.1D0,i)
+          CASE (2)
+            WRITE(*,*) 'Function: Class_DIV - range 0.1 < D < 1.0'
+            CALL auto_div(p, factor2, 0.1D0, 1.D0,i)
+          CASE (3)
+            WRITE(*,*) 'Function: Class_DIV - range 1.0 < D < 100000.0'
+            CALL auto_div(p, factor3, 1.D0, 1.D5,i)
+          END SELECT
+        CASE (2)
           p => DIV
           SELECT CASE (i)
           CASE (1)
@@ -140,8 +141,8 @@ PROGRAM testing_func
             WRITE(*,*) 'Function: DIV - range 1.0 < D < 100000.0'
             CALL auto_div(p, factor3, 1.D0, 1.D5,i)
           END SELECT
-!        END SELECT
-!      END DO
+        END SELECT
+      END DO
     END DO
   END SUBROUTINE div_comp
 
@@ -160,7 +161,7 @@ PROGRAM testing_func
 
     j = 1
     error = 0.D0
-    nTimes = 100000
+    nTimes = 1000000
     t = GetTime()
 
     DO i=1, nTimes
@@ -170,7 +171,7 @@ PROGRAM testing_func
       IF (DBLE(low_b) < D .OR. D > DBLE(up_b)) THEN
         SELECT CASE(n_case)
         CASE (1)
-          D = D*factor(j)
+          D = D*factor(j) + 1.D-15
         CASE (2)
           D = D + factor(j)
         CASE (3)
@@ -258,13 +259,12 @@ PROGRAM testing_func
 
   SUBROUTINE DIAGDVR()  !Diag driver
     IMPLICIT NONE
-    INTEGER, PARAMETER :: NDH = 10
-    REAL(DBL) :: HAM(NDH,NDH)  !Hamiltonian
-    REAL(DBL) :: UMT(NDH,NDH)  !Unitary matrix
-    REAL(DBL) :: PRD(NDH,NDH)  !Product
-
+    REAL(DBL), ALLOCATABLE :: HAM(:,:), UMT(:,:), PRD(:,:)  !Hamiltonian, Unitary, Product
     REAL(DBL) :: G, X, P, TXR
     INTEGER :: i, j, NBS
+
+    NBS = 7
+    ALLOCATE(HAM(7,7), UMT(7,7), PRD(7,7))
 
     G = -1.D0   !Ground
     X = -0.5D0  !Exited
@@ -287,8 +287,6 @@ PROGRAM testing_func
     HAM(5,6) = TXR
     HAM(6,7) = P
 
-    NBS = 7
-
     DO i=1, NBS
       DO j=i, NBS
         HAM(j,i) = HAM(i,j)
@@ -296,11 +294,11 @@ PROGRAM testing_func
       WRITE(*,'(10F7.2)') (HAM(i,j),j=1,NBS)
     END DO
 
-    CALL DIAGNxN(NDH, NBS, HAM, UMT, PRD)
+    CALL DIAGNxN(NBS, HAM, UMT, PRD)
 
     WRITE(*,*) 'Updated Hamiltonian:'
     DO i=1,NBS
-      WRITE(*,'(10F12.4)') (HAM(j,i), j=1,NBS)
+      WRITE(*,'(10F11.6)') (HAM(j,i), j=1,NBS)
     END DO
   END SUBROUTINE DIAGDVR
 

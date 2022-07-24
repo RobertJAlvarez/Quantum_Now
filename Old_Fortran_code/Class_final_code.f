@@ -5,11 +5,10 @@
       DIMENSION F(4), G(4)
       
       DO
-       !PRINT'(/,A)','DIAG options:'
-       !PRINT'(A)','1. DIAG','2. STARK','3. PIR','4. HMO','5. BOX'
-       !PRINT'(A)', 'n. exit the program'
-       !READ*,NOPT
-      NOPT = 5
+       PRINT'(/,A)','DIAG options:'
+       PRINT'(A)','1. DIAG','2. STARK','3. PIR','4. HMO','5. BOX'
+       PRINT'(A)', 'n. exit the program'
+       READ*,NOPT
        IF(NOPT.EQ.1) THEN
         CALL DIAGDVR
        ELSE IF(NOPT.EQ.2) THEN
@@ -527,12 +526,12 @@ C         PRINT*,'X:',X
       DIMENSION HAM(NDH,NDH),OVR(NDH,NDH),UMT(NDH,NDH),SPC(NDH,NDH)
       DIMENSION PRD(NDH,NDH)
 
-      G=-1.0D0 
-      X=-0.5D0
-      P=0.1D0
-      TXR=0.2D0
-      HAM=0.0D0
-      OVR=0.0D0
+      G  = -1.0D0 
+      X  = -0.5D0
+      P  =  0.1D0
+      TXR=  0.2D0
+      HAM=  0.0D0
+      OVR=  0.0D0
       DO I=1,NDH
        OVR(I,I)=1.0D0
       END DO
@@ -601,13 +600,6 @@ C     Can we get rid of SPC?
       END DO
 
       PRD=HAM
-
-       
-       
-      
-
-
-
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C     G=-1.0D0 
@@ -723,9 +715,9 @@ c      END DO
       K=PROCS(1,IPROC)
       L=PROCS(2,IPROC)
 C     PRINT*,'IPROC=',IPROC,K,L
-      DO I=1,NBS
+C      DO I=1,NBS
 C      PRINT '(7F12.6)',(PRD(J,I),J=1,NBS)
-      END DO
+C      END DO
 C      OFF_NRM=OFF_NRM+PRD(K,L)*PRD(K,L)
 C      IF(OFF_NRM.LT.1.0D-20)THEN
 C       PRINT*,'OFF_NRM IS ZERO',OFF_NRM,K,L
@@ -863,7 +855,6 @@ C
 
 CCC   And here*****************
       UMT=PRD
-      ERRNW=0.0D0
       DO I=1,NBS
       DO K=1,NBS
        SPC(K,I)=0.0D0
@@ -884,6 +875,7 @@ C     UMT=PRD
       END DO
       
 c      PRINT*,"UPDATED HAM"
+      ERRNW=0.0D0
       DO I=1,NBS
        DO J=I+1,NBS
         ERRNW=ERRNW+PRD(I,J)*PRD(J,I)
@@ -909,31 +901,6 @@ c       PRINT"(4F12.4)",(PRD(J,I),J=1,4)
       HAM=PRD
       RETURN
       END SUBROUTINE DIAGnxn
-      
-C      RECURSIVE SUBROUTINE LARGEST(HAM,NDH,I,J,AOUT)
-C      IMPLICIT REAL*8(A-H,O-Z)
-C      DIMENSION HAM(NDH,NDH),LOVR(NDH,NDH),LUMT(NDH,NDH),LPRD(NDH,NDH)
-C      
-C      LOVR=NDH
-C      DO I=1,NDH
-C       LOVR(I,I)=0.0D0
-C      END DO
-C      
-C      MAXVAL(LOVR)
-C      DO I=1,NDH
-C      DO J=I,NDH
-C       IF(LOVR(J,I).EQ.MAXVAL(LOVR) THEN
-C        DO K=1,NDH
-C        S
-C        LOVR(K,I)=0.0D0
-C        LOVR(J,K)=0.0D0
-C         
-C      END DO
-C      END DO
-C
-C
-C
-C      END SUBROUTINE
 
       SUBROUTINE STARKDVR
       IMPLICIT REAL*8 (A-H,O-Z)
