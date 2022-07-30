@@ -6,7 +6,7 @@ MODULE retireFunctions
   USE ArrayFunctions, ONLY: J2x2
 
   PRIVATE
-  PUBLIC :: Class_DIV, Class_DIAGNxN !Only TestingFunctions.f08 use it
+  PUBLIC :: Class_SQR, Class_DIV, Class_DIAGNxN !Only TestingFunctions.f08 use it
 
   CONTAINS
 

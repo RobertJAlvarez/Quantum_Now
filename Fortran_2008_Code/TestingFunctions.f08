@@ -9,7 +9,7 @@
 PROGRAM testing_func
   USE FortranFunctions, ONLY: PI, DBL, FMOD, DIV, SINE
   USE retireFunctions, ONLY: Class_DIV, Class_DIAGNxN
-  USE ArrayFunctions, ONLY: INVERSE, J2x2, JAC2BY2GEN, DIAGNxN, LEASTSQUARE
+  USE ArrayFunctions, ONLY: print_mtx, INVERSE, J2x2, JAC2BY2GEN, DIAGNxN, LEASTSQUARE
   USE Applications, ONLY: STARKDVR, RINGDVR, HMODVR, BOXDVR
   IMPLICIT NONE
 
@@ -22,9 +22,8 @@ PROGRAM testing_func
     WRITE(*,*) 'ArrayFunctions: 4. Inverse, 5. J2x2, 6. JAC2BY2GEN, 7. DIAGNxN, 8. LEASTSQUARE '
     WRITE(*,*) 'Applications: 9. STARKDVR, 10. RINGDVR, 11. BOXDVR, 12. HMODVR'
     WRITE(*,*) 'Anything else to exit'
-    !READ(*,*) input
-    input = 0
-    CALL DIAGDVR()
+    READ(*,*) input
+
     SELECT CASE (input)
     CASE (1)
       CALL modulus_test()
@@ -291,15 +290,14 @@ PROGRAM testing_func
       DO j=i, NBS
         HAM(j,i) = HAM(i,j)
       END DO
-      WRITE(*,'(10F7.2)') (HAM(i,j),j=1,NBS)
     END DO
+    WRITE(*,*) 'Original Hamiltonian:'
+    CALL print_mtx(HAM)
 
     CALL DIAGNxN(NBS, HAM, UMT, PRD)
 
     WRITE(*,*) 'Updated Hamiltonian:'
-    DO i=1,NBS
-      WRITE(*,'(10F11.6)') (HAM(j,i), j=1,NBS)
-    END DO
+    CALL print_mtx(HAM)
   END SUBROUTINE DIAGDVR
 
   SUBROUTINE LSA_test()
