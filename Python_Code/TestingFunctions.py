@@ -1,6 +1,6 @@
 from PythonFunctions import PI, MOD, DIV, SQR, SINE
 from retireFunctions import Class_DIV
-from ArrayFunctions import INVERSE, J2x2, JAC2BY2GEN, DIAGNxN, LEASTSQUARE, print_matrix
+from ArrayFunctions import print_mtx, INVERSE, J2x2, JAC2BY2GEN, DIAGNxN, LEASTSQUARE
 from Applications import STARKDVR, RINGDVR, HMODVR, BOXDVR
 from math import sin, sqrt
 from time import time
@@ -19,7 +19,6 @@ from random import random, uniform
 """
   Testing for PythonFunctions.py
 """
-
 def modulus_test() -> None:
   print('modulus_test')
 
@@ -70,7 +69,6 @@ def trigTest() -> None:
 """
   Testing for ArrayFuncitons.py
 """
-
 def inverseTest() -> None:
   n = int(input('What is the size of the matrix?'))
   A = [[0.]*n for _ in range(n)]
@@ -87,6 +85,28 @@ def gen_J2x2_test() -> None:
   pass
 
 def DIAGDVR() -> None:
+  NBS = 7
+  G = -1.0  # Ground
+  X = -0.5  # Exited
+  P =  0.1  # Perturbation
+  TXR = 0.2 # Transfer
+  HAM = [[0.]*NBS for _ in range(NBS)]
+  
+  HAM[0][0] = HAM[3][3] = HAM[6][6] = G
+  HAM[1][1] = HAM[2][2] = HAM[4][4] = HAM[5][5] = X
+
+  HAM[0][1] = HAM[2][3] = HAM[3][4] = HAM[5][6] = P
+  HAM[1][2] = HAM[4][5] = TXR
+
+  HAM[1][0] = HAM[3][2] = HAM[4][3] = HAM[6][5] = P
+  HAM[2][1] = HAM[5][4] = TXR
+
+  print_mtx(HAM)
+
+  #DIAGNxN(NBS, HAM, UMT, PRD)
+
+  #print('Updated Hamiltonian:')
+  #print_mtx(HAM)
   pass
 
 def LSA_test() -> None:

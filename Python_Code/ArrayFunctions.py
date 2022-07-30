@@ -1,4 +1,4 @@
-from PythonFunctions import *
+from PythonFunctions import ABS, DIV, SQR
 from sys import exit
 
 """
@@ -9,7 +9,7 @@ Date:   July 11th, 2022
 Vector = list[float]
 Matrix = list[list[float]]
 
-def print_matrix(X: Matrix) -> None:
+def print_mtx(X: Matrix) -> None:
   """ Print a matrix row by row in scientific notation with 8 digits precision """
   for row in X:
     print(str(["{0:14.7e}".format(num) for num in row]).replace("'",""))
@@ -21,7 +21,7 @@ def INVERSE(AA: Matrix) -> Matrix:
   # Copy matrix AA in first n columns and an identity matrix after it
   A = [[num for num in row]+[1 if i == j else 0 for j in range(n)] for i,row in enumerate(AA)]
   print('\nMatrix A:')
-  print_matrix(A)
+  print_mtx(A)
 
   # Find invert matrix
   for i in range(n):
@@ -56,7 +56,7 @@ def INVERSE(AA: Matrix) -> Matrix:
   # Copy inverse matrix
   BB = [[num for num in row[n:]] for row in A]
   print('\nInvert matrix:')
-  print_matrix(BB)
+  print_mtx(BB)
 
   # Multiplication of A and A inverse = identity matrix
   CC = [[0.]*n for _ in range(n)]
@@ -64,8 +64,9 @@ def INVERSE(AA: Matrix) -> Matrix:
     for j in range(n):
       for k in range(n):
         CC[i][j] += AA[i][k]*BB[k][j]
+
   print('\nIdentity matrix:')
-  print_matrix(CC)
+  print_mtx(CC)
   return BB
 
 # if A = [[d,e], [f,g]] 
@@ -117,9 +118,6 @@ def JAC2BY2GEN(H: Matrix, O: Matrix, V: Matrix, E: Vector) -> None:
   #Calculate eigenvectors
   #
 
-  pass
-
-def DIAGDVR():
   pass
 
 def SortIdex(mtx: Matrix, PRD: Matrix) -> None:
