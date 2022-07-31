@@ -19,8 +19,8 @@ PROGRAM testing_func
     WRITE(*,*)
     WRITE(*,*) 'You can test for:'
     WRITE(*,*) 'FortranFunctions: 1. modulus, 2. division, 3. sine'
-    WRITE(*,*) 'ArrayFunctions: 4. Inverse, 5. J2x2, 6. JAC2BY2GEN, 7. DIAGNxN, 8. LEASTSQUARE '
-    WRITE(*,*) 'Applications: 9. STARKDVR, 10. RINGDVR, 11. BOXDVR, 12. HMODVR'
+    WRITE(*,*) 'ArrayFunctions: 4. Inverse, 5. J2x2 and JAC2BY2GEN, 6. DIAGNxN, 7. LEASTSQUARE'
+    WRITE(*,*) 'Applications: 8. STARKDVR, 9. RINGDVR, 10. BOXDVR, 11. HMODVR'
     WRITE(*,*) 'Anything else to exit'
     READ(*,*) input
 
@@ -30,24 +30,22 @@ PROGRAM testing_func
     CASE (2)
       CALL div_comp()
     CASE (3)
-      CALL trigTest()
+      CALL trig_test()
     CASE (4)
-      CALL inverseTest()
+      CALL inverse_test()
     CASE (5)
-      CALL J2x2_test()
+      CALL diag_2by2_test()
     CASE (6)
-      CALL gen_J2x2_test()
-    CASE (7)
       CALL DIAGDVR()
-    CASE (8)
+    CASE (7)
       CALL LSA_test()
-    CASE (9)
+    CASE (8)
       CALL STARKDVR()
-    CASE (10)
+    CASE (9)
       CALL RINGDVR()
-    CASE (11)
+    CASE (10)
       CALL BOXDVR()
-    CASE (12)
+    CASE (11)
       CALL HMODVR()
     CASE DEFAULT
       WRITE(*,*) 'Have a nice day:)'
@@ -188,13 +186,13 @@ PROGRAM testing_func
 
   !Print angle, Fortran sine function for angle, our own sine function for angle, and the error.
   !Angle have equally step sizes of PI/36 from -PI to PI
-  SUBROUTINE trigTest
+  SUBROUTINE trig_test
     IMPLICIT NONE
 
     REAL(DBL) :: angle, add
     INTEGER :: i
 
-    WRITE(*,*) 'trigTest:'
+    WRITE(*,*) 'trig_test:'
 
     add = PI/36.D0
     angle = -PI
@@ -204,7 +202,7 @@ PROGRAM testing_func
         WRITE(*,'(F15.10,4F20.16)') angle, SINE(angle), SIN(angle), SIN(angle)-SINE(angle)
         angle = angle + add
     END DO
-  END SUBROUTINE trigTest
+  END SUBROUTINE trig_test
 
   !Generate and return a new number from -720 and 720
   SUBROUTINE newAngle(getNew)
@@ -225,7 +223,7 @@ PROGRAM testing_func
 ! ArrayFunctions.f08
 !
   ! Read arbitrary size matrix values from keyboard and send matrix to get inverted
-  SUBROUTINE inverseTest()
+  SUBROUTINE inverse_test()
     IMPLICIT NONE
     
     REAL(DBL), ALLOCATABLE :: A(:,:), B(:,:), nums(:)
@@ -244,18 +242,19 @@ PROGRAM testing_func
     END DO
 
     B = INVERSE(A)
-  END SUBROUTINE
+  END SUBROUTINE inverse_test
 
-  SUBROUTINE J2x2_test()
+  SUBROUTINE diag_2by2_test()
     IMPLICIT NONE
-    !
-  END SUBROUTINE J2x2_test
+    WRITE(*,*) 'Diagonalization for 2 by 2 matrices'
+
+    WRITE(*,*) 'Analytical diagonalization (J2x2)'
+    !CALL J2x2()
+
+    WRITE(*,*) 'Numerical diagonalization (JAC2BY2GEN)'
+    !CALL JAC2BY2GEN()
+  END SUBROUTINE diag_2by2_test
  
-  SUBROUTINE gen_J2x2_test()
-    IMPLICIT NONE
-    !
-  END SUBROUTINE gen_J2x2_test
-
   SUBROUTINE DIAGDVR()  !Diag driver
     IMPLICIT NONE
     REAL(DBL), ALLOCATABLE :: HAM(:,:), UMT(:,:), PRD(:,:)  !Hamiltonian, Unitary, Product

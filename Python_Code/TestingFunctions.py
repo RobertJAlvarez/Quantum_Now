@@ -91,7 +91,7 @@ def DIAGDVR() -> None:
   P =  0.1  # Perturbation
   TXR = 0.2 # Transfer
   HAM = [[0.]*NBS for _ in range(NBS)]
-  
+
   HAM[0][0] = HAM[3][3] = HAM[6][6] = G
   HAM[1][1] = HAM[2][2] = HAM[4][4] = HAM[5][5] = X
 
