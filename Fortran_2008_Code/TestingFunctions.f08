@@ -7,7 +7,7 @@
 ! bug:    No known bugs
 !
 PROGRAM testing_func
-  USE FortranFunctions, ONLY: PI, DBL, FMOD, DIV, SINE
+  USE FortranFunctions, ONLY: PI, DBL, FMOD, DIV, SQR, SINE
   USE retireFunctions, ONLY: Class_DIV, Class_DIAGNxN
   USE ArrayFunctions, ONLY: print_mtx, INVERSE, J2x2, JAC2BY2GEN, DIAGNxN, LEASTSQUARE
   USE Applications, ONLY: STARKDVR, RINGDVR, HMODVR, BOXDVR
@@ -18,9 +18,9 @@ PROGRAM testing_func
   DO
     WRITE(*,*)
     WRITE(*,*) 'You can test for:'
-    WRITE(*,*) 'FortranFunctions: 1. modulus, 2. division, 3. sine'
-    WRITE(*,*) 'ArrayFunctions: 4. Inverse, 5. J2x2 and JAC2BY2GEN, 6. DIAGNxN, 7. LEASTSQUARE'
-    WRITE(*,*) 'Applications: 8. STARKDVR, 9. RINGDVR, 10. BOXDVR, 11. HMODVR'
+    WRITE(*,*) 'FortranFunctions: 1. modulus, 2. division, 3. square root, 4. sine'
+    WRITE(*,*) 'ArrayFunctions: 5. Inverse, 6. J2x2 and JAC2BY2GEN, 7. DIAGNxN, 8. LEASTSQUARE'
+    WRITE(*,*) 'Applications: 9. STARKDVR, 10. RINGDVR, 11. BOXDVR, 12. HMODVR'
     WRITE(*,*) 'Anything else to exit'
     READ(*,*) input
 
@@ -30,22 +30,24 @@ PROGRAM testing_func
     CASE (2)
       CALL div_comp()
     CASE (3)
-      CALL trig_test()
+      CALL sqr_test()
     CASE (4)
-      CALL inverse_test()
+      CALL trig_test()
     CASE (5)
-      CALL diag_2by2_test()
+      CALL inverse_test()
     CASE (6)
-      CALL DIAGDVR()
+      CALL diag_2by2_test()
     CASE (7)
-      CALL LSA_test()
+      CALL DIAGDVR()
     CASE (8)
-      CALL STARKDVR()
+      CALL LSA_test()
     CASE (9)
-      CALL RINGDVR()
+      CALL STARKDVR()
     CASE (10)
-      CALL BOXDVR()
+      CALL RINGDVR()
     CASE (11)
+      CALL BOXDVR()
+    CASE (12)
       CALL HMODVR()
     CASE DEFAULT
       WRITE(*,*) 'Have a nice day:)'
@@ -184,6 +186,25 @@ PROGRAM testing_func
     WRITE(*,*) 'error = ', error
   END SUBROUTINE auto_div
 
+  SUBROUTINE sqr_test()
+    IMPLICIT NONE
+    INTEGER :: i, j, nTimes
+    REAL(DBL) :: N, t, error
+
+    j = 1
+    error = 0.D0
+    nTimes = 1000000
+    t = GetTime()
+
+    DO i=1, nTimes
+      CALL RANDOM_NUMBER(N)
+      error = error + ABS(SQRT(N) - SQR(N))
+    END DO
+
+    WRITE(*,*) 'Time:', GetTime() - t
+    WRITE(*,*) 'error = ', error
+  END SUBROUTINE sqr_test
+
   !Print angle, Fortran sine function for angle, our own sine function for angle, and the error.
   !Angle have equally step sizes of PI/36 from -PI to PI
   SUBROUTINE trig_test
@@ -242,6 +263,8 @@ PROGRAM testing_func
     END DO
 
     B = INVERSE(A)
+
+    DEALLOCATE(A, B, nums)
   END SUBROUTINE inverse_test
 
   SUBROUTINE diag_2by2_test()
@@ -257,12 +280,12 @@ PROGRAM testing_func
  
   SUBROUTINE DIAGDVR()  !Diag driver
     IMPLICIT NONE
-    REAL(DBL), ALLOCATABLE :: HAM(:,:), UMT(:,:), PRD(:,:)  !Hamiltonian, Unitary, Product
+    REAL(DBL), ALLOCATABLE :: HAM(:,:), UMT(:,:)  !Hamiltonian, Unitary, Product
     REAL(DBL) :: G, X, P, TXR
     INTEGER :: i, j, NBS
 
     NBS = 7
-    ALLOCATE(HAM(7,7), UMT(7,7), PRD(7,7))
+    ALLOCATE(HAM(NBS,NBS), UMT(NBS,NBS))
 
     G = -1.D0   !Ground
     X = -0.5D0  !Exited
@@ -293,10 +316,12 @@ PROGRAM testing_func
     WRITE(*,*) 'Original Hamiltonian:'
     CALL print_mtx(HAM)
 
-    CALL DIAGNxN(NBS, HAM, UMT, PRD)
+    CALL DIAGNxN(NBS, HAM, UMT)
 
     WRITE(*,*) 'Updated Hamiltonian:'
     CALL print_mtx(HAM)
+
+    DEALLOCATE(HAM, UMT)
   END SUBROUTINE DIAGDVR
 
   SUBROUTINE LSA_test()

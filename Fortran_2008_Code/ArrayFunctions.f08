@@ -17,7 +17,8 @@ MODULE ArrayFunctions
     n_r = SIZE(X,1)
     n_c = SIZE(X,2)
 
-    WRITE(fmt_mt, '( "(",I2,"ES17.8E3))" )' ) n_c
+    !WRITE(fmt_mt, '( "(",I2,"ES17.8E3))" )' ) n_c
+    WRITE(fmt_mt, '( "(",I2,"F17.8))" )' ) n_c
     WRITE(*,fmt_mt) (X(i,1:n_c), i=1,n_r)
   END SUBROUTINE print_mtx
 
@@ -235,15 +236,14 @@ MODULE ArrayFunctions
     IMPLICIT NONE
     INTEGER, INTENT(INOUT) :: idx(:,:)
     REAL(DBL), INTENT(IN) :: PRD(:,:)
-    INTEGER :: low, mid, high
+    INTEGER :: mid, high
 
-    low = 1
     high = SIZE(idx,2)
-    IF (low < high) THEN
-      mid = low + (high-low)/2
-      CALL sort(idx(:,low:mid), PRD)
+    IF (1 < high) THEN
+      mid = (high+1)/2
+      CALL sort(idx(:,:mid), PRD)
       CALL sort(idx(:,mid+1:high), PRD)
-      idx(:,low:high) = MergeIdx(idx(:,low:mid), idx(:,mid+1:high), PRD)
+      idx(:,:) = MergeIdx(idx(:,:mid), idx(:,mid+1:high), PRD)
     END IF
   END SUBROUTINE sort
 
@@ -262,7 +262,7 @@ MODULE ArrayFunctions
     ci = 1
 
     DO WHILE (ai <= a_high .AND. bi <= b_high)
-      IF (ABSO(PRD(a(1,ai),a(2,ai))) > ABSO(PRD(b(1,bi),b(2,bi)))) THEN
+      IF (ABSO(PRD(a(1,ai),a(2,ai))) >= ABSO(PRD(b(1,bi),b(2,bi)))) THEN
         MergeIdx(:,ci) = a(:,ai)
         ai = ai + 1
       ELSE
@@ -279,21 +279,24 @@ MODULE ArrayFunctions
     END IF
   END FUNCTION MergeIdx
 
-  SUBROUTINE DIAGNxN(NBS, HAM, UMT, PRD)
+  SUBROUTINE DIAGNxN(NBS, HAM, UMT)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NBS
     REAL(DBL), INTENT(INOUT) :: HAM(:,:)
-    REAL(DBL), INTENT(OUT) :: UMT(:,:), PRD(:,:)
+    REAL(DBL), INTENT(OUT) :: UMT(:,:)
 
+    REAL(DBL), ALLOCATABLE :: PRD(:,:)
     REAL(DBL) :: SPC(NBS,NBS)
     REAL(DBL) :: H(2,2), E(2), O(2,2) !J2X2
-    REAL(DBL) :: ERRPREV, ERRNW
+    REAL(DBL) :: ERROLD, ERRNW
 
     LOGICAL :: useIdx(NBS)
     INTEGER :: idxAll(2,NBS*(NBS-1)/2)
     INTEGER :: idx(2,NBS/2)
     INTEGER :: i, j, k, l, n, idxSize
     INTEGER :: iTry, MXIT
+
+    ALLOCATE(PRD(NBS,NBS))
 
     UMT = 0.D0
     DO i=1, NBS
@@ -305,10 +308,10 @@ MODULE ArrayFunctions
 
     DO iTry = 1, MXIT
       n = 0
-      ERRPREV = 0.D0
+      ERROLD=0.D0
       DO i=1, NBS
         DO j=i+1, NBS
-          ERRPREV = ERRPREV + PRD(j,i)*PRD(j,i)
+          ERROLD = ERROLD + PRD(i,j)*PRD(i,j)
           IF (ABSO(PRD(i,j)) > 1.D-10) THEN     !Save indices of PRD entries whose absolute value is greater than 0
             n = n + 1
             idxAll(1,n) = i
@@ -337,16 +340,15 @@ MODULE ArrayFunctions
           useIdx(idxAll(:,j)) = .False. !Set both to false because they would be used
           idx(:,idxSize) = idxAll(:,j)  !Save both indexes in idx array
           idxSize = idxSize + 1         !Update position for next indexes
-          IF(idxSize > NBS/2) EXIT      !Exit the loop if NBS (even) or NBS-1 (odd) indexes had been used
+          IF (idxSize > NBS/2) EXIT     !Exit the loop if NBS (even) or NBS-1 (odd) indexes had been used
         END IF
       END DO
 
-      WRITE(*,*) 'Non repetitive indexes with highest values:'
-      idxSize = idxSize - 1
-      DO i=1, idxSize
-        WRITE(*,*) idx(1,i), idx(2,i), PRD(idx(1,i),idx(2,i))
-      END DO
-!      IF (ITRY >= 3) STOP 'Hi:)'
+!      WRITE(*,*) 'Non repetitive indexes with highest values:'
+!      idxSize = idxSize - 1
+!      DO i=1, idxSize
+!        WRITE(*,*) idx(1,i), idx(2,i), PRD(idx(1,i),idx(2,i))
+!      END DO
 
       !Use best two indexes
       k = idx(1,1)
@@ -419,7 +421,7 @@ MODULE ArrayFunctions
 
       CALL print_mtx(PRD)
 
-      WRITE(*,30) iTry, ERRNW, ERRPREV
+      WRITE(*,30) iTry, ERRNW, ERROLD
       30 FORMAT(I3, 3G15.6)
 
       IF (ERRNW < 1.D-12) EXIT
@@ -429,9 +431,10 @@ MODULE ArrayFunctions
       WRITE(*,*) 'Warning: No Convergence'
     END IF
 
-    WRITE(*,*) iTry, NBS, REAL(iTry)/REAL(NBS*NBS), 'Diag Eff'
+    WRITE(*,*) iTry, NBS, DIV(DBLE(iTry),DBLE(NBS*NBS)), 'Diag Eff'
 
     HAM = PRD
+    DEALLOCATE(PRD)
   END SUBROUTINE DIAGNxN
 
   SUBROUTINE LEASTSQUARE()

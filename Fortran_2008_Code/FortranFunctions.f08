@@ -94,7 +94,7 @@ MODULE FortranFunctions
 
     xn = 1.D0
 
-    DO i=1, 10
+    DO i=1, 25
       xn = xn + DIV(num - xn*xn, 2.D0*xn)
     END DO
   END FUNCTION SQR

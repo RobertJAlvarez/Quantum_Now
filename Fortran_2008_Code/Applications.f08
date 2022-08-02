@@ -11,11 +11,13 @@ MODULE Applications
 
   SUBROUTINE STARKDVR()
     IMPLICIT NONE
-    INTEGER, PARAMETER :: NDH = 10
-    REAL(DBL), DIMENSION(NDH,NDH) :: HAM, OVR, UMT, PRD, DIP
+    REAL(DBL), ALLOCATABLE, DIMENSION(:,:) :: HAM, OVR, UMT, PRD, DIP
     REAL(DBL) :: EFIELD, G, X, P, TXR, t, DIPOLE
     REAL(DBL) :: AI, AR, DI, DR, phs, tau
     INTEGER :: i, j, k, m, NBS
+
+    NBS = 3
+    ALLOCATE(HAM(NBS,NBS), OVR(NBS,NBS), UMT(NBS,NBS), PRD(NBS,NBS), DIP(NBS,NBS))
 
     WRITE(*,*) 'WELCOME TO STARK DRIVER, EFIELD=?'
     READ(*,*) EFIELD
@@ -30,13 +32,13 @@ MODULE Applications
     DIP(1,3) = 0.01D0
     DIP(2,3) = 0.03D0
 
-    DO i=1,3
-      DO j=i+1,3
+    DO i=1,NBS
+      DO j=i+1,NBS
         DIP(j,i) = DIP(i,j)
       END DO
     END DO
 
-    DO i=1,NDH
+    DO i=1,NBS
       OVR(i,i) = 1.D0
     END DO
 
@@ -47,9 +49,8 @@ MODULE Applications
     HAM(3,1) = HAM(1,3)
     HAM(2,3) = DIP(2,3)*EFIELD
     HAM(3,2) = HAM(2,3)
-    NBS = 3
 
-    CALL DIAGNxN(NBS,HAM,UMT,PRD)
+    CALL DIAGNxN(NBS,HAM,UMT)
 
     WRITE(*,*) "UPDATED HAM"
     DO i=1,NBS
@@ -75,11 +76,11 @@ MODULE Applications
     DO M=0,1000
       t = DBLE(M)*DIV(TAU,1.D3)
       OPEN(12,FILE='PLOT')
-      DO k=1,3
-        DO j=1,3  
+      DO k=1,NBS
+        DO j=1,NBS
           AR = 0.D0
           AI = 0.D0
-          DO i=1,3
+          DO i=1,NBS
             AR = AR + COSINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i) 
             AI = AI + SINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i) 
           END DO
@@ -90,8 +91,8 @@ MODULE Applications
 ! <phi_2t| phi_2t> = sum_ij exp(i (eps_i-eps_j)t <psi_j|d|phi_i>*u(2,i)*u(2,j)
       DR = 0.D0       
       DI = 0.D0
-      DO i=1,3
-        DO j=1,3
+      DO i=1,NBS
+        DO j=1,NBS
           phs = (HAM(i,i) - HAM(j,j))*t
           DR = DR + COSINE(phs)*UMT(2,i)*UMT(2,j)*DIP(i,j)
           DI = DI + SINE(phs)*UMT(2,i)*UMT(2,j)*DIP(i,j) 
@@ -116,17 +117,19 @@ MODULE Applications
     CLOSE(12)
     CALL SYSTEM('chmod +x plot_directions')
     CALL SYSTEM('./plot_directions')
-    CALL SYSTEM('eog output.png')
-    STOP
+    CALL SYSTEM('open output.png')
+    DEALLOCATE(HAM, OVR, UMT, PRD, DIP)
   END SUBROUTINE STARKDVR
 
   SUBROUTINE RINGDVR()
     IMPLICIT NONE
-    INTEGER, PARAMETER :: NDH = 12
-    REAL(DBL), DIMENSION(NDH,NDH) :: HAM, OVR, UMT, PRD, DIP
+    REAL(DBL), ALLOCATABLE, DIMENSION(:,:) :: HAM, OVR, UMT, PRD, DIP
     REAL(DBL) :: RINGSZ, E, aM, phs, DIPOLE
     REAL(DBL) :: AI, AR, DI, DR, t, TAU
     INTEGER :: i, j, k, m, NBS, iAP
+
+    NBS = 11
+    ALLOCATE(HAM(NBS,NBS), OVR(NBS,NBS), UMT(NBS,NBS), PRD(NBS,NBS), DIP(NBS,NBS))
 
     WRITE(*,*) 'HOW LARGE IS YOUR RING?'
     READ(*,*)  RINGSZ
@@ -136,33 +139,33 @@ MODULE Applications
     READ(*,*) E
 
     DIP = 0.D0
-    DO i=1,NDH
+    DO i=1,NBS
       OVR(i,i) = 1.D0
     END DO
 
-    NBS = 0
+    i = 0
     HAM = 0.D0
     aM = -5.D0
     DO m=-5,5 
-      NBS = NBS + 1
+      i = i + 1
 
-      IF (NBS > 1) THEN
-        DIP(NBS-1,NBS) = DIV(E*RINGSZ,2.D0)
-        DIP(NBS,NBS-1) = DIP(NBS-1,NBS)
-!       HAM(NBS-1,NBS) = DIV(E*RINGSZ,2.D0)
-!       HAM(NBS,NBS-1) = HAM(NBS-1,NBS)
+      IF (i > 1) THEN
+        DIP(i-1,i) = DIV(E*RINGSZ,2.D0)
+        DIP(i,i-1) = DIP(i-1,i)
+!       HAM(i-1,i) = DIV(E*RINGSZ,2.D0)
+!       HAM(i,i-1) = HAM(i-1,i)
       END IF
-      HAM(NBS,NBS) = DIV(aM*aM,RINGSZ*RINGSZ)
+      HAM(i,i) = DIV(aM*aM,RINGSZ*RINGSZ)
       aM = aM + 1.D0
     END DO
 
     IF (iAP == 2)THEN
       DIP = 0.D0
-      NBS = 0
+      i = 0
 !     E=-1*DIV(2.D0,RINGSZ*RINGSZ)
       DO m=-5,5
-        NBS = NBS + 1
-        DIP(NBS,NBS) = DBLE(M)*E 
+        i = i + 1
+        DIP(i,i) = DBLE(m)*E 
       END DO
     END IF
 
@@ -171,7 +174,8 @@ MODULE Applications
     END DO
 
     DIP = DIP + HAM
-    CALL DIAGNxN(NBS,HAM,UMT,PRD)
+    CALL DIAGNxN(NBS,HAM,UMT)
+
     WRITE(*,*) "UPDATED HAM"
     DO I=1,NBS
       WRITE(*,'(10F12.4)') (HAM(J,I),J=1,NBS)  !LAMDA_J
@@ -199,7 +203,7 @@ MODULE Applications
         DO I=1,NBS
           OVR(I,I) = 1.D0
         END DO
-        CALL DIAGNxN(NBS,HAM,UMT,PRD)
+        CALL DIAGNxN(NBS,HAM,UMT)
         DO I=1,NBS
           WRITE(*,*) HAM(I,I)
         END DO
@@ -247,39 +251,42 @@ MODULE Applications
     CLOSE(12)
     CALL SYSTEM('chmod +x plot_directions')
     CALL SYSTEM('./plot_directions')
-    CALL SYSTEM('eog output.png')
-    STOP
+    CALL SYSTEM('open output.png')
+    DEALLOCATE(HAM, OVR, UMT, PRD, DIP)
   END SUBROUTINE RINGDVR
 
   SUBROUTINE BOXDVR()
     IMPLICIT NONE
-    INTEGER, PARAMETER :: NDH = 10
-    REAL(DBL), DIMENSION(NDH,NDH) :: HAM, OVR, UMT, PRD, DIP
+    REAL(DBL), ALLOCATABLE, DIMENSION(:,:) :: HAM, OVR, UMT, PRD, DIP
     REAL(DBL) :: alpha, a, twom, tau, dr, di, ai, ar, boxsz, dipole, phs, t
     INTEGER :: i, j, k, m, NBS
+
+    NBS = 9
+    ALLOCATE(HAM(NBS,NBS), OVR(NBS,NBS), UMT(NBS,NBS), PRD(NBS,NBS), DIP(NBS,NBS))
 
     WRITE(*,*) 'WELCOME TO BOX DRIVER, HOW LARGE IS YOUR BOX?'
     READ(*,*) BOXSZ
     Alpha = DIV(2*PI,BOXSZ)
-    A = DBLE(M*M)*PI
-    DO I=1,NDH
+    A = DBLE(m*m)*PI
+
+    DO I=1,NBS
       OVR(I,I) = 1.D0
     END DO
 
-    NBS = 0
+    i = 0
     HAM = 0.D0
-    DO M=-4,4
-      NBS = NBS + 1
-      TWOM = 2.D0*DBLE(M)*PI
-      WRITE(*,*) M,TWOM
-      HAM(NBS,NBS) = DIV(TWOM,BOXSZ)*DIV(TWOM,BOXSZ)
+    DO m=-4,4
+      i = i + 1
+      TWOM = 2.D0*DBLE(m)*PI
+      WRITE(*,*) m,TWOM
+      HAM(i,i) = DIV(TWOM,BOXSZ)*DIV(TWOM,BOXSZ)
     END DO
 
     WRITE(*,*) "INITIAL HAM"
     DO I=1,NBS
       WRITE(*,'(10F12.4)') (HAM(J,I),J=1,NBS)  !LAMDA_J
     END DO
-    CALL DIAGNxN(NBS,HAM,UMT,PRD)
+    CALL DIAGNxN(NBS,HAM,UMT)
 
     WRITE(*,*) "UPDATED HAM"
     DO I=1,NBS
@@ -347,17 +354,19 @@ MODULE Applications
     CLOSE(12)
     CALL SYSTEM('chmod +x plot_directions')
     CALL SYSTEM('./plot_directions')
-    CALL SYSTEM('xdg-open output.png')
-    STOP
+    CALL SYSTEM('open output.png')
+    DEALLOCATE(HAM, OVR, UMT, PRD, DIP)
   END SUBROUTINE BOXDVR
 
   SUBROUTINE HMODVR()
     IMPLICIT NONE
-    INTEGER, PARAMETER :: NDH = 10
-    REAL(DBL), DIMENSION(NDH,NDH) :: HAM, OVR, UMT, PRD, DIP
+    REAL(DBL), ALLOCATABLE, DIMENSION(:,:) :: HAM, OVR, UMT, PRD, DIP
     REAL(DBL) :: rkmx, rkmn, emax, emin, energy, hmass, ai, ar, di, dr
     REAL(DBL) :: dipole, efield, guess, phs, scale, t, tau
     INTEGER :: i, j, k, m, NBS
+
+    NBS = 2
+    ALLOCATE(HAM(NBS,NBS), OVR(NBS,NBS), UMT(NBS,NBS), PRD(NBS,NBS), DIP(NBS,NBS))
 
     WRITE(*,*) 'NRLMOL:',DIV(0.36005D0*1.6D-19,6.626D-34)
     rkmx = 1.D30
@@ -387,7 +396,7 @@ MODULE Applications
           DIP(J,I) = DIP(I,J)
         END DO
       END DO
-      DO I=1,NDH
+      DO I=1,NBS
         OVR(I,I) = 1.D13
       END DO
       HAM = 0.D0
@@ -397,7 +406,6 @@ MODULE Applications
       HAM(2,2) = DIV(1.5D0*SQR(DIV(guess,hmass)),(2.D0*PI))
       HAM(1,2) = 0.D0 !DIP(1,2)
       HAM(2,1) = 0.D0 !DIP(2,1)
-      NBS = 2
       DO I=1,NBS
         WRITE(*,*) (HAM(I,J),J=1,NBS)
       END DO
@@ -406,7 +414,7 @@ MODULE Applications
           HAM(I,J) = DIV(HAM(I,J),scale)
         END DO
       END DO
-      CALL DIAGNxN(NBS,HAM,UMT,PRD)
+      CALL DIAGNxN(NBS,HAM,UMT)
       DO I=1,NBS
         HAM(I,I) = HAM(I,I)*scale
       END DO
@@ -481,7 +489,7 @@ MODULE Applications
     12 FORMAT('p for [col=2:5] "PLOT" u 1:col w lp')
     CLOSE(12)
     CALL system('gnuplot <plot_directions')
-    STOP
+    DEALLOCATE(HAM, OVR, UMT, PRD, DIP)
   END SUBROUTINE HMODVR
 END MODULE Applications
 
