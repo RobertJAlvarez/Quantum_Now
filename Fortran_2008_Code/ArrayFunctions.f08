@@ -3,7 +3,7 @@ MODULE ArrayFunctions
   IMPLICIT NONE
 
   PRIVATE
-  PUBLIC :: print_mtx, INVERSE, J2x2, JAC2BY2GEN, DIAGNxN, LEASTSQUARE
+  PUBLIC :: print_mtx, INVERSE, J2X2, JAC2BY2GEN, DIAGNxN, LEASTSQUARE
 
   CONTAINS
 
@@ -17,7 +17,8 @@ MODULE ArrayFunctions
     n_r = SIZE(X,1)
     n_c = SIZE(X,2)
 
-    WRITE(fmt_mt, '( "(",I2,"ES17.8E3))" )' ) n_c
+    !WRITE(fmt_mt, '( "(",I2,"ES17.8E3))" )' ) n_c
+    WRITE(fmt_mt, '( "(",I2,"F17.8))" )' ) n_c
     WRITE(*,fmt_mt) (X(i,1:n_c), i=1,n_r)
   END SUBROUTINE print_mtx
 
@@ -111,40 +112,41 @@ MODULE ArrayFunctions
     CALL print_mtx(CC)
   END FUNCTION INVERSE
 
+!First part:
+! if A = [[d, e], [f,g]]
+! det(A) = d*g - f*e
+! An eigenvalue satisfies:
+! (d-E)*(g-E) - e*f = 0 <=> E^2 - E*(d+g) + (d*g-f*e) = 0
+! From quadratic formula: b^2-4*a*c ->
+! (d+g)^2 - 4*1*(d*g-f*e) <=> (d-g)^2 + 4*e*f
+! E = answers of quadratic formula
+!Second part:
+! The eigenvector O_n follows that (H-IE(n))O_n=0.
+! So: (H(1,1)-E(n))O_n(1)+H(1,2)O_n(2)=0
+!     H(2,1)O_n(1)+H(2,2)-E(n))O_n(2)=0
+! But: H(2,1)=H(1,2)
+! We can do: O_n(1)=-H(1,2) ; O_n(2)=(H(1,1)-E(n))
+! This way the first equation is zero, and the second will have the form:
+! -H(1,2)^2 + H(1,2)H(2,2)-E(n)(H(1,1)+H(2,2)) + E(n)^2 = 0
+! Notice that this equation is equal to the determinant, which is equal to zero.
+! So our solutions are valid, and any non zero scalar multiples of this O_n vectors.
+! Notice that we can do the same using the second equation to obtain O_n(1) and O_n(2)
+! And we will have that: O_n(1)=(H(2,2)-E(n)) and O_n(2)=-H(1,2), so
+!   Left handed
+
   !Author (Fortran 77): Dr. Mark Pederson
   !Date:  September 15th, 2021
   SUBROUTINE J2X2(H, E, O)
     IMPLICIT NONE
     REAL(DBL), INTENT(IN) :: H(:,:)
-    REAL(DBL), INTENT(OUT) :: E(:), O(:,:) !O is for orthogonal matrix
+    REAL(DBL), INTENT(OUT) :: E(:), O(:,:)
     REAL(DBL) :: dot, trc, rad
     INTEGER :: i
-
-!   if A = [[d, e], [f,g]]
-!   det(A) = d*g - f*e
-!   An eigenvalue satisfies:
-!   (d-E)*(g-E) - e*f = 0 <=> E^2 - E*(d+g) + (d*g-f*e) = 0
-!   From quadratic formula: b^2-4*a*c ->
-!   (d+g)^2 - 4*1*(d*g-f*e) <=> (d-g)^2 + 4*e*f
-!   E = answers of quadratic formula
 
     rad = SQR((H(1,1) - H(2,2))*(H(1,1) - H(2,2)) + 4.D0*H(1,2)*H(2,1))
     trc = H(1,1) + H(2,2)
     E(1) = (0.5D0)*(trc+rad)
     E(2) = (0.5D0)*(trc-rad)
-
-!The eigenvector O_n follows that (H-IE(n))O_n=0.
-!So: (H(1,1)-E(n))O_n(1)+H(1,2)O_n(2)=0
-!     H(2,1)O_n(1)+H(2,2)-E(n))O_n(2)=0
-!But: H(2,1)=H(1,2)
-!We can do: O_n(1)=-H(1,2) ; O_n(2)=(H(1,1)-E(n))
-!This way the first equation is zero, and the second will have the form:
-!-H(1,2)^2 + H(1,2)H(2,2)-E(n)(H(1,1)+H(2,2)) + E(n)^2 = 0
-!Notice that this equation is equal to the determinant, which is equal to zero.
-!So our solutions are valid, and any non zero scalar multiples of this O_n vectors.
-!Notice that we can do the same using the second equation to obtain O_n(1) and O_n(2)
-!And we will have that: O_n(1)=(H(2,2)-E(n)) and O_n(2)=-H(1,2), so
-!       Left handed
 
     O(1,1) = -H(1,2)
     O(2,1) =  H(1,1) - E(1)
@@ -160,11 +162,11 @@ MODULE ArrayFunctions
 
   SUBROUTINE JAC2BY2GEN(H, O, V, E)
     IMPLICIT NONE
-    REAL(DBL), INTENT(INOUT) :: H(:,:), O(:,:), V(:,:)
-    REAL(DBL), INTENT(OUT) :: E(:) !Eigenvalues
+    REAL(DBL), INTENT(INOUT) :: H(:,:), O(:,:)
+    REAL(DBL), INTENT(OUT) :: V(:,:), E(:) ! Eigenvalues
 
-    REAL(DBL) :: T(2,2)    !Eigenvectors
-    REAL(DBL) :: D(2,2)    !Dot product matrix
+    REAL(DBL) :: T(2,2)    ! Eigenvectors
+    REAL(DBL) :: D(2,2)    ! Product matrix
     REAL(DBL) :: TRC, RAD, A, B, C
     INTEGER :: i, j, k, l, iTry
 
@@ -180,7 +182,7 @@ MODULE ArrayFunctions
     E(1) = (0.5D0)*(TRC + RAD)
     E(2) = (0.5D0)*(TRC - RAD)
 
-    WRITE(*,'(/,A,2F12.6,/)') 'Eigenvalues:', E(1), E(2)
+!    WRITE(*,'(/,A,2F12.6,/)') 'Eigenvalues:', E(1), E(2)
 
     !Calculate eigenvectors
     DO k=1, 2
@@ -191,16 +193,16 @@ MODULE ArrayFunctions
       END DO
       V(1,k) = -T(k,2)
       V(2,k) =  T(k,1)
-      WRITE(*,*) T(1,1)*T(2,2) - T(1,2)*T(2,1)
+!      WRITE(*,*) T(1,1)*T(2,2) - T(1,2)*T(2,1)
     END DO
 
     ! <V_1 | V_2> = 0 ?
     DO iTry=1, 3
-      IF (iTry <= 2) THEN
-        WRITE(*,'(/,A)') 'Overlap matrix'
-      ELSE
-        WRITE(*,'(/,A)') 'Hamiltonian matrix'
-      END IF
+!      IF (iTry <= 2) THEN
+!        WRITE(*,'(/,A)') 'Overlap matrix'
+!      ELSE
+!        WRITE(*,'(/,A)') 'Hamiltonian matrix'
+!      END IF
 
       DO i=1, 2
         DO j=1, 2
@@ -215,7 +217,7 @@ MODULE ArrayFunctions
             END DO
           END DO
         END DO
-        WRITE(*,'(2F12.6)') (D(i,j),j=1,2)
+!        WRITE(*,'(2F12.6)') (D(i,j),j=1,2)
       END DO
 
       IF (iTry == 1) THEN
@@ -234,15 +236,14 @@ MODULE ArrayFunctions
     IMPLICIT NONE
     INTEGER, INTENT(INOUT) :: idx(:,:)
     REAL(DBL), INTENT(IN) :: PRD(:,:)
-    INTEGER :: low, mid, high
+    INTEGER :: mid, high
 
-    low = 1
     high = SIZE(idx,2)
-    IF (low < high) THEN
-      mid = low + (high-low)/2
-      CALL sort(idx(:,low:mid), PRD)
+    IF (1 < high) THEN
+      mid = (high+1)/2
+      CALL sort(idx(:,:mid), PRD)
       CALL sort(idx(:,mid+1:high), PRD)
-      idx(:,low:high) = MergeIdx(idx(:,low:mid), idx(:,mid+1:high), PRD)
+      idx(:,:) = MergeIdx(idx(:,:mid), idx(:,mid+1:high), PRD)
     END IF
   END SUBROUTINE sort
 
@@ -261,7 +262,7 @@ MODULE ArrayFunctions
     ci = 1
 
     DO WHILE (ai <= a_high .AND. bi <= b_high)
-      IF (ABSO(PRD(a(1,ai),a(2,ai))) > ABSO(PRD(b(1,bi),b(2,bi)))) THEN
+      IF (ABSO(PRD(a(1,ai),a(2,ai))) >= ABSO(PRD(b(1,bi),b(2,bi)))) THEN
         MergeIdx(:,ci) = a(:,ai)
         ai = ai + 1
       ELSE
@@ -278,22 +279,24 @@ MODULE ArrayFunctions
     END IF
   END FUNCTION MergeIdx
 
-  SUBROUTINE DIAGNxN(NBS, HAM, UMT, PRD)
+  SUBROUTINE DIAGNxN(NBS, HAM, UMT)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NBS
     REAL(DBL), INTENT(INOUT) :: HAM(:,:)
-    REAL(DBL), INTENT(OUT) :: UMT(:,:), PRD(:,:)
+    REAL(DBL), INTENT(OUT) :: UMT(:,:)
 
-    CHARACTER(len=13) :: fmt_mt
+    REAL(DBL), ALLOCATABLE :: PRD(:,:)
     REAL(DBL) :: SPC(NBS,NBS)
     REAL(DBL) :: H(2,2), E(2), O(2,2) !J2X2
-    REAL(DBL) :: ERRPREV, ERRNW
+    REAL(DBL) :: ERROLD, ERRNW
 
     LOGICAL :: useIdx(NBS)
     INTEGER :: idxAll(2,NBS*(NBS-1)/2)
     INTEGER :: idx(2,NBS/2)
     INTEGER :: i, j, k, l, n, idxSize
     INTEGER :: iTry, MXIT
+
+    ALLOCATE(PRD(NBS,NBS))
 
     UMT = 0.D0
     DO i=1, NBS
@@ -303,13 +306,12 @@ MODULE ArrayFunctions
     PRD = HAM
     MXIT = NBS*NBS*2
 
-    WRITE(fmt_mt, '( "(",I2,"F10.5))" )' ) NBS
     DO iTry = 1, MXIT
       n = 0
-      ERRPREV = 0.D0
+      ERROLD=0.D0
       DO i=1, NBS
         DO j=i+1, NBS
-          ERRPREV = ERRPREV + PRD(j,i)*PRD(j,i)
+          ERROLD = ERROLD + PRD(i,j)*PRD(i,j)
           IF (ABSO(PRD(i,j)) > 1.D-10) THEN     !Save indices of PRD entries whose absolute value is greater than 0
             n = n + 1
             idxAll(1,n) = i
@@ -338,16 +340,15 @@ MODULE ArrayFunctions
           useIdx(idxAll(:,j)) = .False. !Set both to false because they would be used
           idx(:,idxSize) = idxAll(:,j)  !Save both indexes in idx array
           idxSize = idxSize + 1         !Update position for next indexes
-          IF(idxSize > NBS/2) EXIT      !Exit the loop if NBS (even) or NBS-1 (odd) indexes had been used
+          IF (idxSize > NBS/2) EXIT     !Exit the loop if NBS (even) or NBS-1 (odd) indexes had been used
         END IF
       END DO
 
-      WRITE(*,*) 'Non repetitive indexes with highest values:'
-      idxSize = idxSize - 1
-      DO i=1, idxSize
-        WRITE(*,*) idx(1,i), idx(2,i), PRD(idx(1,i),idx(2,i))
-      END DO
-!      IF (ITRY >= 3) STOP 'Hi:)'
+!      WRITE(*,*) 'Non repetitive indexes with highest values:'
+!      idxSize = idxSize - 1
+!      DO i=1, idxSize
+!        WRITE(*,*) idx(1,i), idx(2,i), PRD(idx(1,i),idx(2,i))
+!      END DO
 
       !Use best two indexes
       k = idx(1,1)
@@ -418,11 +419,9 @@ MODULE ArrayFunctions
         END DO
       END DO
 
-      DO I=1,NBS
-        WRITE(*,fmt_mt) (PRD(j,i), j=1,NBS)
-      END DO
-      
-      WRITE(*,30) iTry, ERRNW, ERRPREV
+      CALL print_mtx(PRD)
+
+      WRITE(*,30) iTry, ERRNW, ERROLD
       30 FORMAT(I3, 3G15.6)
 
       IF (ERRNW < 1.D-12) EXIT
@@ -432,9 +431,10 @@ MODULE ArrayFunctions
       WRITE(*,*) 'Warning: No Convergence'
     END IF
 
-    WRITE(*,*) iTry, NBS, REAL(iTry)/REAL(NBS*NBS), 'Diag Eff'
+    WRITE(*,*) iTry, NBS, DIV(DBLE(iTry),DBLE(NBS*NBS)), 'Diag Eff'
 
     HAM = PRD
+    DEALLOCATE(PRD)
   END SUBROUTINE DIAGNxN
 
   SUBROUTINE LEASTSQUARE()

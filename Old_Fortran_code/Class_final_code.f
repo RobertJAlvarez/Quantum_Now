@@ -622,7 +622,7 @@ C     HAM(3,4)=P
 C     HAM(4,3)=P
 C     HAM(2,3)=TXR
 C     HAM(3,2)=TXR
-      PRD=HAM
+C      PRD=HAM
       
       MXIT=NBS*NBS*2
       DO 1000 ITRY=1,MXIT

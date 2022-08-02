@@ -1,6 +1,6 @@
 PROGRAM Main
   USE FortranFunctions, ONLY: DBL, FMOD, DIV, SINE, COSINE
-  USE ArrayFunctions, ONLY: JAC2BY2GEN
+  USE ArrayFunctions, ONLY: print_mtx, JAC2BY2GEN
   USE Applications, ONLY: STARKDVR, RINGDVR, HMODVR, BOXDVR
   IMPLICIT NONE
 
@@ -32,9 +32,9 @@ PROGRAM Main
   SUBROUTINE SOLVEGEN()
     IMPLICIT NONE
     REAL(DBL), DIMENSION(2,2) :: H, O, V
-    REAL(DBL) :: E(2)!, F(4), G(4)
+    REAL(DBL) :: E(2)
 
-    INTEGER, PARAMETER :: seed = 86456
+    INTEGER, PARAMETER :: seed = 71530
     INTEGER :: ND
 
     CALL SRAND(seed)
@@ -44,7 +44,7 @@ PROGRAM Main
     BLOCK
       REAL(DBL), DIMENSION(ND,ND) :: HAM, OVR, EVC, TST, RST, UPD
       REAL(DBL) :: ERR
-      INTEGER :: i,j, k, l, m, n, ITST, ITRY, in, ip
+      INTEGER :: i, j, k, l, m, n, ITST, ITRY
  
       DO i=1, ND
         DO j=i, ND
@@ -64,6 +64,9 @@ PROGRAM Main
         END DO
         EVC(i,i) = 1.D0
       END DO
+
+      WRITE(*,*) 'Initial Hamiltonian:'
+      CALL print_mtx(HAM)
 
       DO ITRY=1, 100
         DO i=1, ND
@@ -99,10 +102,10 @@ PROGRAM Main
             ! RST2(q,p) = V2_lq RST!(l,k) V2_kp = V1_ml V2_lq [Hmn V1_nk V2_kp]_np
             ! V2_ji V1i
             TST = 0.D0
-            DO in=1,ND
-              DO ip=1,ND
+            DO n=1,ND
+              DO l=1,ND
                 DO k=1, ND
-                  TST(in,ip) = TST(in,ip) + EVC(in,k)*UPD(k,ip)
+                  TST(n,l) = TST(n,l) + EVC(n,k)*UPD(k,l)
                 END DO
               END DO
             END DO
@@ -120,7 +123,7 @@ PROGRAM Main
                     END DO
                   END DO
                 END DO
-                WRITE(*,'(12F10.3)') (RST(l,k),l=1,ND)
+!                WRITE(*,'(12F10.3)') (RST(l,k),l=1,ND)
               END DO
               ERR = 0.D0
               DO m=1, ND
@@ -128,7 +131,7 @@ PROGRAM Main
                   ERR = ERR + RST(m,n)*RST(n,m)
                 END DO
               END DO
-              WRITE(*,*) 'ERR:', SQRT(ERR)
+!              WRITE(*,*) 'ERR:', SQRT(ERR)
             END DO
           END DO
         END DO
@@ -141,6 +144,9 @@ PROGRAM Main
       WRITE(*,*) O(1,1)*O(1,2) + O(2,1)*O(2,2)
       WRITE(*,*) O(1,1)*O(1,1) + O(2,1)*O(2,1)
       WRITE(*,*) O(2,2)*O(2,2) + O(1,2)*O(1,2)
+
+      WRITE(*,*) 'Resulting Hamiltonian:'
+      CALL print_mtx(HAM)
     END BLOCK
   END SUBROUTINE SOLVEGEN
 END PROGRAM Main

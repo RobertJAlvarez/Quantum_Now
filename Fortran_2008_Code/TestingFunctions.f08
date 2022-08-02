@@ -7,7 +7,7 @@
 ! bug:    No known bugs
 !
 PROGRAM testing_func
-  USE FortranFunctions, ONLY: PI, DBL, FMOD, DIV, SINE
+  USE FortranFunctions, ONLY: PI, DBL, FMOD, DIV, SQR, SINE
   USE retireFunctions, ONLY: Class_DIV, Class_DIAGNxN
   USE ArrayFunctions, ONLY: print_mtx, INVERSE, J2x2, JAC2BY2GEN, DIAGNxN, LEASTSQUARE
   USE Applications, ONLY: STARKDVR, RINGDVR, HMODVR, BOXDVR
@@ -18,8 +18,8 @@ PROGRAM testing_func
   DO
     WRITE(*,*)
     WRITE(*,*) 'You can test for:'
-    WRITE(*,*) 'FortranFunctions: 1. modulus, 2. division, 3. sine'
-    WRITE(*,*) 'ArrayFunctions: 4. Inverse, 5. J2x2, 6. JAC2BY2GEN, 7. DIAGNxN, 8. LEASTSQUARE '
+    WRITE(*,*) 'FortranFunctions: 1. modulus, 2. division, 3. square root, 4. sine'
+    WRITE(*,*) 'ArrayFunctions: 5. Inverse, 6. J2x2 and JAC2BY2GEN, 7. DIAGNxN, 8. LEASTSQUARE'
     WRITE(*,*) 'Applications: 9. STARKDVR, 10. RINGDVR, 11. BOXDVR, 12. HMODVR'
     WRITE(*,*) 'Anything else to exit'
     READ(*,*) input
@@ -30,13 +30,13 @@ PROGRAM testing_func
     CASE (2)
       CALL div_comp()
     CASE (3)
-      CALL trigTest()
+      CALL sqr_test()
     CASE (4)
-      CALL inverseTest()
+      CALL trig_test()
     CASE (5)
-      CALL J2x2_test()
+      CALL inverse_test()
     CASE (6)
-      CALL gen_J2x2_test()
+      CALL diag_2by2_test()
     CASE (7)
       CALL DIAGDVR()
     CASE (8)
@@ -186,15 +186,34 @@ PROGRAM testing_func
     WRITE(*,*) 'error = ', error
   END SUBROUTINE auto_div
 
+  SUBROUTINE sqr_test()
+    IMPLICIT NONE
+    INTEGER :: i, j, nTimes
+    REAL(DBL) :: N, t, error
+
+    j = 1
+    error = 0.D0
+    nTimes = 1000000
+    t = GetTime()
+
+    DO i=1, nTimes
+      CALL RANDOM_NUMBER(N)
+      error = error + ABS(SQRT(N) - SQR(N))
+    END DO
+
+    WRITE(*,*) 'Time:', GetTime() - t
+    WRITE(*,*) 'error = ', error
+  END SUBROUTINE sqr_test
+
   !Print angle, Fortran sine function for angle, our own sine function for angle, and the error.
   !Angle have equally step sizes of PI/36 from -PI to PI
-  SUBROUTINE trigTest
+  SUBROUTINE trig_test
     IMPLICIT NONE
 
     REAL(DBL) :: angle, add
     INTEGER :: i
 
-    WRITE(*,*) 'trigTest:'
+    WRITE(*,*) 'trig_test:'
 
     add = PI/36.D0
     angle = -PI
@@ -204,7 +223,7 @@ PROGRAM testing_func
         WRITE(*,'(F15.10,4F20.16)') angle, SINE(angle), SIN(angle), SIN(angle)-SINE(angle)
         angle = angle + add
     END DO
-  END SUBROUTINE trigTest
+  END SUBROUTINE trig_test
 
   !Generate and return a new number from -720 and 720
   SUBROUTINE newAngle(getNew)
@@ -225,7 +244,7 @@ PROGRAM testing_func
 ! ArrayFunctions.f08
 !
   ! Read arbitrary size matrix values from keyboard and send matrix to get inverted
-  SUBROUTINE inverseTest()
+  SUBROUTINE inverse_test()
     IMPLICIT NONE
     
     REAL(DBL), ALLOCATABLE :: A(:,:), B(:,:), nums(:)
@@ -244,26 +263,29 @@ PROGRAM testing_func
     END DO
 
     B = INVERSE(A)
-  END SUBROUTINE
 
-  SUBROUTINE J2x2_test()
+    DEALLOCATE(A, B, nums)
+  END SUBROUTINE inverse_test
+
+  SUBROUTINE diag_2by2_test()
     IMPLICIT NONE
-    !
-  END SUBROUTINE J2x2_test
+    WRITE(*,*) 'Diagonalization for 2 by 2 matrices'
+
+    WRITE(*,*) 'Analytical diagonalization (J2x2)'
+    !CALL J2x2()
+
+    WRITE(*,*) 'Numerical diagonalization (JAC2BY2GEN)'
+    !CALL JAC2BY2GEN()
+  END SUBROUTINE diag_2by2_test
  
-  SUBROUTINE gen_J2x2_test()
-    IMPLICIT NONE
-    !
-  END SUBROUTINE gen_J2x2_test
-
   SUBROUTINE DIAGDVR()  !Diag driver
     IMPLICIT NONE
-    REAL(DBL), ALLOCATABLE :: HAM(:,:), UMT(:,:), PRD(:,:)  !Hamiltonian, Unitary, Product
+    REAL(DBL), ALLOCATABLE :: HAM(:,:), UMT(:,:)  !Hamiltonian, Unitary, Product
     REAL(DBL) :: G, X, P, TXR
     INTEGER :: i, j, NBS
 
     NBS = 7
-    ALLOCATE(HAM(7,7), UMT(7,7), PRD(7,7))
+    ALLOCATE(HAM(NBS,NBS), UMT(NBS,NBS))
 
     G = -1.D0   !Ground
     X = -0.5D0  !Exited
@@ -294,10 +316,12 @@ PROGRAM testing_func
     WRITE(*,*) 'Original Hamiltonian:'
     CALL print_mtx(HAM)
 
-    CALL DIAGNxN(NBS, HAM, UMT, PRD)
+    CALL DIAGNxN(NBS, HAM, UMT)
 
     WRITE(*,*) 'Updated Hamiltonian:'
     CALL print_mtx(HAM)
+
+    DEALLOCATE(HAM, UMT)
   END SUBROUTINE DIAGDVR
 
   SUBROUTINE LSA_test()

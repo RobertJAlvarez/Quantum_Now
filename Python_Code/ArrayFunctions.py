@@ -96,10 +96,6 @@ def J2x2(H: Matrix, E: Matrix, O: Matrix) -> None:
   pass
 
 def JAC2BY2GEN(H: Matrix, O: Matrix, V: Matrix, E: Vector) -> None:
-  #
-  T = [[0.]*2 for _ in range(2)]
-  D = [[0.]*2 for _ in range(2)]
-  
   A = O(1,1)*O(2,2) - O(1,2)*(2,1)
   if A < 1.E-15:
     exit('Non positive overlap matrix')
@@ -116,8 +112,28 @@ def JAC2BY2GEN(H: Matrix, O: Matrix, V: Matrix, E: Vector) -> None:
   print("Eigenvalues: {0:14.7e} {0:14.7e}".format(E[1],E[2]))
 
   #Calculate eigenvectors
-  #
+  T = [[0.]*2 for _ in range(2)]  #Eigenvectors
+  for k in range(2):
+    for i in range(2):
+      for j in range(2):
+        T[i][j] = H[i][j] - E[k]*O[i][j]
+    V[1][k] = -T[k][2]
+    V[2][k] =  T[k][1]
 
+  # <V_1 | V_2> = 0 ?
+  D = [[0.]*2 for _ in range(2)]
+  for iTry in range(3):
+    for i in range(2):
+      for k in range(2):
+        D[i][j] = 0.
+        for k in range(2):
+          for l in range(2):
+            D[i][j] = D[i][j] + V[k][i]*V[l][j]*(O[k][l] if iTry <= 1 else H[k][l])
+
+    if iTry == 0:
+      for i in range(2):
+        for k in range(2):
+          V[k][i] = DIV(V[k][i],SQR(D[i][i]))
   pass
 
 def SortIdex(mtx: Matrix, PRD: Matrix) -> None:
@@ -134,26 +150,22 @@ def SortIdex(mtx: Matrix, PRD: Matrix) -> None:
 
     while i < len(L[0]) and j < len(R[0]):
       if ABS(PRD[L[0][i],L[1][i]]) > ABS(PRD[R[0][j],R[1][j]]):
-        mtx[0][k] = L[0][i]
-        mtx[1][k] = L[1][i]
+        mtx[0][k], mtx[1][k] = L[0][i], L[1][i]
         i += 1
       else:
-        mtx[0][k] = R[0][j]
-        mtx[1][k] = R[1][j]
+        mtx[0][k], mtx[1][k] = R[0][j], R[1][j]
         j += 1
       k += 1
 
     while i < len(L[0]):
-        mtx[0][k] = L[0][i]
-        mtx[1][k] = L[1][i]
-        i += 1
-        k += 1
+      mtx[0][k], mtx[1][k] = L[0][i], L[1][i]
+      i += 1
+      k += 1
 
     while j < len(L[0]):
-        mtx[0][k] = R[0][j]
-        mtx[1][k] = R[1][j]
-        j += 1
-        k += 1
+      mtx[0][k], mtx[1][k] = R[0][j], R[1][j]
+      j += 1
+      k += 1
   pass
 
 def DIAGNxN():
