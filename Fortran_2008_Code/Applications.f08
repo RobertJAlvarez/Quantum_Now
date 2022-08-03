@@ -12,7 +12,7 @@ MODULE Applications
   SUBROUTINE STARKDVR()
     IMPLICIT NONE
     REAL(DBL), ALLOCATABLE, DIMENSION(:,:) :: HAM, OVR, UMT, PRD, DIP
-    REAL(DBL) :: EFIELD, G, X, P, TXR, t, DIPOLE
+    REAL(DBL) :: EFIELD, t, DIPOLE
     REAL(DBL) :: AI, AR, DI, DR, phs, tau
     INTEGER :: i, j, k, m, NBS
 
@@ -22,26 +22,21 @@ MODULE Applications
     WRITE(*,*) 'WELCOME TO STARK DRIVER, EFIELD=?'
     READ(*,*) EFIELD
 
-    G = -1.D0
-    X = -0.5D0
-    P = 0.1D0
-    TXR = 0.2D0
-    HAM = 0.D0
-    OVR = 0.D0
     DIP = 0.D0
     DIP(1,3) = 0.01D0
     DIP(2,3) = 0.03D0
-
     DO i=1,NBS
       DO j=i+1,NBS
         DIP(j,i) = DIP(i,j)
       END DO
     END DO
 
+    OVR = 0.D0
     DO i=1,NBS
       OVR(i,i) = 1.D0
     END DO
 
+    HAM = 0.D0
     HAM(1,1) = -0.5D0
     HAM(2,2) = -0.125D0
     HAM(3,3) = -0.125D0
@@ -50,7 +45,7 @@ MODULE Applications
     HAM(2,3) = DIP(2,3)*EFIELD
     HAM(3,2) = HAM(2,3)
 
-    CALL DIAGNxN(NBS,HAM,UMT)
+    CALL DIAGNxN(HAM,UMT)
 
     WRITE(*,*) "UPDATED HAM"
     DO i=1,NBS
@@ -138,7 +133,6 @@ MODULE Applications
     WRITE(*,*) 'HOW BIG THE FIELD?'
     READ(*,*) E
 
-    DIP = 0.D0
     DO i=1,NBS
       OVR(i,i) = 1.D0
     END DO
@@ -146,6 +140,7 @@ MODULE Applications
     i = 0
     HAM = 0.D0
     aM = -5.D0
+    DIP = 0.D0
     DO m=-5,5 
       i = i + 1
 
@@ -174,7 +169,7 @@ MODULE Applications
     END DO
 
     DIP = DIP + HAM
-    CALL DIAGNxN(NBS,HAM,UMT)
+    CALL DIAGNxN(HAM,UMT)
 
     WRITE(*,*) "UPDATED HAM"
     DO I=1,NBS
@@ -203,7 +198,7 @@ MODULE Applications
         DO I=1,NBS
           OVR(I,I) = 1.D0
         END DO
-        CALL DIAGNxN(NBS,HAM,UMT)
+        CALL DIAGNxN(HAM,UMT)
         DO I=1,NBS
           WRITE(*,*) HAM(I,I)
         END DO
@@ -258,7 +253,7 @@ MODULE Applications
   SUBROUTINE BOXDVR()
     IMPLICIT NONE
     REAL(DBL), ALLOCATABLE, DIMENSION(:,:) :: HAM, OVR, UMT, PRD, DIP
-    REAL(DBL) :: alpha, a, twom, tau, dr, di, ai, ar, boxsz, dipole, phs, t
+    REAL(DBL) :: twom, tau, dr, di, ai, ar, boxsz, dipole, phs, t
     INTEGER :: i, j, k, m, NBS
 
     NBS = 9
@@ -266,8 +261,6 @@ MODULE Applications
 
     WRITE(*,*) 'WELCOME TO BOX DRIVER, HOW LARGE IS YOUR BOX?'
     READ(*,*) BOXSZ
-    Alpha = DIV(2*PI,BOXSZ)
-    A = DBLE(m*m)*PI
 
     DO I=1,NBS
       OVR(I,I) = 1.D0
@@ -286,7 +279,7 @@ MODULE Applications
     DO I=1,NBS
       WRITE(*,'(10F12.4)') (HAM(J,I),J=1,NBS)  !LAMDA_J
     END DO
-    CALL DIAGNxN(NBS,HAM,UMT)
+    CALL DIAGNxN(HAM,UMT)
 
     WRITE(*,*) "UPDATED HAM"
     DO I=1,NBS
@@ -414,7 +407,7 @@ MODULE Applications
           HAM(I,J) = DIV(HAM(I,J),scale)
         END DO
       END DO
-      CALL DIAGNxN(NBS,HAM,UMT)
+      CALL DIAGNxN(HAM,UMT)
       DO I=1,NBS
         HAM(I,I) = HAM(I,I)*scale
       END DO

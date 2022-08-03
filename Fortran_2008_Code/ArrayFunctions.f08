@@ -232,7 +232,7 @@ MODULE ArrayFunctions
 !
 !Subroutine sort and MergeIdx are only used for DIAGNxN
 !
-  RECURSIVE SUBROUTINE sort(idx, PRD)
+  RECURSIVE SUBROUTINE SortIdx(idx, PRD)
     IMPLICIT NONE
     INTEGER, INTENT(INOUT) :: idx(:,:)
     REAL(DBL), INTENT(IN) :: PRD(:,:)
@@ -241,11 +241,11 @@ MODULE ArrayFunctions
     high = SIZE(idx,2)
     IF (1 < high) THEN
       mid = (high+1)/2
-      CALL sort(idx(:,:mid), PRD)
-      CALL sort(idx(:,mid+1:high), PRD)
+      CALL SortIdx(idx(:,:mid), PRD)
+      CALL SortIdx(idx(:,mid+1:high), PRD)
       idx(:,:) = MergeIdx(idx(:,:mid), idx(:,mid+1:high), PRD)
     END IF
-  END SUBROUTINE sort
+  END SUBROUTINE SortIdx
 
   FUNCTION MergeIdx(a, b, PRD)
     IMPLICIT NONE
@@ -279,24 +279,20 @@ MODULE ArrayFunctions
     END IF
   END FUNCTION MergeIdx
 
-  SUBROUTINE DIAGNxN(NBS, HAM, UMT)
+  SUBROUTINE DIAGNxN(HAM, UMT)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: NBS
     REAL(DBL), INTENT(INOUT) :: HAM(:,:)
     REAL(DBL), INTENT(OUT) :: UMT(:,:)
 
-    REAL(DBL), ALLOCATABLE :: PRD(:,:)
-    REAL(DBL) :: SPC(NBS,NBS)
+    REAL(DBL), ALLOCATABLE :: PRD(:,:), SPC(:,:)
     REAL(DBL) :: H(2,2), E(2), O(2,2) !J2X2
     REAL(DBL) :: ERROLD, ERRNW
 
-    LOGICAL :: useIdx(NBS)
-    INTEGER :: idxAll(2,NBS*(NBS-1)/2)
-    INTEGER :: idx(2,NBS/2)
     INTEGER :: i, j, k, l, n, idxSize
-    INTEGER :: iTry, MXIT
+    INTEGER :: NBS, iTry, MXIT
 
-    ALLOCATE(PRD(NBS,NBS))
+    NBS = SIZE(HAM,1)
+    ALLOCATE(PRD(NBS,NBS), SPC(NBS,NBS))
 
     UMT = 0.D0
     DO i=1, NBS
@@ -309,50 +305,56 @@ MODULE ArrayFunctions
     DO iTry = 1, MXIT
       n = 0
       ERROLD=0.D0
-      DO i=1, NBS
-        DO j=i+1, NBS
-          ERROLD = ERROLD + PRD(i,j)*PRD(i,j)
-          IF (ABSO(PRD(i,j)) > 1.D-10) THEN     !Save indices of PRD entries whose absolute value is greater than 0
-            n = n + 1
-            idxAll(1,n) = i
-            idxAll(2,n) = j
+      bestIdxs: BLOCK
+        LOGICAL :: useIdx(NBS)
+        INTEGER :: idxAll(2,NBS*(NBS-1)/2)
+        INTEGER :: idx(2,NBS/2)
+
+        DO i=1, NBS
+          DO j=i+1, NBS
+            ERROLD = ERROLD + PRD(i,j)*PRD(i,j)
+            IF (ABSO(PRD(i,j)) > 1.D-10) THEN     !Save indices of PRD entries whose absolute value is greater than 0
+              n = n + 1
+              idxAll(1,n) = i
+              idxAll(2,n) = j
+            END IF
+          END DO
+        END DO
+
+!        WRITE(*,*) 'All indexes before sorting:'
+!        DO i=1, n
+!         WRITE(*,*) idxAll(1,i), idxAll(2,i), PRD(idxAll(1,i),idxAll(2,i))
+!        END DO
+
+        CALL SortIdx(idxAll(:,:n), PRD)  !Sort with respect to PRD values
+
+!        WRITE(*,*) 'All indexes:'
+!        DO i=1, n
+!          WRITE(*,*) idxAll(1,i), idxAll(2,i), PRD(idxAll(1,i),idxAll(2,i))
+!        END DO
+
+        !Choose the indexes with the highest values at PRD without repeating indexes
+        useIdx = .TRUE. !No indexes has been use
+        idxSize = 1     !Keep track of position to add new non-repetitive idxs
+        DO j=1, n
+          IF (useIdx(idxAll(1,j)) .AND. useIdx(idxAll(2,j))) THEN !If none of this two indexes has been used
+            useIdx(idxAll(:,j)) = .False. !Set both to false because they would be used
+            idx(:,idxSize) = idxAll(:,j)  !Save both indexes in idx array
+            idxSize = idxSize + 1         !Update position for next indexes
+            IF (idxSize > NBS/2) EXIT     !Exit the loop if NBS (even) or NBS-1 (odd) indexes had been used
           END IF
         END DO
-      END DO
 
-!      WRITE(*,*) 'All indexes before sorting:'
-!      DO i=1, n
-!        WRITE(*,*) idxAll(1,i), idxAll(2,i), PRD(idxAll(1,i),idxAll(2,i))
-!      END DO
+!        WRITE(*,*) 'Non repetitive indexes with highest values:'
+!        idxSize = idxSize - 1
+!        DO i=1, idxSize
+!          WRITE(*,*) idx(1,i), idx(2,i), PRD(idx(1,i),idx(2,i))
+!        END DO
 
-      CALL sort(idxAll(:,1:n), PRD)  !Sort with respect to PRD values
-
-!      WRITE(*,*) 'All indexes:'
-!      DO i=1, n
-!        WRITE(*,*) idxAll(1,i), idxAll(2,i), PRD(idxAll(1,i),idxAll(2,i))
-!      END DO
-
-      !Choose the indexes with the highest values at PRD without repeating indexes
-      useIdx = .TRUE. !No indexes has been use
-      idxSize = 1     !Keep track of position to add new non-repetitive idxs
-      DO j=1, n
-        IF (useIdx(idxAll(1,j)) .AND. useIdx(idxAll(2,j))) THEN !If none of this two indexes has been used
-          useIdx(idxAll(:,j)) = .False. !Set both to false because they would be used
-          idx(:,idxSize) = idxAll(:,j)  !Save both indexes in idx array
-          idxSize = idxSize + 1         !Update position for next indexes
-          IF (idxSize > NBS/2) EXIT     !Exit the loop if NBS (even) or NBS-1 (odd) indexes had been used
-        END IF
-      END DO
-
-!      WRITE(*,*) 'Non repetitive indexes with highest values:'
-!      idxSize = idxSize - 1
-!      DO i=1, idxSize
-!        WRITE(*,*) idx(1,i), idx(2,i), PRD(idx(1,i),idx(2,i))
-!      END DO
-
-      !Use best two indexes
-      k = idx(1,1)
-      l = idx(2,1)
+        !Use best two indexes
+        k = idx(1,1)
+        l = idx(2,1)
+      END BLOCK bestIdxs
 
       H(1,1) = PRD(k,k)
       H(1,2) = PRD(k,l)
