@@ -1,7 +1,7 @@
-from PythonFunctions import PI, MOD, DIV, SQR, SINE
+from pythonFunctions import PI, MOD, DIV, SQR, SINE
 from retireFunctions import Class_DIV
-from ArrayFunctions import print_mtx, INVERSE, J2x2, JAC2BY2GEN, DIAGNxN, LEASTSQUARE
-from Applications import STARKDVR, RINGDVR, HMODVR, BOXDVR
+from arrayFunctions import print_mtx, INVERSE, J2X2, JAC2BY2GEN, DIAGNxN, LEASTSQUARE
+from applications import STARKDVR, RINGDVR, HMODVR, BOXDVR
 from math import sin, sqrt
 from time import time
 from random import random, uniform
@@ -28,7 +28,7 @@ def modulus_test() -> None:
     #Python modulus operator can't handle negative numerators so we stay with positives
     N = random()*720.
     n_nums.add(N)
-    if abs(N%D-MOD(N,D)) > 1.E-9:
+    if abs(N%D-MOD(N,D)) > 1.E-12:
       print()
       print('NN = {}, DD = {}'.format(N,D))
       print(N%D)
@@ -78,10 +78,10 @@ def inverseTest() -> None:
   B = INVERSE(A)
   pass
 
-def J2x2_test() -> None:
+def J2X2_test() -> None:
   pass
 
-def gen_J2x2_test() -> None:
+def gen_J2X2_test() -> None:
   pass
 
 def DIAGDVR() -> None:
@@ -90,6 +90,7 @@ def DIAGDVR() -> None:
   X = -0.5  # Exited
   P =  0.1  # Perturbation
   TXR = 0.2 # Transfer
+  UMT = [[0.]*NBS for _ in range(NBS)]
   HAM = [[0.]*NBS for _ in range(NBS)]
 
   HAM[0][0] = HAM[3][3] = HAM[6][6] = G
@@ -103,10 +104,10 @@ def DIAGDVR() -> None:
 
   print_mtx(HAM)
 
-  #DIAGNxN(NBS, HAM, UMT, PRD)
+  DIAGNxN(HAM, UMT)
 
-  #print('Updated Hamiltonian:')
-  #print_mtx(HAM)
+  print('Updated Hamiltonian:')
+  print_mtx(HAM)
   pass
 
 def LSA_test() -> None:
@@ -114,8 +115,8 @@ def LSA_test() -> None:
 
 def menu() -> int:
   print('\nYou can test for:')
-  print('PythonFunctions: 1. Modulus, 2. Division, 3. Sin')
-  print('ArrayFunctions: 4. Inverse, 5. J2x2, 6. JAC2BY2GEN, 7. DIAGNxN, 8. LEASTSQUARE')
+  print('PythonFunctions: 1. Modulus, 2. Division, 3. Square root, 4. Sin')
+  print('ArrayFunctions: 5. Inverse, 6. J2X2 and JAC2BY2GEN, 7. DIAGNxN, 8. LEASTSQUARE')
   print('Applications: 9. STARKDVR, 10. RINGDVR, 11. BOXDVR, 12. HMODVR')
   print('Anything else to exit')
   return int(input())
@@ -134,9 +135,9 @@ if __name__ == "__main__":
     elif choose == 4:
       inverseTest()
     elif choose == 5:
-      J2x2_test()
+      J2X2_test()
     elif choose == 6:
-      gen_J2x2_test()
+      gen_J2X2_test()
     elif choose == 7:
       DIAGDVR()
     elif choose == 8:

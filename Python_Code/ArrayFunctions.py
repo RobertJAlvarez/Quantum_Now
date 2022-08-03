@@ -1,4 +1,4 @@
-from PythonFunctions import ABS, DIV, SQR
+from pythonFunctions import ABS, DIV, SQR
 from sys import exit
 
 """
@@ -76,23 +76,23 @@ def INVERSE(AA: Matrix) -> Matrix:
 # From quadratic formula: b^2-4*a*c ->
 # (D+g)^2 - 4*1*(d*g-f*e) <=> (d-g)^2 + 4*e*f
 # E = answers of quadratic formula
-def J2x2(H: Matrix, E: Matrix, O: Matrix) -> None:
+def J2X2(H: Matrix, E: Matrix, O: Matrix) -> None:
   """ Diagonalize a 2x2 matrix using Jacobean 2 by 2 analytic diagonalization """
-  rad = SQR((H[1][1] - H[2][2])*(H[1][1] - H[2][2]) + 4.*(H[1][2]*H[2][1]))
-  trc = H[1][1] + H[2][2]
-  E[1] = 0.5*(trc+rad)
-  E[2] = 0.5*(trc-rad)
+  rad = SQR((H[0][0] - H[1][1])*(H[0][0] - H[1][1]) + 4.*(H[0][1]*H[1][0]))
+  trc = H[0][0] + H[1][1]
+  E[0] = 0.5*(trc+rad)
+  E[1] = 0.5*(trc-rad)
 
   #Explain ortagonal matrix:
-  O[1][1] = -H[1][2]
-  O[2][1] =  H[1][1] - E[1]
-  O[1][2] =  H[2][2] - E[2]
-  O[2][2] = -H[1][2]
+  O[0][0] = -H[0][1]
+  O[1][0] =  H[0][0] - E[0]
+  O[0][1] =  H[1][1] - E[1]
+  O[1][1] = -H[0][1]
 
   for i in range(2):
-    dot = SQR(O[1][i]*O[1][i] + O[2][i]*O[2][i])
+    dot = SQR(O[0][i]*O[0][i] + O[1][i]*O[1][i])
+    O[0][i] = DIV(O[0][i],dot)
     O[1][i] = DIV(O[1][i],dot)
-    O[2][i] = DIV(O[2][i],dot)
   pass
 
 def JAC2BY2GEN(H: Matrix, O: Matrix, V: Matrix, E: Vector) -> None:
@@ -109,7 +109,7 @@ def JAC2BY2GEN(H: Matrix, O: Matrix, V: Matrix, E: Vector) -> None:
   E[1] = 0.5*(trc + rad)
   E[2] = 0.5*(trc - rad)
 
-  print("Eigenvalues: {0:14.7e} {0:14.7e}".format(E[1],E[2]))
+  print("Eigenvalues: {0:14.7e} {1:14.7e}".format(E[1],E[2]))
 
   #Calculate eigenvectors
   T = [[0.]*2 for _ in range(2)]  #Eigenvectors
@@ -136,20 +136,20 @@ def JAC2BY2GEN(H: Matrix, O: Matrix, V: Matrix, E: Vector) -> None:
           V[k][i] = DIV(V[k][i],SQR(D[i][i]))
   pass
 
-def SortIdex(mtx: Matrix, PRD: Matrix) -> None:
+def SortIdx(mtx: Matrix, PRD: Matrix) -> None:
   if len(mtx[0]) > 1:
     mid = len(mtx[0])//2  #Find middle of columns
 
     L = [[num for num in row[:mid]] for row in mtx]
     R = [[num for num in row[mid:]] for row in mtx]
 
-    SortIdex(L, PRD)  #Sort first half
-    SortIdex(R, PRD)  #Sort second half
+    SortIdx(L, PRD)  #Sort first half
+    SortIdx(R, PRD)  #Sort second half
 
     i = j = k = 0
 
     while i < len(L[0]) and j < len(R[0]):
-      if ABS(PRD[L[0][i],L[1][i]]) > ABS(PRD[R[0][j],R[1][j]]):
+      if ABS(PRD[L[0][i]][L[1][i]]) >= ABS(PRD[R[0][j]][R[1][j]]):
         mtx[0][k], mtx[1][k] = L[0][i], L[1][i]
         i += 1
       else:
@@ -168,7 +168,62 @@ def SortIdex(mtx: Matrix, PRD: Matrix) -> None:
       k += 1
   pass
 
-def DIAGNxN():
+def DIAGNxN(HAM: Matrix, UMT: Matrix):
+  NBS = len(HAM[0])
+  UMT = [[1 if i == j else 0 for j in range(NBS)] for i in range(NBS)]  # Start with identity matrix
+  PRD = [[num for num in row] for row in HAM] # Copy HAM into PRD
+  MXIT = NBS*NBS*2
+
+  for iTry in range(MXIT):
+    ERROLD = 0.
+    idxAll = [[] for _ in range(2)]
+
+    for i in range(NBS):
+      for j in range(i+1,NBS):
+        ERROLD += PRD[i][j]*PRD[i][j]
+        if ABS(PRD[i][j]) > 1.E-10:
+          idxAll[0].append(i)
+          idxAll[1].append(j)
+
+#    print('All indexes before sorting:')
+#    for i in range(len(idxAll[0])):
+#      print("{0:2d} {1:2d} {2:14.7e}".format(idxAll[0][i], idxAll[1][i], PRD[idxAll[0][i]][idxAll[1][i]]))
+
+    SortIdx(idxAll, PRD)
+
+#    print('All indexes:')
+#    for i in range(len(idxAll[0])):
+#      print("{0:2d} {1:2d} {2:14.7e}".format(idxAll[0][i], idxAll[1][i], PRD[idxAll[0][i]][idxAll[1][i]]))
+
+    useIdx = [True]*NBS
+    idx = [[] for _ in range(2)]
+    for j in range(len(idxAll[0])):
+      if useIdx[idxAll[0][j]] and useIdx[idxAll[1][j]]:
+        useIdx[idxAll[0][j]], useIdx[idxAll[1][j]] = False, False
+        idx[0].append(idxAll[0][j])
+        idx[1].append(idxAll[1][j])
+        if len(idx[0]) >= NBS//2:
+          break
+
+#    print('Non repetitive indexes with highest values:')
+#    for i in range(len(idx[0])):
+#      print("{0:2d} {1:2d} {2:14.7e}".format(idx[0][i], idx[1][i], PRD[idx[0][i]][idx[1][i]]))
+
+    k = idx[0][0]
+    l = idx[1][0]
+
+    H = [[PRD[k][k], PRD[k][l]], [PRD[l][k], PRD[l][l]]]
+    for row in H:
+      print(row)
+    E = [0.]*2
+    O = [[0.]*2 for _ in range(2)]
+    J2X2(H, E, O)
+
+    print('E and O values:')
+    for i in range(2):
+      print("{0:14.7e} {1:14.7e} {2:14.7e}".format(E[i], O[i][0], O[i][1]))
+    break
+
   pass
 
 def LEASTSQUARE():

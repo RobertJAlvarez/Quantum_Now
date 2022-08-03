@@ -1,4 +1,4 @@
-from PythonFunctions import PI, MOD, ABS, DIV
+from pythonFunctions import PI, MOD, ABS, DIV
 
 """
 Extra functions for reference but never used
