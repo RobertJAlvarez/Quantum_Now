@@ -9,6 +9,7 @@
        PRINT'(A)','1. DIAG','2. STARK','3. PIR','4. HMO','5. BOX'
        PRINT'(A)', 'n. exit the program'
        READ*,NOPT
+
        IF(NOPT.EQ.1) THEN
         CALL DIAGDVR
        ELSE IF(NOPT.EQ.2) THEN
