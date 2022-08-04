@@ -18,7 +18,7 @@ MODULE ArrayFunctions
     n_c = SIZE(X,2)
 
     !WRITE(fmt_mt, '( "(",I2,"ES17.8E3))" )' ) n_c
-    WRITE(fmt_mt, '( "(",I2,"F17.8))" )' ) n_c
+    WRITE(fmt_mt, '( "(",I2,"F12.8))" )' ) n_c
     WRITE(*,fmt_mt) (X(i,1:n_c), i=1,n_r)
   END SUBROUTINE print_mtx
 
