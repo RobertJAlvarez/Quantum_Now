@@ -3,7 +3,7 @@ from pythonFunctions import PI, MOD, ABS, DIV
 """
 Extra functions for reference but never used
 """
-def SINB(num):
+def SINB(num: float) -> float:
   """ Bhaskara approximation: temp = (PI-x)x; sin(x) = (16*temp) / (5*PI*PI - 4*temp)"""
   x = MOD(ABS(num),PI)
   temp = (PI-x)*x
@@ -37,7 +37,7 @@ def Class_SQR(num: float) -> float:
   return xn
 
 #DIVIDE (1/(1+x)) 0 < x < 0.5
-def DIVIDE(num):
+def DIVIDE(num: float) -> float:
   n = 50
   recid = 0.0
   p = 1.0
@@ -48,7 +48,7 @@ def DIVIDE(num):
   return recid
 
 #DIVIDER (1/(1+x)) 0 < x < 1
-def DIVIDER(num):
+def DIVIDER(num: float) -> float:
   if num <= 0.5:
     return DIVIDE(num)
 
@@ -57,7 +57,7 @@ def DIVIDER(num):
   return DIVIDE(y)*TWOTHIRDS
 
 # 0.0 < num <= 0.1
-def TNYDIVIDE(num):
+def TNYDIVIDE(num: float) -> float:
   P = 1.0
   R = 1.0
   recid = 0.0
@@ -70,7 +70,7 @@ def TNYDIVIDE(num):
   return recid
 
 # 0.1 < num < 1.0
-def LT1DIVIDE(num):
+def LT1DIVIDE(num: float) -> float:
   n = 1000
   recid = 0.0
   p = 1.0
@@ -82,10 +82,10 @@ def LT1DIVIDE(num):
   return recid
 
 # Only Class_DIV call this function and num exist between (0.0,1.0)
-def RECIPROCAL(num):
+def RECIPROCAL(num: float) -> float:
   return TNYDIVIDE(num) if num <= 0.1 else LT1DIVIDE(1.0-num)
 
-def Class_DIV(NN,DD):
+def Class_DIV(NN: float, DD: float) -> float:
   """ Approximate and return NN/DD and return """
   if DD == 1.0: #If DD = 1.0, NN/DD = NN
     return NN

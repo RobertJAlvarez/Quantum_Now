@@ -96,20 +96,19 @@ def J2X2(H: Matrix, E: Matrix, O: Matrix) -> None:
   pass
 
 def JAC2BY2GEN(H: Matrix, O: Matrix, V: Matrix, E: Vector) -> None:
-  A = O(1,1)*O(2,2) - O(1,2)*(2,1)
+  A = O[0][0]*O[1][1] - O[0][1]*O[1][0]
   if A < 1.E-15:
     exit('Non positive overlap matrix')
 
-  B = -( H(1,1)*O(2,2) - O(1,2)*H(2,1) + O(1,1)*H(2,2) - H(1,2)*O(2,1) )
-  C = H(1,1)*H(2,2) - H(1,2)*H(2,1)
+  B = -( H[0][0]*O[1][1] - O[0][1]*H[1][0] + O[0][0]*H[1][1] - H[0][1]*O[1][0] )
+  C = H[0][0]*H[1][1] - H[0][1]*H[1][0]
 
   trc = DIV(-B,A)
   rad = DIV(SQR(B*B - 4.*A*C),A)
 
-  E[1] = 0.5*(trc + rad)
-  E[2] = 0.5*(trc - rad)
+  E[0], E[1] = 0.5*(trc + rad), 0.5*(trc - rad)
 
-  print("Eigenvalues: {0:14.7e} {1:14.7e}".format(E[1],E[2]))
+  print("Eigenvalues: {0:10.7f} {1:10.7f}".format(E[1],E[2]))
 
   #Calculate eigenvectors
   T = [[0.]*2 for _ in range(2)]  #Eigenvectors
@@ -117,8 +116,7 @@ def JAC2BY2GEN(H: Matrix, O: Matrix, V: Matrix, E: Vector) -> None:
     for i in range(2):
       for j in range(2):
         T[i][j] = H[i][j] - E[k]*O[i][j]
-    V[1][k] = -T[k][2]
-    V[2][k] =  T[k][1]
+    V[0][k], V[1][k] = -T[k][1], T[k][0]
 
   # <V_1 | V_2> = 0 ?
   D = [[0.]*2 for _ in range(2)]
@@ -168,7 +166,7 @@ def SortIdx(mtx: Matrix, PRD: Matrix) -> None:
       k += 1
   pass
 
-def DIAGNxN(HAM: Matrix, UMT: Matrix):
+def DIAGNxN(HAM: Matrix, UMT: Matrix) -> None:
   NBS = len(HAM[0])
   PRD = [[num for num in row] for row in HAM] # Copy HAM into PRD
 
@@ -219,12 +217,9 @@ def DIAGNxN(HAM: Matrix, UMT: Matrix):
     O = [[0.]*2 for _ in range(2)]
     J2X2(H, E, O)
 
-#    print('E and O values:')
-#    for i in range(2):
-#      print("{0:14.7e} {1:14.7e} {2:14.7e}".format(E[i], O[i][0], O[i][1]))
-    
-    SPC = [[1. if i == j else 0. for j in range(NBS)] for i in range(NBS)]  # Start with identity matrix
-    SPC[k][k], SPC[l][k], SPC[l][l], SPC[k][l] = O[0][0], O[1][0], O[1][1], O[0][1]
+    print('E and O values:')
+    for i in range(2):
+      print("{0:14.7e} {1:14.7e} {2:14.7e}".format(E[i], O[i][0], O[i][1]))
 
     PRD = [[0.]*NBS for _ in range(NBS)]
     for i in range(NBS):
@@ -233,20 +228,21 @@ def DIAGNxN(HAM: Matrix, UMT: Matrix):
           PRD[j][i] = UMT[j][i]
 
     for i in range(NBS):
-      PRD[i][k] = PRD[i][k] + UMT[i][k]*O[0][0]
-      PRD[i][k] = PRD[i][k] + UMT[i][l]*O[1][0]
-      PRD[i][l] = PRD[i][l] + UMT[i][k]*O[0][1]
-      PRD[i][l] = PRD[i][l] + UMT[i][l]*O[1][1]
+      PRD[i][k] += UMT[i][k]*O[0][0] + UMT[i][l]*O[1][0]
+      PRD[i][l] += UMT[i][k]*O[0][1] + UMT[i][l]*O[1][1]
+
+    SPC = [[1. if i == j else 0. for j in range(NBS)] for i in range(NBS)]  # Start with identity matrix
+    SPC[k][k], SPC[l][k], SPC[l][l], SPC[k][l] = O[0][0], O[1][0], O[1][1], O[0][1]
 
     for i in range(NBS):
       for j in range(NBS):
         UMT[i][j] = PRD[i][j]
 
     for i in range(NBS):
-      for k in range(NBS):
-        SPC[k][i] = 0.
-        for l in range(NBS):
-          SPC[k][i] += UMT[l][i]*HAM[l][k]
+      for j in range(NBS):
+        SPC[j][i] = 0.
+        for k in range(NBS):
+          SPC[j][i] += UMT[k][i]*HAM[k][j]
 
     PRD = [[0.]*NBS for _ in range(NBS)]
     for i in range(NBS):
@@ -259,8 +255,8 @@ def DIAGNxN(HAM: Matrix, UMT: Matrix):
       for j in range(i+1,NBS):
         ERRNW += PRD[j][i]*PRD[j][i]
 
-#    print_mtx(PRD)
-#    print("{0:2d} {1:7.5f} {2:7.5f}".format(iTry, ERRNW, ERROLD))
+    print_mtx(PRD)
+    print("{0:2d} {1:7.5f} {2:7.5f}".format(iTry, ERRNW, ERROLD))
 
     if ERRNW < 1.E-12:
       break
@@ -275,6 +271,6 @@ def DIAGNxN(HAM: Matrix, UMT: Matrix):
       HAM[i][j] = PRD[i][j]
   pass
 
-def LEASTSQUARE():
+def LEASTSQUARE() -> None:
   pass
 

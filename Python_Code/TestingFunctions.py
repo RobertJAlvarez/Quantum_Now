@@ -8,7 +8,7 @@ from random import random, uniform
 
 """
   file:   PythonFunctions.py
-  breif:  Tester driver
+  brief:  Tester driver
 
   This contains the basics to test every function used by the Quantum Now software
 
@@ -28,7 +28,7 @@ def modulus_test() -> None:
     #Python modulus operator can't handle negative numerators so we stay with positives
     N = random()*720.
     n_nums.add(N)
-    if abs(N%D-MOD(N,D)) > 1.E-12:
+    if abs(N%D-MOD(N,D)) > 1.E-10:
       print()
       print('NN = {}, DD = {}'.format(N,D))
       print(N%D)
@@ -41,7 +41,11 @@ def auto_div(f: callable, low_b: float, up_b: float) -> float:
   N = random()
   return abs(N/D - f(N,D))
 
-def func_comp(f: list[callable]) -> None:
+def auto_sqr(f: callable, low_b: float, up_b: float) -> float:
+  num = uniform(low_b,up_b)
+  return abs(sqrt(num) - SQR(num))
+
+def func_comp(f: list[callable], auto_f: callable) -> None:
   bounds = [(0.0,0.1), (0.1,1.0), (1.0,1000)]
   nTimes = 100000
 
@@ -51,7 +55,7 @@ def func_comp(f: list[callable]) -> None:
       error = 0.
       t = time()
       for _ in range(nTimes):
-        error += auto_div(f[j], bounds[i][0], bounds[i][1])
+        error += auto_f(f[j], bounds[i][0], bounds[i][1])
       print('Time:  {}'.format(time()-t))
       print('Error: {}'.format(error))
   pass
@@ -78,9 +82,6 @@ def inverseTest() -> None:
   B = INVERSE(A)
   pass
 
-def J2X2_test() -> None:
-  pass
-
 def gen_J2X2_test() -> None:
   pass
 
@@ -104,15 +105,11 @@ def DIAGDVR() -> None:
 
   print('Original Hamiltonian:')
   print_mtx(HAM)
-  print('Original Unitary Matrix:')
-  print_mtx(UMT)
 
   DIAGNxN(HAM, UMT)
 
   print('Updated Hamiltonian:')
   print_mtx(HAM)
-  print('Updated Unitary Matrix:')
-  print_mtx(UMT)
   pass
 
 def LSA_test() -> None:
@@ -134,13 +131,13 @@ if __name__ == "__main__":
       modulus_test()
     elif choose == 2:
       print('Division functions comparison:')
-      func_comp([Class_DIV, DIV])
+      func_comp([Class_DIV, DIV], auto_div)
     elif choose == 3:
-      trigTest()
+      func_comp([SQR], auto_sqr)
     elif choose == 4:
-      inverseTest()
+      trigTest()
     elif choose == 5:
-      J2X2_test()
+      inverseTest()
     elif choose == 6:
       gen_J2X2_test()
     elif choose == 7:

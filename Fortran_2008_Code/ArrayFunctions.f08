@@ -367,16 +367,6 @@ MODULE ArrayFunctions
         WRITE(*,'(3ES20.12E2)') E(i), (O(i,j),j=1,2)
       END DO
 
-      SPC = 0.D0
-      DO i=1, NBS
-        SPC(i,i) = 1.D0
-      END DO
-
-      SPC(k,k) = O(1,1)
-      SPC(l,k) = O(2,1)
-      SPC(l,l) = O(2,2)
-      SPC(k,l) = O(1,2)
-
       !Get new unitary matrix
       PRD = 0.D0
       DO i=1, NBS
@@ -388,11 +378,19 @@ MODULE ArrayFunctions
       END DO
 
       DO i=1, NBS
-        PRD(i,k) = PRD(i,k) + UMT(i,k)*O(1,1)
-        PRD(i,k) = PRD(i,k) + UMT(i,l)*O(2,1)
-        PRD(i,l) = PRD(i,l) + UMT(i,k)*O(1,2)
-        PRD(i,l) = PRD(i,l) + UMT(i,l)*O(2,2)
+        PRD(i,k) = PRD(i,k) + UMT(i,k)*O(1,1) + UMT(i,l)*O(2,1)
+        PRD(i,l) = PRD(i,l) + UMT(i,k)*O(1,2) + UMT(i,l)*O(2,2)
       END DO
+
+      SPC = 0.D0
+      DO i=1, NBS
+        SPC(i,i) = 1.D0
+      END DO
+
+      SPC(k,k) = O(1,1)
+      SPC(l,k) = O(2,1)
+      SPC(l,l) = O(2,2)
+      SPC(k,l) = O(1,2)
 
       UMT = PRD
       DO i=1, NBS
@@ -443,7 +441,7 @@ MODULE ArrayFunctions
     IMPLICIT NONE
     REAL(DBL) :: F(100)    !Function to evaluate to
     REAL(DBL) :: DM(4,4)   !Design matrix
-    REAL(DBL) :: DI(4,4)   !Identity matrix
+    REAL(DBL) :: DI(4,4)   !Inverse matrix
     REAL(DBL) :: B(4)      !
     REAL(DBL) :: A(4)      !
     REAL(DBL) :: P(100,4)  !
