@@ -102,12 +102,17 @@ def DIAGDVR() -> None:
   HAM[1][0] = HAM[3][2] = HAM[4][3] = HAM[6][5] = P
   HAM[2][1] = HAM[5][4] = TXR
 
+  print('Original Hamiltonian:')
   print_mtx(HAM)
+  print('Original Unitary Matrix:')
+  print_mtx(UMT)
 
   DIAGNxN(HAM, UMT)
 
   print('Updated Hamiltonian:')
   print_mtx(HAM)
+  print('Updated Unitary Matrix:')
+  print_mtx(UMT)
   pass
 
 def LSA_test() -> None:

@@ -12,7 +12,7 @@ Matrix = list[list[float]]
 def print_mtx(X: Matrix) -> None:
   """ Print a matrix row by row in scientific notation with 8 digits precision """
   for row in X:
-    print(str(["{0:14.7e}".format(num) for num in row]).replace("'",""))
+    print(str(["{0:10.7f}".format(num) for num in row]).replace("'",""))
   pass
 
 def INVERSE(AA: Matrix) -> Matrix:
@@ -170,10 +170,13 @@ def SortIdx(mtx: Matrix, PRD: Matrix) -> None:
 
 def DIAGNxN(HAM: Matrix, UMT: Matrix):
   NBS = len(HAM[0])
-  UMT = [[1 if i == j else 0 for j in range(NBS)] for i in range(NBS)]  # Start with identity matrix
   PRD = [[num for num in row] for row in HAM] # Copy HAM into PRD
-  MXIT = NBS*NBS*2
 
+  for i in range(NBS):
+    for j in range(NBS):
+      UMT[i][j] = 1. if i == j else 0.
+
+  MXIT = NBS*NBS*2
   for iTry in range(MXIT):
     ERROLD = 0.
     idxAll = [[] for _ in range(2)]
@@ -209,21 +212,67 @@ def DIAGNxN(HAM: Matrix, UMT: Matrix):
 #    for i in range(len(idx[0])):
 #      print("{0:2d} {1:2d} {2:14.7e}".format(idx[0][i], idx[1][i], PRD[idx[0][i]][idx[1][i]]))
 
-    k = idx[0][0]
-    l = idx[1][0]
+    k, l = idx[0][0], idx[1][0]
 
     H = [[PRD[k][k], PRD[k][l]], [PRD[l][k], PRD[l][l]]]
-    for row in H:
-      print(row)
     E = [0.]*2
     O = [[0.]*2 for _ in range(2)]
     J2X2(H, E, O)
 
-    print('E and O values:')
-    for i in range(2):
-      print("{0:14.7e} {1:14.7e} {2:14.7e}".format(E[i], O[i][0], O[i][1]))
-    break
+#    print('E and O values:')
+#    for i in range(2):
+#      print("{0:14.7e} {1:14.7e} {2:14.7e}".format(E[i], O[i][0], O[i][1]))
+    
+    SPC = [[1. if i == j else 0. for j in range(NBS)] for i in range(NBS)]  # Start with identity matrix
+    SPC[k][k], SPC[l][k], SPC[l][l], SPC[k][l] = O[0][0], O[1][0], O[1][1], O[0][1]
 
+    PRD = [[0.]*NBS for _ in range(NBS)]
+    for i in range(NBS):
+      if i != k and i != l:
+        for j in range(NBS):
+          PRD[j][i] = UMT[j][i]
+
+    for i in range(NBS):
+      PRD[i][k] = PRD[i][k] + UMT[i][k]*O[0][0]
+      PRD[i][k] = PRD[i][k] + UMT[i][l]*O[1][0]
+      PRD[i][l] = PRD[i][l] + UMT[i][k]*O[0][1]
+      PRD[i][l] = PRD[i][l] + UMT[i][l]*O[1][1]
+
+    for i in range(NBS):
+      for j in range(NBS):
+        UMT[i][j] = PRD[i][j]
+
+    for i in range(NBS):
+      for k in range(NBS):
+        SPC[k][i] = 0.
+        for l in range(NBS):
+          SPC[k][i] += UMT[l][i]*HAM[l][k]
+
+    PRD = [[0.]*NBS for _ in range(NBS)]
+    for i in range(NBS):
+      for j in range(NBS):
+        for k in range(NBS):
+          PRD[j][i] += UMT[k][j]*SPC[k][i]
+
+    ERRNW = 0.
+    for i in range(NBS):
+      for j in range(i+1,NBS):
+        ERRNW += PRD[j][i]*PRD[j][i]
+
+#    print_mtx(PRD)
+#    print("{0:2d} {1:7.5f} {2:7.5f}".format(iTry, ERRNW, ERROLD))
+
+    if ERRNW < 1.E-12:
+      break
+
+  if iTry == MXIT:
+    print("Warning: No convergence")
+
+  print("{0:2d} {1:2d} {2:7.5f} Diag Eff".format(iTry, NBS, DIV(iTry, NBS*NBS)))
+
+  for i in range(NBS):
+    for j in range(NBS):
+      HAM[i][j] = PRD[i][j]
   pass
 
 def LEASTSQUARE():
