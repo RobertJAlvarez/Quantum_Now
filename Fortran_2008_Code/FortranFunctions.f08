@@ -85,8 +85,8 @@ MODULE FortranFunctions
     END DO
   END FUNCTION DIV
 
-  !Last modification: July 15th, 2022
-  !  Algorithm simplification
+  !Last modification: August 4th, 2022
+  !  Precision increase
   REAL(DBL) FUNCTION SQR(num) RESULT(xn)
     IMPLICIT NONE
     REAL(DBL), INTENT(IN) :: num
@@ -98,15 +98,6 @@ MODULE FortranFunctions
       xn = xn + DIV(num - xn*xn, 2.D0*xn)
     END DO
   END FUNCTION SQR
-
-!Bhaskara approx: temp = (PI-x)*x
-!                 sin(x) = (16*temp) / (5*PI*PI - 4*temp)
-!Second approx:   temp = (x/PI)*(x/PI - 1)
-!                 sin(x) = (temp/10)*(36*temp - 31)
-!Weight average: Bhaskara -> 0.385  Second -> 0.615
-!
-!sin(x) approx with weight average: temp = (x/PI)*(x/PI - 1)
-! sin(x) = temp(2.21652(temp - 31/36) - 1.5372/(1.25 + temp))
 
   !Last modification: January 12th, 2022
   !  Add another temp to only call DIV() once
