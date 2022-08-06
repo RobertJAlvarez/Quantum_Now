@@ -139,10 +139,8 @@ def SortIdx(mtx: Matrix, PRD: Matrix) -> None:
   if len(mtx[0]) > 1:
     mid = len(mtx[0])//2  #Find middle of columns
 
-    L = np.array(mtx[:,:mid])
-    R = np.array(mtx[:,mid:])
-    #L = [[num for num in row[:mid]] for row in mtx]
-    #R = [[num for num in row[mid:]] for row in mtx]
+    L = [[num for num in row[:mid]] for row in mtx]
+    R = [[num for num in row[mid:]] for row in mtx]
 
     SortIdx(L, PRD)  #Sort first half
     SortIdx(R, PRD)  #Sort second half
@@ -150,28 +148,28 @@ def SortIdx(mtx: Matrix, PRD: Matrix) -> None:
     i = j = k = 0
 
     while i < len(L[0]) and j < len(R[0]):
-      if ABS(PRD[L[0,i],L[1,i]]) >= ABS(PRD[R[0,j],R[1,j]]):
-        mtx[0,k], mtx[1,k] = L[0,i], L[1,i]
+      if ABS(PRD[L[0][i],L[1][i]]) >= ABS(PRD[R[0][j],R[1][j]]):
+        mtx[0][k], mtx[1][k] = L[0][i], L[1][i]
         i += 1
       else:
-        mtx[0,k], mtx[1,k] = R[0,j], R[1,j]
+        mtx[0][k], mtx[1][k] = R[0][j], R[1][j]
         j += 1
       k += 1
 
     while i < len(L[0]):
-      mtx[0,k], mtx[1,k] = L[0,i], L[1,i]
+      mtx[0][k], mtx[1][k] = L[0][i], L[1][i]
       i += 1
       k += 1
 
     while j < len(L[0]):
-      mtx[0,k], mtx[1,k] = R[0,j], R[1,j]
+      mtx[0][k], mtx[1][k] = R[0][j], R[1][j]
       j += 1
       k += 1
   pass
 
 def DIAGNxN(HAM: Matrix, UMT: Matrix) -> None:
   NBS = len(HAM[0])
-  PRD = np.array(HAM) #Copy HAm into PRD
+  PRD = np.array(HAM) #Copy HAM into PRD
 
   for i in range(NBS):
     for j in range(NBS):
@@ -184,21 +182,20 @@ def DIAGNxN(HAM: Matrix, UMT: Matrix) -> None:
 
     for i in range(NBS):
       for j in range(i+1,NBS):
-        ERROLD += PRD[i][j]*PRD[i][j]
-        if ABS(PRD[i][j]) > 1.E-10:
+        ERROLD += PRD[i,j]*PRD[i,j]
+        if ABS(PRD[i,j]) > 1.E-10:
           idxAll[0].append(i)
           idxAll[1].append(j)
 
 #    print('All indexes before sorting:')
 #    for i in range(len(idxAll[0])):
-#      print("{0:2d} {1:2d} {2:14.7e}".format(idxAll[0][i], idxAll[1][i], PRD[idxAll[0][i]][idxAll[1][i]]))
+#      print("{0:2d} {1:2d} {2:14.7e}".format(idxAll[0][i], idxAll[1][i], PRD[idxAll[0][i],idxAll[1][i]]))
 
-    #CONTINUE CONVERTING INTO NP ARRAYS
     SortIdx(idxAll, PRD)
 
 #    print('All indexes:')
 #    for i in range(len(idxAll[0])):
-#      print("{0:2d} {1:2d} {2:14.7e}".format(idxAll[0][i], idxAll[1][i], PRD[idxAll[0][i]][idxAll[1][i]]))
+#      print("{0:2d} {1:2d} {2:14.7e}".format(idxAll[0][i], idxAll[1][i], PRD[idxAll[0][i],idxAll[1][i]]))
 
     useIdx = [True]*NBS
     idx = [[] for _ in range(2)]
@@ -212,49 +209,49 @@ def DIAGNxN(HAM: Matrix, UMT: Matrix) -> None:
 
 #    print('Non repetitive indexes with highest values:')
 #    for i in range(len(idx[0])):
-#      print("{0:2d} {1:2d} {2:14.7e}".format(idx[0][i], idx[1][i], PRD[idx[0][i]][idx[1][i]]))
+#      print("{0:2d} {1:2d} {2:14.7e}".format(idx[0][i], idx[1][i], PRD[idx[0][i],idx[1][i]]))
 
     k, l = idx[0][0], idx[1][0]
 
-    H = [[PRD[k][k], PRD[k][l]], [PRD[l][k], PRD[l][l]]]
-    E = [0.]*2
-    O = [[0.]*2 for _ in range(2)]
+    H = np.array([[PRD[k,k], PRD[k,l]], [PRD[l,k], PRD[l,l]]])
+    E = np.zeros(shape=(2))
+    O = np.zeros(shape=(2,2))
     J2X2(H, E, O)
 
     print('E and O values:')
     for i in range(2):
-      print("{0:14.7e} {1:14.7e} {2:14.7e}".format(E[i], O[i][0], O[i][1]))
+      print("{0:14.7e} {1:14.7e} {2:14.7e}".format(E[i], O[i,0], O[i,1]))
 
-    PRD = [[num for num in row] for row in UMT]
+    PRD = np.array(UMT)
     for i in range(NBS):
-      PRD[i][k] = UMT[i][k]*O[0][0] + UMT[i][l]*O[1][0]
-      PRD[i][l] = UMT[i][k]*O[0][1] + UMT[i][l]*O[1][1]
-
-    for i in range(NBS):
-      for j in range(NBS):
-        UMT[i][j] = PRD[i][j]
-
-    SPC = [[1. if i == j else 0. for j in range(NBS)] for i in range(NBS)]  # Start with identity matrix
-    SPC[k][k], SPC[l][k], SPC[l][l], SPC[k][l] = O[0][0], O[1][0], O[1][1], O[0][1]
+      PRD[i,k] = UMT[i,k]*O[0,0] + UMT[i,l]*O[1,0]
+      PRD[i,l] = UMT[i,k]*O[0,1] + UMT[i,l]*O[1,1]
 
     for i in range(NBS):
       for j in range(NBS):
-        SPC[j][i] = 0.
+        UMT[i,j] = PRD[i,j]
+
+    SPC = np.identity(NBS)  # Start with identity matrix
+    SPC[k,k], SPC[l,k], SPC[l,l], SPC[k,l] = O[0,0], O[1,0], O[1,1], O[0,1]
+
+    for i in range(NBS):
+      for j in range(NBS):
+        SPC[j,i] = 0.
         for k in range(NBS):
-          SPC[j][i] += UMT[k][i]*HAM[k][j]
+          SPC[j,i] += UMT[k,i]*HAM[k,j]
 
-    PRD = [[0.]*NBS for _ in range(NBS)]
+    PRD = np.zeros(shape=(NBS,NBS))
     for i in range(NBS):
       for j in range(NBS):
         for k in range(NBS):
-          PRD[j][i] += UMT[k][j]*SPC[k][i]
+          PRD[j,i] += UMT[k,j]*SPC[k,i]
 
     print_mtx(PRD)
 
     ERRNW = 0.
     for i in range(NBS):
       for j in range(i+1,NBS):
-        ERRNW += PRD[j][i]*PRD[j][i]
+        ERRNW += PRD[j,i]*PRD[j,i]
     print("{0:2d} {1:7.5f} {2:7.5f}".format(iTry, ERRNW, ERROLD))
 
     if ERRNW < 1.E-12:
@@ -267,7 +264,7 @@ def DIAGNxN(HAM: Matrix, UMT: Matrix) -> None:
 
   for i in range(NBS):
     for j in range(NBS):
-      HAM[i][j] = PRD[i][j]
+      HAM[i,j] = PRD[i,j]
   pass
 
 def LEASTSQUARE() -> None:
