@@ -1,23 +1,26 @@
-from PythonFunctions import PI, MOD, DIV, SQR, SINE
+from pythonFunctions import PI, MOD, DIV, SQR, SINE
 from retireFunctions import Class_DIV
-from ArrayFunctions import print_mtx, INVERSE, J2x2, JAC2BY2GEN, DIAGNxN, LEASTSQUARE
-from Applications import STARKDVR, RINGDVR, HMODVR, BOXDVR
+from arrayFunctions import print_mtx, INVERSE, J2X2, JAC2BY2GEN, DIAGNxN, LEASTSQUARE
+from applications import STARKDVR, RINGDVR, HMODVR, BOXDVR
+
+import numpy as np
 from math import sin, sqrt
 from time import time
 from random import random, uniform
 
 """
   file:   PythonFunctions.py
-  breif:  Tester driver
+  brief:  Tester driver
 
   This contains the basics to test every function used by the Quantum Now software
 
   Author: Robert Alvarez
+  Date:   August 5th, 2022
   bug:    No known bugs
 """
 
 """
-  Testing for PythonFunctions.py
+  Testing for pythonFunctions.py
 """
 def modulus_test() -> None:
   print('modulus_test')
@@ -28,7 +31,7 @@ def modulus_test() -> None:
     #Python modulus operator can't handle negative numerators so we stay with positives
     N = random()*720.
     n_nums.add(N)
-    if abs(N%D-MOD(N,D)) > 1.E-9:
+    if abs(N%D-MOD(N,D)) > 1.E-10:
       print()
       print('NN = {}, DD = {}'.format(N,D))
       print(N%D)
@@ -41,7 +44,11 @@ def auto_div(f: callable, low_b: float, up_b: float) -> float:
   N = random()
   return abs(N/D - f(N,D))
 
-def func_comp(f: list[callable]) -> None:
+def auto_sqr(f: callable, low_b: float, up_b: float) -> float:
+  num = uniform(low_b,up_b)
+  return abs(sqrt(num) - SQR(num))
+
+def func_comp(f: list[callable], auto_f: callable) -> None:
   bounds = [(0.0,0.1), (0.1,1.0), (1.0,1000)]
   nTimes = 100000
 
@@ -51,7 +58,7 @@ def func_comp(f: list[callable]) -> None:
       error = 0.
       t = time()
       for _ in range(nTimes):
-        error += auto_div(f[j], bounds[i][0], bounds[i][1])
+        error += auto_f(f[j], bounds[i][0], bounds[i][1])
       print('Time:  {}'.format(time()-t))
       print('Error: {}'.format(error))
   pass
@@ -67,21 +74,18 @@ def trigTest() -> None:
   pass
 
 """
-  Testing for ArrayFuncitons.py
+  Testing for arrayFuncitons.py
 """
 def inverseTest() -> None:
   n = int(input('What is the size of the matrix?'))
-  A = [[0.]*n for _ in range(n)]
+  A = np.zeros(shape=(n,n))
   for i in range(len(A)):
     print('Enter {} numbers for row {} as a single input'.format(n,i+1))
-    A[i] = [float(j) for j in input().strip().split(" ")]
+    A[i] = np.array([float(j) for j in input().strip().split(" ")])
   B = INVERSE(A)
   pass
 
-def J2x2_test() -> None:
-  pass
-
-def gen_J2x2_test() -> None:
+def gen_J2X2_test() -> None:
   pass
 
 def DIAGDVR() -> None:
@@ -90,23 +94,25 @@ def DIAGDVR() -> None:
   X = -0.5  # Exited
   P =  0.1  # Perturbation
   TXR = 0.2 # Transfer
-  HAM = [[0.]*NBS for _ in range(NBS)]
+  UMT = np.zeros(shape=(NBS,NBS))
+  HAM = np.zeros(shape=(NBS,NBS))
 
-  HAM[0][0] = HAM[3][3] = HAM[6][6] = G
-  HAM[1][1] = HAM[2][2] = HAM[4][4] = HAM[5][5] = X
+  HAM[0,0] = HAM[3,3] = HAM[6,6] = G
+  HAM[1,1] = HAM[2,2] = HAM[4,4] = HAM[5,5] = X
 
-  HAM[0][1] = HAM[2][3] = HAM[3][4] = HAM[5][6] = P
-  HAM[1][2] = HAM[4][5] = TXR
+  HAM[0,1] = HAM[2,3] = HAM[3,4] = HAM[5,6] = P
+  HAM[1,2] = HAM[4,5] = TXR
 
-  HAM[1][0] = HAM[3][2] = HAM[4][3] = HAM[6][5] = P
-  HAM[2][1] = HAM[5][4] = TXR
+  HAM[1,0] = HAM[3,2] = HAM[4,3] = HAM[6,5] = P
+  HAM[2,1] = HAM[5,4] = TXR
 
+  print('Original Hamiltonian:')
   print_mtx(HAM)
 
-  #DIAGNxN(NBS, HAM, UMT, PRD)
+  DIAGNxN(HAM, UMT)
 
-  #print('Updated Hamiltonian:')
-  #print_mtx(HAM)
+  print('Updated Hamiltonian:')
+  print_mtx(HAM)
   pass
 
 def LSA_test() -> None:
@@ -114,8 +120,8 @@ def LSA_test() -> None:
 
 def menu() -> int:
   print('\nYou can test for:')
-  print('PythonFunctions: 1. Modulus, 2. Division, 3. Sin')
-  print('ArrayFunctions: 4. Inverse, 5. J2x2, 6. JAC2BY2GEN, 7. DIAGNxN, 8. LEASTSQUARE')
+  print('PythonFunctions: 1. Modulus, 2. Division, 3. Square root, 4. Sin')
+  print('ArrayFunctions: 5. Inverse, 6. J2X2 and JAC2BY2GEN, 7. DIAGNxN, 8. LEASTSQUARE')
   print('Applications: 9. STARKDVR, 10. RINGDVR, 11. BOXDVR, 12. HMODVR')
   print('Anything else to exit')
   return int(input())
@@ -128,15 +134,15 @@ if __name__ == "__main__":
       modulus_test()
     elif choose == 2:
       print('Division functions comparison:')
-      func_comp([Class_DIV, DIV])
+      func_comp([Class_DIV, DIV], auto_div)
     elif choose == 3:
-      trigTest()
+      func_comp([SQR], auto_sqr)
     elif choose == 4:
-      inverseTest()
+      trigTest()
     elif choose == 5:
-      J2x2_test()
+      inverseTest()
     elif choose == 6:
-      gen_J2x2_test()
+      gen_J2X2_test()
     elif choose == 7:
       DIAGDVR()
     elif choose == 8:

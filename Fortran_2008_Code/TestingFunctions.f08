@@ -18,7 +18,7 @@ PROGRAM testing_func
   DO
     WRITE(*,*)
     WRITE(*,*) 'You can test for:'
-    WRITE(*,*) 'FortranFunctions: 1. modulus, 2. division, 3. square root, 4. sine'
+    WRITE(*,*) 'FortranFunctions: 1. Modulus, 2. Division, 3. Aquare root, 4. Sin'
     WRITE(*,*) 'ArrayFunctions: 5. Inverse, 6. J2x2 and JAC2BY2GEN, 7. DIAGNxN, 8. LEASTSQUARE'
     WRITE(*,*) 'Applications: 9. STARKDVR, 10. RINGDVR, 11. BOXDVR, 12. HMODVR'
     WRITE(*,*) 'Anything else to exit'
@@ -316,7 +316,7 @@ PROGRAM testing_func
     WRITE(*,*) 'Original Hamiltonian:'
     CALL print_mtx(HAM)
 
-    CALL DIAGNxN(NBS, HAM, UMT)
+    CALL DIAGNxN(HAM, UMT)
 
     WRITE(*,*) 'Updated Hamiltonian:'
     CALL print_mtx(HAM)

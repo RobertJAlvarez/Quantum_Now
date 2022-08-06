@@ -45,7 +45,7 @@ def DIV(NN: float, DD: float) -> float:
 def SQR(num: float) -> float:
   """ Approximation and return the square root of a number """
   xn = 1.
-  for _ in range(10):
+  for _ in range(25):
     xn += DIV(num - xn*xn, 2.*xn)
   return xn
 

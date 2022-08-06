@@ -1,5 +1,5 @@
-from PythonFunctions import PI, ABS, COSINE, SINE, DIV, SQR
-from ArrayFunctions import DIAGNxN
+from pythonFunctions import PI, ABS, COSINE, SINE, DIV, SQR
+from arrayFunctions import DIAGNxN
 
 def STARKDVR() -> None:
   pass

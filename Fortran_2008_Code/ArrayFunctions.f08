@@ -7,7 +7,10 @@ MODULE ArrayFunctions
 
   CONTAINS
 
-  SUBROUTINE print_mtx(X)
+  !Author: Robert Alvarez
+  !Last modification: August 4th, 2022
+  !  Change writing format from ES to F
+  SUBROUTINE print_mtx(X)   !Print matrix of any size
     IMPLICIT NONE
 
     REAL(DBL), INTENT(IN) :: X(:,:)
@@ -18,7 +21,7 @@ MODULE ArrayFunctions
     n_c = SIZE(X,2)
 
     !WRITE(fmt_mt, '( "(",I2,"ES17.8E3))" )' ) n_c
-    WRITE(fmt_mt, '( "(",I2,"F17.8))" )' ) n_c
+    WRITE(fmt_mt, '( "(",I2,"F12.8))" )' ) n_c
     WRITE(*,fmt_mt) (X(i,1:n_c), i=1,n_r)
   END SUBROUTINE print_mtx
 
@@ -26,9 +29,9 @@ MODULE ArrayFunctions
   !Date:  September 8th, 2021
   !Modifier: Robert Alvarez / July 9th, 2022
   ! Modifications:
-  !   Convert Subroutine to function
-  !   Generalization of 4x4 matrix to nxn matrix
-  !   Improve matrix printing format
+  !  Convert Subroutine to function
+  !  Generalization of 4x4 matrix to nxn matrix
+  !  Improve matrix printing format
   FUNCTION INVERSE(AA) RESULT(B)
     IMPLICIT NONE
 
@@ -160,6 +163,8 @@ MODULE ArrayFunctions
     END DO
   END SUBROUTINE J2X2
 
+  !Author (Fortran 77): Dr. Mark Pederson
+  !Date:  September 22nd, 2021
   SUBROUTINE JAC2BY2GEN(H, O, V, E)
     IMPLICIT NONE
     REAL(DBL), INTENT(INOUT) :: H(:,:), O(:,:)
@@ -232,7 +237,10 @@ MODULE ArrayFunctions
 !
 !Subroutine sort and MergeIdx are only used for DIAGNxN
 !
-  RECURSIVE SUBROUTINE sort(idx, PRD)
+  !Author: Robert Alvarez
+  !Last modification: August 1st, 2022
+  !  Delete lower boundary value and change it to 1
+  RECURSIVE SUBROUTINE SortIdx(idx, PRD)
     IMPLICIT NONE
     INTEGER, INTENT(INOUT) :: idx(:,:)
     REAL(DBL), INTENT(IN) :: PRD(:,:)
@@ -241,12 +249,16 @@ MODULE ArrayFunctions
     high = SIZE(idx,2)
     IF (1 < high) THEN
       mid = (high+1)/2
-      CALL sort(idx(:,:mid), PRD)
-      CALL sort(idx(:,mid+1:high), PRD)
+      CALL SortIdx(idx(:,:mid), PRD)
+      CALL SortIdx(idx(:,mid+1:high), PRD)
       idx(:,:) = MergeIdx(idx(:,:mid), idx(:,mid+1:high), PRD)
     END IF
-  END SUBROUTINE sort
+  END SUBROUTINE SortIdx
 
+  !Author: Robert Alvarez
+  !Last modification: August 1st, 2022
+  !  Change > for >= inside DO WHILE to make it stable
+  !  Upper boundary parameters deleted and taken from SIZE(mtx,2) instead
   FUNCTION MergeIdx(a, b, PRD)
     IMPLICIT NONE
     INTEGER, DIMENSION(:,:), INTENT(IN) :: a, b
@@ -279,24 +291,29 @@ MODULE ArrayFunctions
     END IF
   END FUNCTION MergeIdx
 
-  SUBROUTINE DIAGNxN(NBS, HAM, UMT)
+  !Author (Fortran 77): Dr. Mark Pederson
+  !Date:  October 20th, 2021
+  !Modifier: Robert Alvarez / August 4th, 2022
+  ! Modifications:
+  !  Change NBS, PRD, and SPC from subroutine parameters to local variables
+  !  Change goto to break and if conditions
+  !  Use Merge Sort for index sorting
+  !  Place index sorting on BLOCK construction
+  !  Reorder of calculation blocks
+  SUBROUTINE DIAGNxN(HAM, UMT)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: NBS
-    REAL(DBL), INTENT(INOUT) :: HAM(:,:)
-    REAL(DBL), INTENT(OUT) :: UMT(:,:)
+    REAL(DBL), INTENT(INOUT) :: HAM(:,:)  !Hamiltonian matrix
+    REAL(DBL), INTENT(OUT) :: UMT(:,:)    !Unitary matrix
 
-    REAL(DBL), ALLOCATABLE :: PRD(:,:)
-    REAL(DBL) :: SPC(NBS,NBS)
-    REAL(DBL) :: H(2,2), E(2), O(2,2) !J2X2
-    REAL(DBL) :: ERROLD, ERRNW
+    REAL(DBL), ALLOCATABLE :: PRD(:,:), SPC(:,:)  !Product matrix
+    REAL(DBL) :: H(2,2), E(2), O(2,2) !Hamiltonian, Eigenvalues, and Eigenvectors for J2X2
+    REAL(DBL) :: ERROLD, ERRNW        !Error values
 
-    LOGICAL :: useIdx(NBS)
-    INTEGER :: idxAll(2,NBS*(NBS-1)/2)
-    INTEGER :: idx(2,NBS/2)
-    INTEGER :: i, j, k, l, n, idxSize
-    INTEGER :: iTry, MXIT
+    INTEGER :: i, j, k, l
+    INTEGER :: NBS, iTry, MXIT  !NBS = dimension of matrix
 
-    ALLOCATE(PRD(NBS,NBS))
+    NBS = SIZE(HAM,1)
+    ALLOCATE(PRD(NBS,NBS), SPC(NBS,NBS))
 
     UMT = 0.D0
     DO i=1, NBS
@@ -307,52 +324,59 @@ MODULE ArrayFunctions
     MXIT = NBS*NBS*2
 
     DO iTry = 1, MXIT
-      n = 0
-      ERROLD=0.D0
-      DO i=1, NBS
-        DO j=i+1, NBS
-          ERROLD = ERROLD + PRD(i,j)*PRD(i,j)
-          IF (ABSO(PRD(i,j)) > 1.D-10) THEN     !Save indices of PRD entries whose absolute value is greater than 0
-            n = n + 1
-            idxAll(1,n) = i
-            idxAll(2,n) = j
+      bestIdxs: BLOCK
+        LOGICAL :: useIdx(NBS)
+        INTEGER :: idxAll(2,NBS*(NBS-1)/2)
+        INTEGER :: idx(2,NBS/2)
+        INTEGER :: n, idxSize
+
+        n = 0
+        ERROLD=0.D0
+        DO i=1, NBS
+          DO j=i+1, NBS
+            ERROLD = ERROLD + PRD(i,j)*PRD(i,j)
+            IF (ABSO(PRD(i,j)) > 1.D-10) THEN   !Save indices of PRD entries whose absolute value is greater than 0
+              n = n + 1
+              idxAll(1,n) = i
+              idxAll(2,n) = j
+            END IF
+          END DO
+        END DO
+
+!        WRITE(*,*) 'All indexes before sorting:'
+!        DO i=1, n
+!         WRITE(*,*) idxAll(1,i), idxAll(2,i), PRD(idxAll(1,i),idxAll(2,i))
+!        END DO
+
+        CALL SortIdx(idxAll(:,:n), PRD)  !Sort with respect to PRD values
+
+!        WRITE(*,*) 'All indexes:'
+!        DO i=1, n
+!          WRITE(*,*) idxAll(1,i), idxAll(2,i), PRD(idxAll(1,i),idxAll(2,i))
+!        END DO
+
+        !Choose the indexes with the highest values at PRD without repeating indexes
+        useIdx = .TRUE. !No indexes has been use
+        idxSize = 1     !Keep track of position to add new non-repetitive idxs
+        DO j=1, n
+          IF (useIdx(idxAll(1,j)) .AND. useIdx(idxAll(2,j))) THEN !If none of this two indexes has been used
+            useIdx(idxAll(:,j)) = .False. !Set both to false because they would be used
+            idx(:,idxSize) = idxAll(:,j)  !Save both indexes in idx array
+            idxSize = idxSize + 1         !Update position for next indexes
+            IF (idxSize > NBS/2) EXIT     !Exit the loop if NBS (even) or NBS-1 (odd) indexes had been used
           END IF
         END DO
-      END DO
 
-!      WRITE(*,*) 'All indexes before sorting:'
-!      DO i=1, n
-!        WRITE(*,*) idxAll(1,i), idxAll(2,i), PRD(idxAll(1,i),idxAll(2,i))
-!      END DO
+!        WRITE(*,*) 'Non repetitive indexes with highest values:'
+!        idxSize = idxSize - 1
+!        DO i=1, idxSize
+!          WRITE(*,*) idx(1,i), idx(2,i), PRD(idx(1,i),idx(2,i))
+!        END DO
 
-      CALL sort(idxAll(:,1:n), PRD)  !Sort with respect to PRD values
-
-!      WRITE(*,*) 'All indexes:'
-!      DO i=1, n
-!        WRITE(*,*) idxAll(1,i), idxAll(2,i), PRD(idxAll(1,i),idxAll(2,i))
-!      END DO
-
-      !Choose the indexes with the highest values at PRD without repeating indexes
-      useIdx = .TRUE. !No indexes has been use
-      idxSize = 1     !Keep track of position to add new non-repetitive idxs
-      DO j=1, n
-        IF (useIdx(idxAll(1,j)) .AND. useIdx(idxAll(2,j))) THEN !If none of this two indexes has been used
-          useIdx(idxAll(:,j)) = .False. !Set both to false because they would be used
-          idx(:,idxSize) = idxAll(:,j)  !Save both indexes in idx array
-          idxSize = idxSize + 1         !Update position for next indexes
-          IF (idxSize > NBS/2) EXIT     !Exit the loop if NBS (even) or NBS-1 (odd) indexes had been used
-        END IF
-      END DO
-
-!      WRITE(*,*) 'Non repetitive indexes with highest values:'
-!      idxSize = idxSize - 1
-!      DO i=1, idxSize
-!        WRITE(*,*) idx(1,i), idx(2,i), PRD(idx(1,i),idx(2,i))
-!      END DO
-
-      !Use best two indexes
-      k = idx(1,1)
-      l = idx(2,1)
+        !Use best two indexes
+        k = idx(1,1)
+        l = idx(2,1)
+      END BLOCK bestIdxs
 
       H(1,1) = PRD(k,k)
       H(1,2) = PRD(k,l)
@@ -365,45 +389,33 @@ MODULE ArrayFunctions
         WRITE(*,'(3ES20.12E2)') E(i), (O(i,j),j=1,2)
       END DO
 
+      !Get new unitary matrix
+      PRD = UMT
+      DO i=1, NBS
+        PRD(i,k) = UMT(i,k)*O(1,1) + UMT(i,l)*O(2,1)
+        PRD(i,l) = UMT(i,k)*O(1,2) + UMT(i,l)*O(2,2)
+      END DO
+      UMT = PRD
+
       SPC = 0.D0
       DO i=1, NBS
         SPC(i,i) = 1.D0
       END DO
-
       SPC(k,k) = O(1,1)
       SPC(l,k) = O(2,1)
       SPC(l,l) = O(2,2)
       SPC(k,l) = O(1,2)
-
-      !Get new unitary matrix
-      PRD = 0.D0
       DO i=1, NBS
-        IF (i /= k .AND. i /= l) THEN
-          DO j=1, NBS
-            PRD(j,i) = UMT(j,i)
-          END DO
-        END IF
-      END DO
-
-      DO i=1, NBS
-        PRD(i,k) = PRD(i,k) + UMT(i,k)*O(1,1)
-        PRD(i,k) = PRD(i,k) + UMT(i,l)*O(2,1)
-        PRD(i,l) = PRD(i,l) + UMT(i,k)*O(1,2)
-        PRD(i,l) = PRD(i,l) + UMT(i,l)*O(2,2)
-      END DO
-
-      UMT = PRD
-      DO i=1, NBS
-        DO k=1, NBS
-          SPC(k,i) = 0.D0
-          DO l=1, NBS
-            SPC(k,i) = SPC(k,i) + UMT(l,i)*HAM(l,k)
+        DO j=1, NBS
+          SPC(j,i) = 0.D0
+          DO k=1, NBS
+            SPC(j,i) = SPC(j,i) + UMT(k,i)*HAM(k,j)
           END DO
         END DO
       END DO
 
+      !Get new Hamiltonian matrix
       PRD = 0.D0
-      !Make new HAM
       DO i=1, NBS
         DO j=1, NBS
           DO k=1, NBS
@@ -412,6 +424,8 @@ MODULE ArrayFunctions
         END DO
       END DO
 
+      CALL print_mtx(PRD)
+
       ERRNW = 0.D0
       DO i=1,NBS
         DO j=i+1, NBS
@@ -419,10 +433,7 @@ MODULE ArrayFunctions
         END DO
       END DO
 
-      CALL print_mtx(PRD)
-
-      WRITE(*,30) iTry, ERRNW, ERROLD
-      30 FORMAT(I3, 3G15.6)
+      WRITE(*,'(3G15.6)') iTry, ERRNW, ERROLD
 
       IF (ERRNW < 1.D-12) EXIT
     END DO
@@ -441,7 +452,7 @@ MODULE ArrayFunctions
     IMPLICIT NONE
     REAL(DBL) :: F(100)    !Function to evaluate to
     REAL(DBL) :: DM(4,4)   !Design matrix
-    REAL(DBL) :: DI(4,4)   !Identity matrix
+    REAL(DBL) :: DI(4,4)   !Inverse matrix
     REAL(DBL) :: B(4)      !
     REAL(DBL) :: A(4)      !
     REAL(DBL) :: P(100,4)  !
