@@ -1,6 +1,6 @@
 MODULE Applications
   USE FortranFunctions, ONLY: DBL, PI, ABSO, COSINE, SINE, DIV, SQR
-  USE ArrayFunctions, ONLY: DIAGNxN
+  USE ArrayFunctions, ONLY: print_mtx, DIAGNxN
 
   IMPLICIT NONE
 
@@ -12,7 +12,7 @@ MODULE Applications
   SUBROUTINE STARKDVR()
     IMPLICIT NONE
     REAL(DBL), ALLOCATABLE, DIMENSION(:,:) :: HAM, OVR, UMT, PRD, DIP
-    REAL(DBL) :: EFIELD, t, DIPOLE
+    REAL(DBL) :: EFIELD, t
     REAL(DBL) :: AI, AR, DI, DR, phs, tau
     INTEGER :: i, j, k, m, NBS
 
@@ -31,11 +31,6 @@ MODULE Applications
       END DO
     END DO
 
-    OVR = 0.D0
-    DO i=1,NBS
-      OVR(i,i) = 1.D0
-    END DO
-
     HAM = 0.D0
     HAM(1,1) = -0.5D0
     HAM(2,2) = -0.125D0
@@ -48,9 +43,7 @@ MODULE Applications
     CALL DIAGNxN(HAM,UMT)
 
     WRITE(*,*) "UPDATED HAM"
-    DO i=1,NBS
-      WRITE(*,"(10F12.4)") (HAM(j,i),j=1,NBS)  !LAMDA_J
-    END DO
+    print_mtx(HAM)
 
 ! PROVE THAT THE INVERSE OF UMT IS THE TRANSPOSE OF UMT
     WRITE(*,*) 'EIGENVALUES AND EIGENVECTORS:'
@@ -68,8 +61,8 @@ MODULE Applications
 ! AT TIME=0, OCCUPY THE 2S FUNCTION:
 ! |PHI_K (t) > = SUM_J exp(ie(J) t)* OVR(K,J)|PSI_J> = SUM_JL exp(iEjt)ovr(j,k)*umt(k,l)|PHI_l> !E_j=LAMDA_J
     TAU = DIV(8.D0*PI,ABSO(HAM(1,1)))
-    DO M=0,1000
-      t = DBLE(M)*DIV(TAU,1.D3)
+    DO m=0,1000
+      t = DBLE(m)*DIV(TAU,1.D3)
       OPEN(12,FILE='PLOT')
       DO k=1,NBS
         DO j=1,NBS
@@ -93,9 +86,8 @@ MODULE Applications
           DI = DI + SINE(phs)*UMT(2,i)*UMT(2,j)*DIP(i,j) 
         END DO
       END DO
-      DIPOLE = SQR(DR*DR + DI*DI)*1.D3
-      WRITE(*,'(10F12.4)') t,(PRD(k,2),k=1,NBS),DR,DI             
-      WRITE(12,'(10F12.4)') t,(PRD(k,2),k=1,NBS),DIPOLE               
+      WRITE(*,'(10F12.4)') t, (PRD(k,2),k=1,NBS), DR, DI             
+      WRITE(12,'(10F12.4)') t, (PRD(k,2),k=1,NBS), SQR(DR*DR + DI*DI)*1.D3 !Dipole
     END DO
     CLOSE(12)
   
@@ -119,7 +111,7 @@ MODULE Applications
   SUBROUTINE RINGDVR()
     IMPLICIT NONE
     REAL(DBL), ALLOCATABLE, DIMENSION(:,:) :: HAM, OVR, UMT, PRD, DIP
-    REAL(DBL) :: RINGSZ, E, aM, phs, DIPOLE
+    REAL(DBL) :: RINGSZ, E, aM, phs
     REAL(DBL) :: AI, AR, DI, DR, t, TAU
     INTEGER :: i, j, k, m, NBS, iAP
 
@@ -133,17 +125,12 @@ MODULE Applications
     WRITE(*,*) 'HOW BIG THE FIELD?'
     READ(*,*) E
 
-    DO i=1,NBS
-      OVR(i,i) = 1.D0
-    END DO
-
     i = 0
     HAM = 0.D0
     aM = -5.D0
     DIP = 0.D0
     DO m=-5,5 
       i = i + 1
-
       IF (i > 1) THEN
         DIP(i-1,i) = DIV(E*RINGSZ,2.D0)
         DIP(i,i-1) = DIP(i-1,i)
@@ -164,24 +151,21 @@ MODULE Applications
       END DO
     END IF
 
-    DO i=1,NBS
-      WRITE(*,'(11F7.2)') (HAM(i,j),j=1,NBS)
-    END DO
+    print_mtx(HAM)
 
     DIP = DIP + HAM
+
     CALL DIAGNxN(HAM,UMT)
 
     WRITE(*,*) "UPDATED HAM"
-    DO I=1,NBS
-      WRITE(*,'(10F12.4)') (HAM(J,I),J=1,NBS)  !LAMDA_J
-    END DO
+    print_mtx(HAM)
     WRITE(*,*) 'EIGENVALUES AND EIGENVECTORS:'
-    DO I=1,NBS
-      WRITE(*,'(10F12.4)') HAM(I,I),(UMT(J,I),J=1,NBS)
+    DO i=1,NBS
+      WRITE(*,'(10F12.4)') HAM(I,I),(UMT(j,i),j=1,NBS)
 ! PROVE THAT THE INVERSE OF UMT IS THE TRANPOSE OF UMT
     END DO
-    DO J=1,NBS
-      DO K=1,NBS
+    DO j=1,NBS
+      DO k=1,NBS
         OVR(K,J) = UMT(J,K)
       END DO
     END DO
@@ -191,45 +175,37 @@ MODULE Applications
 ! |PHI_K (t) > = SUM_J exp(ie(J) t)* OVR(K,J)|PSI_J> = SUM_JL exp(iEjt)ovr(j,k)*umt(k,l)|PHI_l> !E_j=LAMDA_J
     TAU = DIV(8.D0*PI,ABSO(HAM(1,1)))
     OPEN(12,FILE='PLOT')
-    DO M=-100,100000
+    DO m=-100,100000
       IF (M == 0)THEN
         HAM = DIP
-        OVR = 0.D0
-        DO I=1,NBS
-          OVR(I,I) = 1.D0
-        END DO
         CALL DIAGNxN(HAM,UMT)
-        DO I=1,NBS
-          WRITE(*,*) HAM(I,I)
-        END DO
+        WRITE(*,'(10F12.8)') (HAM(I,I),i=1,NBS)
       END IF
-      t = DBLE(M)*DIV(TAU,5.D1)
-      DO K=1,NBS
+      t = DBLE(m)*DIV(TAU,5.D1)
+      DO k=1,NBS
         DO j=1,NBS
           AR = 0.D0
           AI = 0.D0
-          DO I=1,NBS
-            AR = AR + COSINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i) 
-            AI = AI + SINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i) 
+          DO i=1,NBS
+            AR = AR + COSINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i)
+            AI = AI + SINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i)
           END DO
           PRD(K,j) = AR*AR + AI*AI
         END DO
       END DO
 ! |phi_2t> = Sum_i u(2,i)exp(i eps_i t) |psi_i>
 ! <phi_2t| phi_2t> = sum_ij exp(i (eps_i-eps_j)t <psi_j|d|phi_i>*u(2,i)*u(2,j)
-      DR = 0.D0       
+      DR = 0.D0
       DI = 0.D0
       DO i=1,NBS
         DO j=1,NBS
           phs = (HAM(i,i) - HAM(j,j))*t
           DR = DR + COSINE(phs)*UMT(2,i)*UMT(2,j)*DIP(i,j)
-          DI = DI + SINE(phs)*UMT(2,i)*UMT(2,j)*DIP(i,j) 
+          DI = DI + SINE(phs)*UMT(2,i)*UMT(2,j)*DIP(i,j)
         END DO
       END DO
-      DIPOLE = SQR(DR*DR + DI*DI)*1.D2
-      WRITE(*,'(12F12.4)') t,(PRD(K,2),K=1,NBS),DR,DI             
-!     WRITE(12,"(3F12.4)")t,PRD(2,2),PRD(6,2)!,K=1,NBS)!,DIPOLE               
-      WRITE(12,'(12F12.4)') t,(PRD(K,2),K=1,NBS)!,DIPOLE               
+      WRITE(*,'(12F12.4)') t, (PRD(K,2),K=1,NBS), DR, DI
+      WRITE(12,'(12F12.4)') t, (PRD(K,2),K=1,NBS), SQR(DR*DR + DI*DI)*1.D2 !Dipole
     END DO
     CLOSE(12)
 
@@ -253,7 +229,7 @@ MODULE Applications
   SUBROUTINE BOXDVR()
     IMPLICIT NONE
     REAL(DBL), ALLOCATABLE, DIMENSION(:,:) :: HAM, OVR, UMT, PRD, DIP
-    REAL(DBL) :: twom, tau, dr, di, ai, ar, boxsz, dipole, phs, t
+    REAL(DBL) :: twom, tau, dr, di, ai, ar, boxsz, phs, t
     INTEGER :: i, j, k, m, NBS
 
     NBS = 9
@@ -261,10 +237,6 @@ MODULE Applications
 
     WRITE(*,*) 'WELCOME TO BOX DRIVER, HOW LARGE IS YOUR BOX?'
     READ(*,*) BOXSZ
-
-    DO I=1,NBS
-      OVR(I,I) = 1.D0
-    END DO
 
     i = 0
     HAM = 0.D0
@@ -276,23 +248,20 @@ MODULE Applications
     END DO
 
     WRITE(*,*) "INITIAL HAM"
-    DO I=1,NBS
-      WRITE(*,'(10F12.4)') (HAM(J,I),J=1,NBS)  !LAMDA_J
-    END DO
+    print_mtx(HAM)
+
     CALL DIAGNxN(HAM,UMT)
 
     WRITE(*,*) "UPDATED HAM"
-    DO I=1,NBS
-      WRITE(*,'(10F12.4)') (HAM(J,I),J=1,NBS)  !LAMDA_J
-    END DO
+    print_mtx(HAM)
 
     WRITE(*,*) 'EIGENVALUES AND EIGENVECTORS:'
-    DO I=1,NBS
-      WRITE(*,'(10F12.4)') HAM(I,I),(UMT(J,I),J=1,NBS)
+    DO i=1,NBS
+      WRITE(*,'(10F12.4)') HAM(I,I),(UMT(j,i),j=1,NBS)
 ! PROVE THAT THE INVERSE OF UMT IS THE TRANPOSE OF UMT
     END DO
-    DO J=1,NBS
-      DO K=1,NBS
+    DO j=1,NBS
+      DO k=1,NBS
         OVR(K,J)=UMT(J,K)
       END DO
     END DO
@@ -303,14 +272,14 @@ MODULE Applications
 ! |PHI_K (t) > = SUM_J exp(ie(J) t)* OVR(K,J)|PSI_J> = SUM_JL exp(iEjt)ovr(j,k)*umt(k,l)|PHI_l> !E_j=LAMDA_J
     TAU = DIV(8.D0*PI,ABSO(HAM(1,1)))
     TAU = DIV(1.D0,ABSO(DIV(HAM(1,1),4.D0)))
-    DO M=0,1000
-      t = DBLE(M)*DIV(TAU,1.D3)
+    DO m=0,1000
+      t = DBLE(m)*DIV(TAU,1.D3)
       OPEN(12,FILE='PLOT')
-      DO K=1,3
-        DO J=1,3
+      DO k=1,3
+        DO j=1,3
           AR = 0.D0
           AI = 0.D0
-          DO I=1,3
+          DO i=1,3
             AR = AR + COSINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i)
             AI = AI + SINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i)
           END DO
@@ -328,9 +297,8 @@ MODULE Applications
           DI = DI + SINE(phs)*UMT(2,i)*UMT(2,j)*DIP(i,j)
         END DO
       END DO
-      DIPOLE = SQR(DR*DR + DI*DI)*1.D3
-      WRITE(*,'(10F12.4)') t,(PRD(K,2),K=1,NBS),DR,DI
-      WRITE(12,'(10F12.4)') t,(PRD(K,2),K=1,NBS),DIPOLE
+      WRITE(*,'(10F12.4)') t, (PRD(K,2),K=1,NBS), DR, DI
+      WRITE(12,'(10F12.4)') t, (PRD(K,2),K=1,NBS), SQR(DR*DR + DI*DI)*1.D3 !Dipole
     END DO
     CLOSE(12)
 
@@ -355,7 +323,7 @@ MODULE Applications
     IMPLICIT NONE
     REAL(DBL), ALLOCATABLE, DIMENSION(:,:) :: HAM, OVR, UMT, PRD, DIP
     REAL(DBL) :: rkmx, rkmn, emax, emin, energy, hmass, ai, ar, di, dr
-    REAL(DBL) :: dipole, efield, guess, phs, scale, t, tau
+    REAL(DBL) :: efield, guess, phs, scale, t, tau
     INTEGER :: i, j, k, m, NBS
 
     NBS = 2
@@ -383,14 +351,10 @@ MODULE Applications
       READ(*,*) guess
       DIP(1,2) = 1.D-2
       DIP(2,1) = DIP(1,2)
-      OVR = 0.D0
-      DO I=1,2
-        DO J=I+1,2
-          DIP(J,I) = DIP(I,J)
+      DO i=1,2
+        DO j=I+1,2
+          DIP(j,i) = DIP(i,j)
         END DO
-      END DO
-      DO I=1,NBS
-        OVR(I,I) = 1.D13
       END DO
       HAM = 0.D0
       WRITE(*,'(4G15.6)') guess, hmass, DIV(guess,hmass),SQR(DIV(guess,hmass))
@@ -399,16 +363,16 @@ MODULE Applications
       HAM(2,2) = DIV(1.5D0*SQR(DIV(guess,hmass)),(2.D0*PI))
       HAM(1,2) = 0.D0 !DIP(1,2)
       HAM(2,1) = 0.D0 !DIP(2,1)
-      DO I=1,NBS
-        WRITE(*,*) (HAM(I,J),J=1,NBS)
+      DO i=1,NBS
+        WRITE(*,*) (HAM(i,j),j=1,NBS)
       END DO
-      DO I=1,NBS
-        DO J=1,NBS
-          HAM(I,J) = DIV(HAM(I,J),scale)
+      DO i=1,NBS
+        DO j=1,NBS
+          HAM(i,j) = DIV(HAM(i,j),scale)
         END DO
       END DO
       CALL DIAGNxN(HAM,UMT)
-      DO I=1,NBS
+      DO i=1,NBS
         HAM(I,I) = HAM(I,I)*scale
       END DO
       HAM(3,3) = MAX(HAM(2,2),HAM(1,1)) - MIN(HAM(2,2),HAM(1,1))
@@ -429,16 +393,14 @@ MODULE Applications
       END IF
     END DO 
     WRITE(*,*) 'UPDATED HAM'
-    DO I=1,NBS
-      WRITE(*,'(10F12.4)') (HAM(J,I),J=1,NBS)  !LAMDA_J
-    END DO
+    print_mtx(HAM)
     WRITE(*,*) 'EIGENVALUES AND EIGENVECTORS:'
-    DO I=1,NBS
-      WRITE(*,'(10F12.4)') HAM(I,I),(UMT(J,I),J=1,NBS)
+    DO i=1,NBS
+      WRITE(*,'(10F12.4)') HAM(I,I),(UMT(j,i),j=1,NBS)
 ! PROVE THAT THE INVERSE OF UMT IS THE TRANPOSE OF UMT
     END DO
-    DO J=1,NBS
-      DO K=1,NBS
+    DO j=1,NBS
+      DO k=1,NBS
         OVR(K,J) = UMT(J,K)
       END DO
     END DO 
@@ -447,8 +409,8 @@ MODULE Applications
 ! AT TIME=0, OCCUPY THE 2S FUNCTION:
 ! |PHI_K (t) > = SUM_J exp(ie(J) t)* OVR(K,J)|PSI_J> = SUM_JL exp(iEjt)ovr(j,k)*umt(k,l)|PHI_l> !E_j=LAMDA_J
     TAU = DIV(8.D0*PI,ABSO(HAM(1,1)))
-    DO M=0,1000
-      t = DBLE(M)*DIV(TAU,1.D3)
+    DO m=0,1000
+      t = DBLE(m)*DIV(TAU,1.D3)
       OPEN(12,FILE='PLOT')
       DO k=1,3
         DO j=1,3  
@@ -472,9 +434,8 @@ MODULE Applications
           DI = DI + SINE(phs)*UMT(2,i)*UMT(2,j)*DIP(i,j) 
         END DO
       END DO
-      DIPOLE = SQR(DR*DR + DI*DI)*1.D3
-      WRITE(*,'(10F12.4)') t,(PRD(K,2),K=1,NBS),DR,DI             
-      WRITE(12,'(10F12.4)') t,(PRD(K,2),K=1,NBS),DIPOLE               
+      WRITE(*,'(10F12.4)') t, (PRD(K,2),K=1,NBS), DR, DI             
+      WRITE(12,'(10F12.4)') t, (PRD(K,2),K=1,NBS), SQR(DR*DR + DI*DI)*1.D3 !Dipole
     END DO
     CLOSE(12)
     OPEN(12,file='plot_directions')
