@@ -250,8 +250,8 @@ MODULE ArrayFunctions
     IF (1 < high) THEN
       mid = (high+1)/2
       CALL SortIdx(idx(:,:mid), PRD)
-      CALL SortIdx(idx(:,mid+1:high), PRD)
-      idx(:,:) = MergeIdx(idx(:,:mid), idx(:,mid+1:high), PRD)
+      CALL SortIdx(idx(:,mid+1:), PRD)
+      idx(:,:) = MergeIdx(idx(:,:mid), idx(:,mid+1:), PRD)
     END IF
   END SUBROUTINE SortIdx
 
