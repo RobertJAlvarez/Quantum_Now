@@ -10,7 +10,7 @@ PROGRAM testing_func
   USE FortranFunctions, ONLY: PI, DBL, FMOD, DIV, SQR, SINE
   USE retireFunctions, ONLY: Class_DIV, Class_DIAGNxN
   USE ArrayFunctions, ONLY: print_mtx, INVERSE, J2x2, JAC2BY2GEN, DIAGNxN, LEASTSQUARE
-  USE Applications, ONLY: STARKDVR, RINGDVR, HMODVR, BOXDVR
+  USE Applications, ONLY: STARKDVR, RINGDVR, BOXDVR, HMODVR, write_plot_instructions, open_plot
   IMPLICIT NONE
 
   INTEGER :: input
@@ -18,7 +18,7 @@ PROGRAM testing_func
   DO
     WRITE(*,*)
     WRITE(*,*) 'You can test for:'
-    WRITE(*,*) 'FortranFunctions: 1. Modulus, 2. Division, 3. Aquare root, 4. Sin'
+    WRITE(*,*) 'FortranFunctions: 1. Modulus, 2. Division, 3. Square root, 4. Sin'
     WRITE(*,*) 'ArrayFunctions: 5. Inverse, 6. J2x2 and JAC2BY2GEN, 7. DIAGNxN, 8. LEASTSQUARE'
     WRITE(*,*) 'Applications: 9. STARKDVR, 10. RINGDVR, 11. BOXDVR, 12. HMODVR'
     WRITE(*,*) 'Anything else to exit'
@@ -53,6 +53,11 @@ PROGRAM testing_func
       WRITE(*,*) 'Have a nice day:)'
       EXIT
     END SELECT
+
+    IF (input >= 9 .AND. input <= 12) THEN
+      CALL write_plot_instructions()
+      CALL open_plot()
+    END IF
   END DO
 
   CONTAINS
@@ -186,6 +191,7 @@ PROGRAM testing_func
     WRITE(*,*) 'error = ', error
   END SUBROUTINE auto_div
 
+  ! Calculate cumulative error between 1,000,000 square numbers from 0 to 1
   SUBROUTINE sqr_test()
     IMPLICIT NONE
     INTEGER :: i, j, nTimes
@@ -225,18 +231,16 @@ PROGRAM testing_func
     END DO
   END SUBROUTINE trig_test
 
-  !Generate and return a new number from -720 and 720
   SUBROUTINE newAngle(getNew)
     IMPLICIT NONE
-
     REAL(DBL), INTENT(INOUT) :: getNew
 
     IF (getNew >= 0.D0) THEN
-      CALL RANDOM_NUMBER(getNew)
-      getNew = -getNew*7.D0
+      CALL RANDOM_NUMBER(GETNEW)
+      getNew = -getNew*720.D0
     ELSE
-      CALL RANDOM_NUMBER(getNew)
-      getNew = getNew*7.D0
+      CALL RANDOM_NUMBER(GETNEW)
+      getNew = getNew*720.D0
     END IF
   END SUBROUTINE newAngle
 
@@ -247,24 +251,23 @@ PROGRAM testing_func
   SUBROUTINE inverse_test()
     IMPLICIT NONE
     
-    REAL(DBL), ALLOCATABLE :: A(:,:), B(:,:), nums(:)
+    REAL(DBL), ALLOCATABLE :: A(:,:), B(:,:)
     INTEGER :: i, n
 
     WRITE(*,*) 'What is the size of the matrix?'
     READ(*,*) n
 
-    ALLOCATE(A(n,n), B(n,n), nums(n))
+    ALLOCATE(A(n,n), B(n,n))
 
     DO i=1,n
       10 FORMAT (A,I2,A,I2)
       WRITE(*,10) 'Enter ',n,' numbers for row ',i
-      READ(*,*) nums(:)
-      A(i,:) = nums
+      READ(*,*) A(i,:)
     END DO
 
     B = INVERSE(A)
 
-    DEALLOCATE(A, B, nums)
+    DEALLOCATE(A, B)
   END SUBROUTINE inverse_test
 
   SUBROUTINE diag_2by2_test()

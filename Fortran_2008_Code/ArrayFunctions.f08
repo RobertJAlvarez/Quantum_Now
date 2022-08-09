@@ -240,6 +240,7 @@ MODULE ArrayFunctions
   !Author: Robert Alvarez
   !Last modification: August 1st, 2022
   !  Delete lower boundary value and change it to 1
+  !  Stop specifying the lower and upper boundary when slicing
   RECURSIVE SUBROUTINE SortIdx(idx, PRD)
     IMPLICIT NONE
     INTEGER, INTENT(INOUT) :: idx(:,:)
@@ -250,8 +251,8 @@ MODULE ArrayFunctions
     IF (1 < high) THEN
       mid = (high+1)/2
       CALL SortIdx(idx(:,:mid), PRD)
-      CALL SortIdx(idx(:,mid+1:high), PRD)
-      idx(:,:) = MergeIdx(idx(:,:mid), idx(:,mid+1:high), PRD)
+      CALL SortIdx(idx(:,mid+1:), PRD)
+      idx(:,:) = MergeIdx(idx(:,:mid), idx(:,mid+1:), PRD)
     END IF
   END SUBROUTINE SortIdx
 
@@ -296,9 +297,9 @@ MODULE ArrayFunctions
   !Modifier: Robert Alvarez / August 4th, 2022
   ! Modifications:
   !  Change NBS, PRD, and SPC from subroutine parameters to local variables
-  !  Change goto to break and if conditions
+  !  Change goto to break
   !  Use Merge Sort for index sorting
-  !  Place index sorting on BLOCK construction
+  !  Place index sorting and selection on BLOCK construction
   !  Reorder of calculation blocks
   SUBROUTINE DIAGNxN(HAM, UMT)
     IMPLICIT NONE
@@ -324,6 +325,13 @@ MODULE ArrayFunctions
     MXIT = NBS*NBS*2
 
     DO iTry = 1, MXIT
+      ERROLD = 0.D0
+      DO i=1, NBS
+        DO j=i+1, NBS
+          ERROLD = ERROLD + PRD(j,i)*PRD(j,i)
+        END DO
+      END DO
+
       bestIdxs: BLOCK
         LOGICAL :: useIdx(NBS)
         INTEGER :: idxAll(2,NBS*(NBS-1)/2)
@@ -331,11 +339,9 @@ MODULE ArrayFunctions
         INTEGER :: n, idxSize
 
         n = 0
-        ERROLD=0.D0
         DO i=1, NBS
           DO j=i+1, NBS
-            ERROLD = ERROLD + PRD(i,j)*PRD(i,j)
-            IF (ABSO(PRD(i,j)) > 1.D-10) THEN   !Save indices of PRD entries whose absolute value is greater than 0
+            IF (ABSO(PRD(j,i)) > 1.D-10) THEN   !Save indices of PRD entries whose absolute value is greater than 0
               n = n + 1
               idxAll(1,n) = i
               idxAll(2,n) = j
@@ -445,13 +451,14 @@ MODULE ArrayFunctions
     WRITE(*,*) iTry, NBS, DIV(DBLE(iTry),DBLE(NBS*NBS)), 'Diag Eff'
 
     HAM = PRD
-    DEALLOCATE(PRD)
+    DEALLOCATE(PRD, SPC)
   END SUBROUTINE DIAGNxN
 
   SUBROUTINE LEASTSQUARE()
     IMPLICIT NONE
     REAL(DBL) :: F(100)    !Function to evaluate to
     REAL(DBL) :: DM(4,4)   !Design matrix
+    REAL(DBL) :: DU(4,4)   !unitary matrix
     REAL(DBL) :: DI(4,4)   !Inverse matrix
     REAL(DBL) :: B(4)      !
     REAL(DBL) :: A(4)      !
@@ -491,7 +498,7 @@ MODULE ArrayFunctions
       END DO
     END DO
 
-!    CALL DIAGNxN(DM)
+    CALL DIAGNxN(DM, DU)
 
     STOP 'Before INVERSE'
 

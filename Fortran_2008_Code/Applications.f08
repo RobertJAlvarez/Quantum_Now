@@ -1,23 +1,22 @@
 MODULE Applications
   USE FortranFunctions, ONLY: DBL, PI, ABSO, COSINE, SINE, DIV, SQR
-  USE ArrayFunctions, ONLY: DIAGNxN
+  USE ArrayFunctions, ONLY: print_mtx, DIAGNxN
 
   IMPLICIT NONE
 
   PRIVATE
-  PUBLIC :: STARKDVR, RINGDVR, BOXDVR, HMODVR
+  PUBLIC :: STARKDVR, RINGDVR, BOXDVR, HMODVR, write_plot_instructions, open_plot
 
   CONTAINS
 
   SUBROUTINE STARKDVR()
     IMPLICIT NONE
-    REAL(DBL), ALLOCATABLE, DIMENSION(:,:) :: HAM, OVR, UMT, PRD, DIP
-    REAL(DBL) :: EFIELD, t, DIPOLE
-    REAL(DBL) :: AI, AR, DI, DR, phs, tau
-    INTEGER :: i, j, k, m, NBS
+    REAL(DBL), ALLOCATABLE, DIMENSION(:,:) :: HAM, UMT, DIP
+    REAL(DBL) :: EFIELD, t, TAU
+    INTEGER :: i, j, NBS
 
     NBS = 3
-    ALLOCATE(HAM(NBS,NBS), OVR(NBS,NBS), UMT(NBS,NBS), PRD(NBS,NBS), DIP(NBS,NBS))
+    ALLOCATE(HAM(NBS,NBS), UMT(NBS,NBS), DIP(NBS,NBS))
 
     WRITE(*,*) 'WELCOME TO STARK DRIVER, EFIELD=?'
     READ(*,*) EFIELD
@@ -31,11 +30,6 @@ MODULE Applications
       END DO
     END DO
 
-    OVR = 0.D0
-    DO i=1,NBS
-      OVR(i,i) = 1.D0
-    END DO
-
     HAM = 0.D0
     HAM(1,1) = -0.5D0
     HAM(2,2) = -0.125D0
@@ -45,86 +39,30 @@ MODULE Applications
     HAM(2,3) = DIP(2,3)*EFIELD
     HAM(3,2) = HAM(2,3)
 
-    CALL DIAGNxN(HAM,UMT)
+    CALL DIAGNxN(HAM, UMT)
+    CALL print_diag_mtx_info(HAM, UMT)
 
-    WRITE(*,*) "UPDATED HAM"
-    DO i=1,NBS
-      WRITE(*,"(10F12.4)") (HAM(j,i),j=1,NBS)  !LAMDA_J
-    END DO
-
-! PROVE THAT THE INVERSE OF UMT IS THE TRANSPOSE OF UMT
-    WRITE(*,*) 'EIGENVALUES AND EIGENVECTORS:'
-    DO i=1,NBS
-      WRITE(*,"(10F12.4)") HAM(i,i),(UMT(j,i),j=1,NBS)
-    END DO
-    DO j=1,NBS
-      DO k=1,NBS
-        OVR(k,j) = UMT(j,k)
-      END DO
-    END DO
-
-    WRITE(*,*) '2s Wavefunction in terms of new eigenstates'
-    WRITE(*,*) (OVR(2,k),k=1,3)
 ! AT TIME=0, OCCUPY THE 2S FUNCTION:
-! |PHI_K (t) > = SUM_J exp(ie(J) t)* OVR(K,J)|PSI_J> = SUM_JL exp(iEjt)ovr(j,k)*umt(k,l)|PHI_l> !E_j=LAMDA_J
+! |PHI_K (t) > = SUM_J exp(ie(J) t)* OVR(k,j)|PSI_J> = SUM_JL exp(iEjt)ovr(j,k)*umt(k,l)|PHI_l> !E_j=LAMDA_J
     TAU = DIV(8.D0*PI,ABSO(HAM(1,1)))
-    DO M=0,1000
-      t = DBLE(M)*DIV(TAU,1.D3)
-      OPEN(12,FILE='PLOT')
-      DO k=1,NBS
-        DO j=1,NBS
-          AR = 0.D0
-          AI = 0.D0
-          DO i=1,NBS
-            AR = AR + COSINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i) 
-            AI = AI + SINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i) 
-          END DO
-          PRD(k,j) = AR*AR + AI*AI
-        END DO
-      END DO
-! |phi_2t> = Sum_i u(2,i)exp(i eps_i t) |psi_i>
-! <phi_2t| phi_2t> = sum_ij exp(i (eps_i-eps_j)t <psi_j|d|phi_i>*u(2,i)*u(2,j)
-      DR = 0.D0       
-      DI = 0.D0
-      DO i=1,NBS
-        DO j=1,NBS
-          phs = (HAM(i,i) - HAM(j,j))*t
-          DR = DR + COSINE(phs)*UMT(2,i)*UMT(2,j)*DIP(i,j)
-          DI = DI + SINE(phs)*UMT(2,i)*UMT(2,j)*DIP(i,j) 
-        END DO
-      END DO
-      DIPOLE = SQR(DR*DR + DI*DI)*1.D3
-      WRITE(*,'(10F12.4)') t,(PRD(k,2),k=1,NBS),DR,DI             
-      WRITE(12,'(10F12.4)') t,(PRD(k,2),k=1,NBS),DIPOLE               
+    OPEN(12,FILE='PLOT')
+    DO j=0,1000
+      t = DBLE(j)*DIV(TAU,1.D3)
+      CALL calc_something(HAM, UMT, DIP, t, 12)
     END DO
     CLOSE(12)
   
-    OPEN(12,file='plot_directions')
-    REWIND(12)
-    WRITE(12,*)'gnuplot -p << END'
-    WRITE(12,*)'set terminal png'
-    WRITE(12,*)'set output "output.png"'
-    WRITE(12,*)'p for [col=2:5] "PLOT" u 1:col w lp'
-    WRITE(12,*)'quit'
-    WRITE(12,*)'END'
-!   WRITE(12,12)
-!  12 FORMAT('p for [col=2:5] "PLOT" u 1:col w lp')    
-    CLOSE(12)
-    CALL SYSTEM('chmod +x plot_directions')
-    CALL SYSTEM('./plot_directions')
-    CALL SYSTEM('open output.png')
-    DEALLOCATE(HAM, OVR, UMT, PRD, DIP)
+    DEALLOCATE(HAM, UMT, DIP)
   END SUBROUTINE STARKDVR
 
   SUBROUTINE RINGDVR()
     IMPLICIT NONE
-    REAL(DBL), ALLOCATABLE, DIMENSION(:,:) :: HAM, OVR, UMT, PRD, DIP
-    REAL(DBL) :: RINGSZ, E, aM, phs, DIPOLE
-    REAL(DBL) :: AI, AR, DI, DR, t, TAU
-    INTEGER :: i, j, k, m, NBS, iAP
+    REAL(DBL), ALLOCATABLE, DIMENSION(:,:) :: HAM, UMT, DIP
+    REAL(DBL) :: RINGSZ, E, aM, t, TAU
+    INTEGER :: i, j, NBS, iAP
 
     NBS = 11
-    ALLOCATE(HAM(NBS,NBS), OVR(NBS,NBS), UMT(NBS,NBS), PRD(NBS,NBS), DIP(NBS,NBS))
+    ALLOCATE(HAM(NBS,NBS), UMT(NBS,NBS), DIP(NBS,NBS))
 
     WRITE(*,*) 'HOW LARGE IS YOUR RING?'
     READ(*,*)  RINGSZ
@@ -133,17 +71,12 @@ MODULE Applications
     WRITE(*,*) 'HOW BIG THE FIELD?'
     READ(*,*) E
 
-    DO i=1,NBS
-      OVR(i,i) = 1.D0
-    END DO
-
     i = 0
     HAM = 0.D0
     aM = -5.D0
     DIP = 0.D0
-    DO m=-5,5 
+    DO j=-5,5 
       i = i + 1
-
       IF (i > 1) THEN
         DIP(i-1,i) = DIV(E*RINGSZ,2.D0)
         DIP(i,i-1) = DIP(i-1,i)
@@ -158,208 +91,87 @@ MODULE Applications
       DIP = 0.D0
       i = 0
 !     E=-1*DIV(2.D0,RINGSZ*RINGSZ)
-      DO m=-5,5
+      DO j=-5,5
         i = i + 1
-        DIP(i,i) = DBLE(m)*E 
+        DIP(i,i) = DBLE(j)*E 
       END DO
     END IF
 
-    DO i=1,NBS
-      WRITE(*,'(11F7.2)') (HAM(i,j),j=1,NBS)
-    END DO
+    CALL print_mtx(HAM)
 
     DIP = DIP + HAM
-    CALL DIAGNxN(HAM,UMT)
 
-    WRITE(*,*) "UPDATED HAM"
-    DO I=1,NBS
-      WRITE(*,'(10F12.4)') (HAM(J,I),J=1,NBS)  !LAMDA_J
-    END DO
-    WRITE(*,*) 'EIGENVALUES AND EIGENVECTORS:'
-    DO I=1,NBS
-      WRITE(*,'(10F12.4)') HAM(I,I),(UMT(J,I),J=1,NBS)
-! PROVE THAT THE INVERSE OF UMT IS THE TRANPOSE OF UMT
-    END DO
-    DO J=1,NBS
-      DO K=1,NBS
-        OVR(K,J) = UMT(J,K)
-      END DO
-    END DO
-    WRITE(*,*) '2s Wavefunction in terms of new eigenstates'
-    WRITE(*,*) (OVR(2,K),K=1,NBS)
+    CALL DIAGNxN(HAM,UMT)
+    CALL print_diag_mtx_info(HAM, UMT)
+
 ! AT TIME=0, OCCUPY THE 2S FUNCTION:
-! |PHI_K (t) > = SUM_J exp(ie(J) t)* OVR(K,J)|PSI_J> = SUM_JL exp(iEjt)ovr(j,k)*umt(k,l)|PHI_l> !E_j=LAMDA_J
+! |PHI_K (t) > = SUM_J exp(ie(J) t)* OVR(k,j)|PSI_J> = SUM_JL exp(iEjt)ovr(j,k)*umt(k,l)|PHI_l> !E_j=LAMDA_J
     TAU = DIV(8.D0*PI,ABSO(HAM(1,1)))
     OPEN(12,FILE='PLOT')
-    DO M=-100,100000
-      IF (M == 0)THEN
+    DO j=-100,100000
+      IF (j == 0)THEN
         HAM = DIP
-        OVR = 0.D0
-        DO I=1,NBS
-          OVR(I,I) = 1.D0
-        END DO
         CALL DIAGNxN(HAM,UMT)
-        DO I=1,NBS
-          WRITE(*,*) HAM(I,I)
-        END DO
+        WRITE(*,'(10F12.8)') (HAM(i,i),i=1,NBS)
       END IF
-      t = DBLE(M)*DIV(TAU,5.D1)
-      DO K=1,NBS
-        DO j=1,NBS
-          AR = 0.D0
-          AI = 0.D0
-          DO I=1,NBS
-            AR = AR + COSINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i) 
-            AI = AI + SINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i) 
-          END DO
-          PRD(K,j) = AR*AR + AI*AI
-        END DO
-      END DO
-! |phi_2t> = Sum_i u(2,i)exp(i eps_i t) |psi_i>
-! <phi_2t| phi_2t> = sum_ij exp(i (eps_i-eps_j)t <psi_j|d|phi_i>*u(2,i)*u(2,j)
-      DR = 0.D0       
-      DI = 0.D0
-      DO i=1,NBS
-        DO j=1,NBS
-          phs = (HAM(i,i) - HAM(j,j))*t
-          DR = DR + COSINE(phs)*UMT(2,i)*UMT(2,j)*DIP(i,j)
-          DI = DI + SINE(phs)*UMT(2,i)*UMT(2,j)*DIP(i,j) 
-        END DO
-      END DO
-      DIPOLE = SQR(DR*DR + DI*DI)*1.D2
-      WRITE(*,'(12F12.4)') t,(PRD(K,2),K=1,NBS),DR,DI             
-!     WRITE(12,"(3F12.4)")t,PRD(2,2),PRD(6,2)!,K=1,NBS)!,DIPOLE               
-      WRITE(12,'(12F12.4)') t,(PRD(K,2),K=1,NBS)!,DIPOLE               
+      t = DBLE(j)*DIV(TAU,5.D1)
+      CALL calc_something(HAM, UMT, DIP, t, 12)
     END DO
     CLOSE(12)
 
-    OPEN(12,file='plot_directions')
-    REWIND(12)
-    WRITE(12,*)'gnuplot -p << END'
-    WRITE(12,*)'set terminal png'
-    WRITE(12,*)'set output "output.png"'
-    WRITE(12,*)'p for [col=2:12] "PLOT" u 1:col w l'
-    WRITE(12,*)'quit'
-    WRITE(12,*)'END'
-!         WRITE(12,12)
-!12   FORMAT('p for [col=2:5] "PLOT" u 1:col w lp')    
-    CLOSE(12)
-    CALL SYSTEM('chmod +x plot_directions')
-    CALL SYSTEM('./plot_directions')
-    CALL SYSTEM('open output.png')
-    DEALLOCATE(HAM, OVR, UMT, PRD, DIP)
+    DEALLOCATE(HAM, UMT, DIP)
   END SUBROUTINE RINGDVR
 
   SUBROUTINE BOXDVR()
     IMPLICIT NONE
-    REAL(DBL), ALLOCATABLE, DIMENSION(:,:) :: HAM, OVR, UMT, PRD, DIP
-    REAL(DBL) :: twom, tau, dr, di, ai, ar, boxsz, dipole, phs, t
-    INTEGER :: i, j, k, m, NBS
+    REAL(DBL), ALLOCATABLE, DIMENSION(:,:) :: HAM, UMT, DIP
+    REAL(DBL) :: twom, TAU, boxsz, t
+    INTEGER :: i, j, NBS
 
     NBS = 9
-    ALLOCATE(HAM(NBS,NBS), OVR(NBS,NBS), UMT(NBS,NBS), PRD(NBS,NBS), DIP(NBS,NBS))
+    ALLOCATE(HAM(NBS,NBS), UMT(NBS,NBS), DIP(NBS,NBS))
 
     WRITE(*,*) 'WELCOME TO BOX DRIVER, HOW LARGE IS YOUR BOX?'
     READ(*,*) BOXSZ
 
-    DO I=1,NBS
-      OVR(I,I) = 1.D0
-    END DO
-
     i = 0
     HAM = 0.D0
-    DO m=-4,4
+    DO j=-4,4
       i = i + 1
-      TWOM = 2.D0*DBLE(m)*PI
-      WRITE(*,*) m,TWOM
+      TWOM = 2.D0*DBLE(j)*PI
+      WRITE(*,*) j, TWOM
       HAM(i,i) = DIV(TWOM,BOXSZ)*DIV(TWOM,BOXSZ)
     END DO
 
     WRITE(*,*) "INITIAL HAM"
-    DO I=1,NBS
-      WRITE(*,'(10F12.4)') (HAM(J,I),J=1,NBS)  !LAMDA_J
-    END DO
+    CALL print_mtx(HAM)
+
     CALL DIAGNxN(HAM,UMT)
+    CALL print_diag_mtx_info(HAM, UMT)
 
-    WRITE(*,*) "UPDATED HAM"
-    DO I=1,NBS
-      WRITE(*,'(10F12.4)') (HAM(J,I),J=1,NBS)  !LAMDA_J
-    END DO
-
-    WRITE(*,*) 'EIGENVALUES AND EIGENVECTORS:'
-    DO I=1,NBS
-      WRITE(*,'(10F12.4)') HAM(I,I),(UMT(J,I),J=1,NBS)
-! PROVE THAT THE INVERSE OF UMT IS THE TRANPOSE OF UMT
-    END DO
-    DO J=1,NBS
-      DO K=1,NBS
-        OVR(K,J)=UMT(J,K)
-      END DO
-    END DO
-
-    WRITE(*,*) '2s Wavefunction in terms of new eigenstates'
-    WRITE(*,*) (OVR(2,K),K=1,3)
 ! AT TIME=0, OCCUPY THE 2S FUNCTION:
-! |PHI_K (t) > = SUM_J exp(ie(J) t)* OVR(K,J)|PSI_J> = SUM_JL exp(iEjt)ovr(j,k)*umt(k,l)|PHI_l> !E_j=LAMDA_J
-    TAU = DIV(8.D0*PI,ABSO(HAM(1,1)))
+! |PHI_K (t) > = SUM_J exp(ie(J) t)* OVR(k,j)|PSI_J> = SUM_JL exp(iEjt)ovr(j,k)*umt(k,l)|PHI_l> !E_j=LAMDA_J
+    !TAU = DIV(8.D0*PI,ABSO(HAM(1,1)))
     TAU = DIV(1.D0,ABSO(DIV(HAM(1,1),4.D0)))
-    DO M=0,1000
-      t = DBLE(M)*DIV(TAU,1.D3)
-      OPEN(12,FILE='PLOT')
-      DO K=1,3
-        DO J=1,3
-          AR = 0.D0
-          AI = 0.D0
-          DO I=1,3
-            AR = AR + COSINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i)
-            AI = AI + SINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i)
-          END DO
-          PRD(K,J) = AR*AR + AI*AI
-        END DO
-      END DO
-! |phi_2t> = Sum_i u(2,i)exp(i eps_i t) |psi_i>
-! <phi_2t| phi_2t> = sum_ij exp(i (eps_i-eps_j)t <psi_j|d|phi_i>*u(2,i)*u(2,j)
-      DR = 0.D0
-      DI = 0.D0
-      DO i=1,3
-        DO j=1,3
-          phs = (HAM(i,i) - HAM(j,j))*t
-          DR = DR + COSINE(phs)*UMT(2,i)*UMT(2,j)*DIP(i,j)
-          DI = DI + SINE(phs)*UMT(2,i)*UMT(2,j)*DIP(i,j)
-        END DO
-      END DO
-      DIPOLE = SQR(DR*DR + DI*DI)*1.D3
-      WRITE(*,'(10F12.4)') t,(PRD(K,2),K=1,NBS),DR,DI
-      WRITE(12,'(10F12.4)') t,(PRD(K,2),K=1,NBS),DIPOLE
+    OPEN(12,FILE='PLOT')
+    DO j=0,1000
+      t = DBLE(j)*DIV(TAU,1.D3)
+      CALL calc_something(HAM, UMT, DIP, t, 12)
     END DO
     CLOSE(12)
 
-    OPEN(12,file='plot_directions')
-    REWIND(12)
-    WRITE(12,*)'gnuplot -p << END'
-    WRITE(12,*)'set terminal png'
-    WRITE(12,*)'set output "output.png"'
-    WRITE(12,*)'p for [col=2:5] "PLOT" u 1:col w lp'
-    WRITE(12,*)'quit'
-    WRITE(12,*)'END'
-!         write(12,12)
-!12   FORMAT('p for [col=2:5] "PLOT" u 1:col w lp')
-    CLOSE(12)
-    CALL SYSTEM('chmod +x plot_directions')
-    CALL SYSTEM('./plot_directions')
-    CALL SYSTEM('open output.png')
-    DEALLOCATE(HAM, OVR, UMT, PRD, DIP)
+    DEALLOCATE(HAM, UMT, DIP)
   END SUBROUTINE BOXDVR
 
   SUBROUTINE HMODVR()
     IMPLICIT NONE
-    REAL(DBL), ALLOCATABLE, DIMENSION(:,:) :: HAM, OVR, UMT, PRD, DIP
-    REAL(DBL) :: rkmx, rkmn, emax, emin, energy, hmass, ai, ar, di, dr
-    REAL(DBL) :: dipole, efield, guess, phs, scale, t, tau
-    INTEGER :: i, j, k, m, NBS
+    REAL(DBL), ALLOCATABLE, DIMENSION(:,:) :: HAM, UMT, DIP
+    REAL(DBL) :: rkmx, rkmn, emax, emin, energy, hmass
+    REAL(DBL) :: efield, guess, scale, t, TAU
+    INTEGER :: i, j, k, NBS
 
     NBS = 2
-    ALLOCATE(HAM(NBS,NBS), OVR(NBS,NBS), UMT(NBS,NBS), PRD(NBS,NBS), DIP(NBS,NBS))
+    ALLOCATE(HAM(NBS,NBS), UMT(NBS,NBS), DIP(NBS,NBS))
 
     WRITE(*,*) 'NRLMOL:',DIV(0.36005D0*1.6D-19,6.626D-34)
     rkmx = 1.D30
@@ -377,39 +189,33 @@ MODULE Applications
     WRITE(*,*) 'Strength of Electric field?'
     hmass = 1.67D-27!*(35.)/(36.)
     WRITE(*,*) EField
+    DIP(1,2) = 1.D-2
+    DIP(2,1) = DIP(1,2)
+    DO i=1,2
+      DO j=i+1,2
+        DIP(j,i) = DIP(i,j)
+      END DO
+    END DO
     DO k=1,30
       WRITE(*,*) 'Guess the spring constant in (Newtons/Meter)'
       WRITE(*,*) 'Guess should be between:',rkmn,' and ',rkmx
       READ(*,*) guess
-      DIP(1,2) = 1.D-2
-      DIP(2,1) = DIP(1,2)
-      OVR = 0.D0
-      DO I=1,2
-        DO J=I+1,2
-          DIP(J,I) = DIP(I,J)
-        END DO
-      END DO
-      DO I=1,NBS
-        OVR(I,I) = 1.D13
-      END DO
-      HAM = 0.D0
-      WRITE(*,'(4G15.6)') guess, hmass, DIV(guess,hmass),SQR(DIV(guess,hmass))
       scale = SQR(DIV(guess,hmass))
+      WRITE(*,'(4G15.6)') guess, hmass, DIV(guess,hmass), scale
+      HAM = 0.D0
       HAM(1,1) = DIV(0.5D0*SQR(DIV(guess,hmass)),(2.D0*PI))
       HAM(2,2) = DIV(1.5D0*SQR(DIV(guess,hmass)),(2.D0*PI))
       HAM(1,2) = 0.D0 !DIP(1,2)
       HAM(2,1) = 0.D0 !DIP(2,1)
-      DO I=1,NBS
-        WRITE(*,*) (HAM(I,J),J=1,NBS)
-      END DO
-      DO I=1,NBS
-        DO J=1,NBS
-          HAM(I,J) = DIV(HAM(I,J),scale)
+      CALL print_mtx(HAM)
+      DO i=1,NBS
+        DO j=1,NBS
+          HAM(i,j) = DIV(HAM(i,j),scale)
         END DO
       END DO
       CALL DIAGNxN(HAM,UMT)
-      DO I=1,NBS
-        HAM(I,I) = HAM(I,I)*scale
+      DO i=1,NBS
+        HAM(i,i) = HAM(i,i)*scale
       END DO
       HAM(3,3) = MAX(HAM(2,2),HAM(1,1)) - MIN(HAM(2,2),HAM(1,1))
       WRITE(*,"('frequency:',2G12.4)") HAM(3,3),energy
@@ -419,8 +225,7 @@ MODULE Applications
           EMAX = HAM(3,3)
           RKMX = guess
         END IF
-      END IF
-      IF (HAM(3,3) < energy) THEN
+      ELSE IF (HAM(3,3) < energy) THEN
         WRITE(*,*) 'Too SMALL!'
         IF (HAM(3,3) > EMIN) THEN
           EMIN = HAM(3,3)
@@ -428,61 +233,107 @@ MODULE Applications
         END IF
       END IF
     END DO 
-    WRITE(*,*) 'UPDATED HAM'
-    DO I=1,NBS
-      WRITE(*,'(10F12.4)') (HAM(J,I),J=1,NBS)  !LAMDA_J
-    END DO
-    WRITE(*,*) 'EIGENVALUES AND EIGENVECTORS:'
-    DO I=1,NBS
-      WRITE(*,'(10F12.4)') HAM(I,I),(UMT(J,I),J=1,NBS)
-! PROVE THAT THE INVERSE OF UMT IS THE TRANPOSE OF UMT
-    END DO
-    DO J=1,NBS
-      DO K=1,NBS
-        OVR(K,J) = UMT(J,K)
-      END DO
-    END DO 
-    WRITE(*,*) '2s Wavefunction in terms of new eigenstates'
-    WRITE(*,*) (OVR(2,K),K=1,3)
+    CALL print_diag_mtx_info(HAM, UMT)
 ! AT TIME=0, OCCUPY THE 2S FUNCTION:
-! |PHI_K (t) > = SUM_J exp(ie(J) t)* OVR(K,J)|PSI_J> = SUM_JL exp(iEjt)ovr(j,k)*umt(k,l)|PHI_l> !E_j=LAMDA_J
+! |PHI_K (t) > = SUM_J exp(ie(J) t)* OVR(k,j)|PSI_J> = SUM_JL exp(iEjt)ovr(j,k)*umt(k,l)|PHI_l> !E_j=LAMDA_J
     TAU = DIV(8.D0*PI,ABSO(HAM(1,1)))
-    DO M=0,1000
-      t = DBLE(M)*DIV(TAU,1.D3)
-      OPEN(12,FILE='PLOT')
-      DO k=1,3
-        DO j=1,3  
-          AR = 0.D0
-          AI = 0.D0
-          DO i=1,3
-            AR = AR + COSINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i) 
-            AI = AI + SINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i) 
-          END DO
-          PRD(k,j) = AR*AR + AI*AI
-        END DO
-      END DO
-!   |phi_2t> = Sum_i u(2,i)exp(i eps_i t) |psi_i>
-!   <phi_2t| phi_2t> = sum_ij exp(i (eps_i-eps_j)t <psi_j|d|phi_i>*u(2,i)*u(2,j)
-      DR = 0.D0       
-      DI = 0.D0
-      DO i=1,3
-        DO j=1,3
-          phs = (HAM(i,i) - HAM(j,j))*t
-          DR = DR + COSINE(phs)*UMT(2,i)*UMT(2,j)*DIP(i,j)
-          DI = DI + SINE(phs)*UMT(2,i)*UMT(2,j)*DIP(i,j) 
-        END DO
-      END DO
-      DIPOLE = SQR(DR*DR + DI*DI)*1.D3
-      WRITE(*,'(10F12.4)') t,(PRD(K,2),K=1,NBS),DR,DI             
-      WRITE(12,'(10F12.4)') t,(PRD(K,2),K=1,NBS),DIPOLE               
+    OPEN(12,FILE='PLOT')
+    DO j=0,1000
+      t = DBLE(j)*DIV(TAU,1.D3)
+      CALL calc_something(HAM, UMT, DIP, t, 12)
     END DO
     CLOSE(12)
-    OPEN(12,file='plot_directions')
-    WRITE(12,12)
-    12 FORMAT('p for [col=2:5] "PLOT" u 1:col w lp')
-    CLOSE(12)
-    CALL system('gnuplot <plot_directions')
-    DEALLOCATE(HAM, OVR, UMT, PRD, DIP)
+
+    DEALLOCATE(HAM, UMT, DIP)
   END SUBROUTINE HMODVR
+
+  SUBROUTINE print_diag_mtx_info(HAM, UMT)
+    IMPLICIT NONE
+    REAL(DBL), INTENT(IN) :: HAM(:,:), UMT(:,:)
+    REAL(DBL), ALLOCATABLE :: OVR(:,:)
+    INTEGER :: NBS, i, j
+
+    NBS = SIZE(HAM,1)
+    ALLOCATE(OVR(NBS,NBS))
+
+    WRITE(*,*) "UPDATED HAM"
+    CALL print_mtx(HAM)
+    !PROVE THAT THE INVERSE OF UMT IS THE TRANSPOSE OF UMT
+    WRITE(*,*) 'EIGENVALUES AND EIGENVECTORS:'
+    DO i=1,NBS
+      WRITE(*,"(10F12.4)") HAM(i,i),(UMT(j,i),j=1,NBS)
+    END DO
+    DO i=1,NBS
+      DO j=1,NBS
+        OVR(j,i) = UMT(i,j)
+      END DO
+    END DO
+    WRITE(*,*) '2s Wavefunction in terms of new eigenstates'
+    WRITE(*,*) (OVR(2,i),i=1,3)
+
+    DEALLOCATE(OVR)
+  END SUBROUTINE print_diag_mtx_info
+
+  SUBROUTINE calc_something(HAM, UMT, DIP, t, file_num)
+    IMPLICIT NONE
+    REAL(DBL), INTENT(IN) :: HAM(:,:), UMT(:,:), DIP(:,:), t
+    INTEGER, INTENT(IN) :: file_num
+
+    REAL(DBL), ALLOCATABLE :: PRD(:,:)
+    REAL(DBL) :: AR, AI, DR, DI, phs
+    INTEGER :: i, j, k, NBS
+
+    NBS = SIZE(HAM,1)
+    ALLOCATE(PRD(NBS,NBS))
+
+    DO k=1,NBS
+      DO j=1,NBS
+        AR = 0.D0
+        AI = 0.D0
+        DO i=1,NBS
+          AR = AR + COSINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i)
+          AI = AI + SINE(HAM(i,i)*t)*UMT(k,i)*UMT(j,i)
+        END DO
+        PRD(k,j) = AR*AR + AI*AI
+      END DO
+    END DO
+! |phi_2t> = Sum_i u(2,i)exp(i eps_i t) |psi_i>
+! <phi_2t| phi_2t> = sum_ij exp(i (eps_i-eps_j)t <psi_j|d|phi_i>*u(2,i)*u(2,j)
+    DR = 0.D0
+    DI = 0.D0
+    DO i=1,NBS
+      DO j=1,NBS
+        phs = (HAM(i,i) - HAM(j,j))*t
+        DR = DR + COSINE(phs)*UMT(2,i)*UMT(2,j)*DIP(i,j)
+        DI = DI + SINE(phs)*UMT(2,i)*UMT(2,j)*DIP(i,j)
+      END DO
+    END DO
+    WRITE(*,'(12F12.4)') t, (PRD(k,2),k=1,NBS), DR, DI
+    WRITE(file_num,'(12F12.4)') t, (PRD(k,2),k=1,NBS), SQR(DR*DR + DI*DI)*1.D2 !Dipole
+
+    DEALLOCATE(PRD)
+  END SUBROUTINE calc_something
+
+  SUBROUTINE write_plot_instructions()
+    IMPLICIT NONE
+    OPEN(12,file='plot_directions')
+    REWIND(12)
+    WRITE(12,*)'gnuplot -p << END'
+    WRITE(12,*)'set terminal png'
+    WRITE(12,*)'set output "output.png"'
+    WRITE(12,*)'p for [col=2:12] "PLOT" u 1:col w l'
+    WRITE(12,*)'quit'
+    WRITE(12,*)'END'
+!         WRITE(12,12)
+!12   FORMAT('p for [col=2:5] "PLOT" u 1:col w lp')    
+    CLOSE(12)
+  END SUBROUTINE write_plot_instructions
+
+  SUBROUTINE open_plot()
+    IMPLICIT NONE
+    CALL SYSTEM('chmod +x plot_directions')
+    CALL SYSTEM('./plot_directions')
+    CALL SYSTEM('open output.png')
+  END SUBROUTINE open_plot
 END MODULE Applications
 

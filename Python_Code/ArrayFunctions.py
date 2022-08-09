@@ -17,6 +17,7 @@ def print_mtx(X: Matrix) -> None:
   pass
 
 def INVERSE(AA: Matrix) -> Matrix:
+  """ Receives matrix A and returns A inverse """
   n = len(AA)
 
   # Copy matrix AA in first n columns and an identity matrix after it
@@ -136,11 +137,12 @@ def JAC2BY2GEN(H: Matrix, O: Matrix, V: Matrix, E: Vector) -> None:
   pass
 
 def SortIdx(mtx: Matrix, PRD: Matrix) -> None:
+  """ Sort pair of indices in mtx[:,i] from largest to smallest by using the value at PRD[mtx[0,i], mtc[1,i]]."""
   if len(mtx[0]) > 1:
     mid = len(mtx[0])//2  #Find middle of columns
 
-    L = [[num for num in row[:mid]] for row in mtx]
-    R = [[num for num in row[mid:]] for row in mtx]
+    L = np.array(mtx[:,:mid])
+    R = np.array(mtx[:,mid:])
 
     SortIdx(L, PRD)  #Sort first half
     SortIdx(R, PRD)  #Sort second half
@@ -148,32 +150,30 @@ def SortIdx(mtx: Matrix, PRD: Matrix) -> None:
     i = j = k = 0
 
     while i < len(L[0]) and j < len(R[0]):
-      if ABS(PRD[L[0][i],L[1][i]]) >= ABS(PRD[R[0][j],R[1][j]]):
-        mtx[0][k], mtx[1][k] = L[0][i], L[1][i]
+      if ABS(PRD[L[0,i],L[1,i]]) >= ABS(PRD[R[0,j],R[1,j]]):
+        mtx[0,k], mtx[1,k] = L[0,i], L[1,i]
         i += 1
       else:
-        mtx[0][k], mtx[1][k] = R[0][j], R[1][j]
+        mtx[0,k], mtx[1,k] = R[0,j], R[1,j]
         j += 1
       k += 1
 
     while i < len(L[0]):
-      mtx[0][k], mtx[1][k] = L[0][i], L[1][i]
+      mtx[0,k], mtx[1,k] = L[0,i], L[1,i]
       i += 1
       k += 1
 
     while j < len(L[0]):
-      mtx[0][k], mtx[1][k] = R[0][j], R[1][j]
+      mtx[0,k], mtx[1,k] = R[0,j], R[1,j]
       j += 1
       k += 1
   pass
 
 def DIAGNxN(HAM: Matrix, UMT: Matrix) -> None:
+  """ Receive matrix HAM (Hamiltonian matrix) and UMT (Unitary matrix). HAM gets diagonalize and UMT keep the eigenvectors"""
   NBS = len(HAM[0])
-  PRD = np.array(HAM) #Copy HAM into PRD
-
-  for i in range(NBS):
-    for j in range(NBS):
-      UMT[i,j] = 1. if i == j else 0.
+  np.fill_diagonal(UMT,1.)  # Make UMT a unitary matrix
+  PRD = np.array(HAM)       # Copy HAM into PRD
 
   MXIT = NBS*NBS*2
   for iTry in range(MXIT):
@@ -189,22 +189,24 @@ def DIAGNxN(HAM: Matrix, UMT: Matrix) -> None:
 
 #    print('All indexes before sorting:')
 #    for i in range(len(idxAll[0])):
-#      print("{0:2d} {1:2d} {2:14.7e}".format(idxAll[0][i], idxAll[1][i], PRD[idxAll[0][i],idxAll[1][i]]))
+#      print("{0:2d} {1:2d} {2:14.7e}".format(idxAll[0,i], idxAll[1,i], PRD[idxAll[0,i],idxAll[1,i]]))
 
+    idxAll = np.array(idxAll)
     SortIdx(idxAll, PRD)
 
 #    print('All indexes:')
 #    for i in range(len(idxAll[0])):
-#      print("{0:2d} {1:2d} {2:14.7e}".format(idxAll[0][i], idxAll[1][i], PRD[idxAll[0][i],idxAll[1][i]]))
+#      print("{0:2d} {1:2d} {2:14.7e}".format(idxAll[0,i], idxAll[1,i], PRD[idxAll[0,i],idxAll[1,i]]))
 
-    useIdx = [True]*NBS
+    useIdx = set()
     idx = [[] for _ in range(2)]
     for j in range(len(idxAll[0])):
-      if useIdx[idxAll[0][j]] and useIdx[idxAll[1][j]]:
-        useIdx[idxAll[0][j]], useIdx[idxAll[1][j]] = False, False
-        idx[0].append(idxAll[0][j])
-        idx[1].append(idxAll[1][j])
-        if len(idx[0]) >= NBS//2:
+      if idxAll[0,j] not in useIdx and idxAll[1,j] not in useIdx:
+        useIdx.add(idxAll[0,j])
+        useIdx.add(idxAll[1,j])
+        idx[0].append(idxAll[0,j])
+        idx[1].append(idxAll[1,j])
+        if len(idx[0]) >= len(useIdx):
           break
 
 #    print('Non repetitive indexes with highest values:')

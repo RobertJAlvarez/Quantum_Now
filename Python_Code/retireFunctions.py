@@ -1,6 +1,11 @@
 from pythonFunctions import PI, MOD, ABS, DIV
 
 """
+Author: Robert Alvarez
+Date:   Jun 26th, 2022
+"""
+
+"""
 Extra functions for reference but never used
 """
 def SINB(num: float) -> float:
