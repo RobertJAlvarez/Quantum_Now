@@ -5,14 +5,14 @@ MODULE Applications
   IMPLICIT NONE
 
   PRIVATE
-  PUBLIC :: STARKDVR, RINGDVR, BOXDVR, HMODVR
+  PUBLIC :: STARKDVR, RINGDVR, BOXDVR, HMODVR, write_plot_instructions, open_plot
 
   CONTAINS
 
   SUBROUTINE STARKDVR()
     IMPLICIT NONE
     REAL(DBL), ALLOCATABLE, DIMENSION(:,:) :: HAM, UMT, DIP
-    REAL(DBL) :: EFIELD, t, tau
+    REAL(DBL) :: EFIELD, t, TAU
     INTEGER :: i, j, NBS
 
     NBS = 3
@@ -52,8 +52,6 @@ MODULE Applications
     END DO
     CLOSE(12)
   
-    CALL make_plot()
-    CALL open_plot()
     DEALLOCATE(HAM, UMT, DIP)
   END SUBROUTINE STARKDVR
 
@@ -121,15 +119,13 @@ MODULE Applications
     END DO
     CLOSE(12)
 
-    CALL make_plot()
-    CALL open_plot()
     DEALLOCATE(HAM, UMT, DIP)
   END SUBROUTINE RINGDVR
 
   SUBROUTINE BOXDVR()
     IMPLICIT NONE
     REAL(DBL), ALLOCATABLE, DIMENSION(:,:) :: HAM, UMT, DIP
-    REAL(DBL) :: twom, tau, boxsz, t
+    REAL(DBL) :: twom, TAU, boxsz, t
     INTEGER :: i, j, NBS
 
     NBS = 9
@@ -164,8 +160,6 @@ MODULE Applications
     END DO
     CLOSE(12)
 
-    CALL make_plot()
-    CALL open_plot()
     DEALLOCATE(HAM, UMT, DIP)
   END SUBROUTINE BOXDVR
 
@@ -173,7 +167,7 @@ MODULE Applications
     IMPLICIT NONE
     REAL(DBL), ALLOCATABLE, DIMENSION(:,:) :: HAM, UMT, DIP
     REAL(DBL) :: rkmx, rkmn, emax, emin, energy, hmass
-    REAL(DBL) :: efield, guess, scale, t, tau
+    REAL(DBL) :: efield, guess, scale, t, TAU
     INTEGER :: i, j, k, NBS
 
     NBS = 2
@@ -249,8 +243,7 @@ MODULE Applications
       CALL calc_something(HAM, UMT, DIP, t, 12)
     END DO
     CLOSE(12)
-    CALL make_plot()
-    CALL open_plot()
+
     DEALLOCATE(HAM, UMT, DIP)
   END SUBROUTINE HMODVR
 
@@ -321,7 +314,7 @@ MODULE Applications
     DEALLOCATE(PRD)
   END SUBROUTINE calc_something
 
-  SUBROUTINE make_plot()
+  SUBROUTINE write_plot_instructions()
     IMPLICIT NONE
     OPEN(12,file='plot_directions')
     REWIND(12)
@@ -334,7 +327,7 @@ MODULE Applications
 !         WRITE(12,12)
 !12   FORMAT('p for [col=2:5] "PLOT" u 1:col w lp')    
     CLOSE(12)
-  END SUBROUTINE make_plot
+  END SUBROUTINE write_plot_instructions
 
   SUBROUTINE open_plot()
     IMPLICIT NONE
