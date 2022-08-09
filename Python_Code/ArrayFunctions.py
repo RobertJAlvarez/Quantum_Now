@@ -17,6 +17,7 @@ def print_mtx(X: Matrix) -> None:
   pass
 
 def INVERSE(AA: Matrix) -> Matrix:
+  """ Receives matrix A and returns A inverse """
   n = len(AA)
 
   # Copy matrix AA in first n columns and an identity matrix after it
@@ -136,6 +137,7 @@ def JAC2BY2GEN(H: Matrix, O: Matrix, V: Matrix, E: Vector) -> None:
   pass
 
 def SortIdx(mtx: Matrix, PRD: Matrix) -> None:
+  """ Sort pair of indices in mtx[:,i] from largest to smallest by using the value at PRD[mtx[0,i], mtc[1,i]]."""
   if len(mtx[0]) > 1:
     mid = len(mtx[0])//2  #Find middle of columns
 
@@ -168,6 +170,7 @@ def SortIdx(mtx: Matrix, PRD: Matrix) -> None:
   pass
 
 def DIAGNxN(HAM: Matrix, UMT: Matrix) -> None:
+  """ Receive matrix HAM (Hamiltonian matrix) and UMT (Unitary matrix). HAM gets diagonalize and UMT keep the eigenvectors"""
   NBS = len(HAM[0])
   np.fill_diagonal(UMT,1.)  # Make UMT a unitary matrix
   PRD = np.array(HAM)       # Copy HAM into PRD
