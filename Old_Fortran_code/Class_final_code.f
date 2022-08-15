@@ -961,7 +961,7 @@ C |PHI_K (t) > = SUM_J exp(ie(J) t)* OVR(K,J)|PSI_J> = SUM_JL exp(iEjt)ovr(j,k)*
       t=M*(TAU/1000)
       OPEN(12,FILE='PLOT')
       DO K=1,3
-      DO L=1,3  
+      DO L=1,3
           AR=0.0D0
           AI=0.0d0
           DO I=1,3
@@ -1001,7 +1001,8 @@ C12   FORMAT('p for [col=2:5] "PLOT" u 1:col w lp')
       CLOSE(12)
       CALL SYSTEM('chmod +x plot_directions')
       CALL SYSTEM('./plot_directions')
-      CALL SYSTEM('eog output.png')
+      CALL SYSTEM('open output.png')
+      !CALL SYSTEM('eog output.png')
       STOP
       END SUBROUTINE STARKDVR
 
@@ -1132,7 +1133,8 @@ C12   FORMAT('p for [col=2:5] "PLOT" u 1:col w lp')
       CLOSE(12)
       CALL SYSTEM('chmod +x plot_directions')
       CALL SYSTEM('./plot_directions')
-      CALL SYSTEM('eog output.png')
+      !CALL SYSTEM('eog output.png')
+      CALL SYSTEM('open output.png')
       STOP
       END SUBROUTINE RINGDVR
 
@@ -1232,7 +1234,8 @@ C12   FORMAT('p for [col=2:5] "PLOT" u 1:col w lp')
       CLOSE(12)
       CALL SYSTEM('chmod +x plot_directions')
       CALL SYSTEM('./plot_directions')
-      CALL SYSTEM('xdg-open output.png')
+      !CALL SYSTEM('xdg-open output.png')
+      CALL SYSTEM('open output.png')
       STOP
       END SUBROUTINE BOXDVR
 
@@ -1364,6 +1367,7 @@ c <phi_2t| phi_2t> = sum_ij exp(i (eps_i-eps_j)t <psi_j|d|phi_i>*u(2,i)*u(2,j)
           write(12,12)
  12   FORMAT('p for [col=2:5] "PLOT" u 1:col w lp')
           close(12)
-      call system('gnuplot <plot_directions')
+      !call system('gnuplot <plot_directions')
+      CALL SYSTEM('open output.png')
       STOP
       END SUBROUTINE HMODVR
