@@ -62,7 +62,7 @@ MODULE FortranFunctions
     REAL(DBL) :: F, D
 
     !Stop if denominator is 0
-    IF (ABSO(DD) < 1.D-35) STOP "Can't divide by 0"
+    IF (ABSO(DD) < 1.D-15) STOP "Can't divide by 0"
 
     !If DD < 0 multiply D and N by -1 so D > 0
     IF (DD < 0.D0) THEN
