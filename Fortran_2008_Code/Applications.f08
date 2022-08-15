@@ -269,7 +269,7 @@ MODULE Applications
       END DO
     END DO
     WRITE(*,*) '2s Wavefunction in terms of new eigenstates'
-    WRITE(*,*) (OVR(2,i),i=1,3)
+    WRITE(*,*) (OVR(2,i),i=1,NBS)
 
     DEALLOCATE(OVR)
   END SUBROUTINE print_diag_mtx_info
@@ -309,7 +309,7 @@ MODULE Applications
       END DO
     END DO
     WRITE(*,'(12F12.4)') t, (PRD(k,2),k=1,NBS), DR, DI
-    WRITE(file_num,'(12F12.4)') t, (PRD(k,2),k=1,NBS), SQR(DR*DR + DI*DI)*1.D2 !Dipole
+    WRITE(file_num,'(12F12.4)') t, (PRD(k,2),k=1,NBS), SQR(DR*DR + DI*DI)*1.D3 !Dipole
 
     DEALLOCATE(PRD)
   END SUBROUTINE calc_something
