@@ -108,15 +108,11 @@ def DIAGDVR() -> None:
 
   print('Original Hamiltonian:')
   print_mtx(HAM)
-  print('Original UMT:')
-  print_mtx(UMT)
 
   DIAGNxN(HAM, UMT)
 
   print('Updated Hamiltonian:')
   print_mtx(HAM)
-  print('Updated UMT:')
-  print_mtx(UMT)
   pass
 
 def LSA_test() -> None:
