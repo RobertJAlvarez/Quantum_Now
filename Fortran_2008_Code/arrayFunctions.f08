@@ -14,15 +14,15 @@ MODULE ArrayFunctions
     IMPLICIT NONE
 
     REAL(DBL), INTENT(IN) :: X(:,:)
-    CHARACTER(len=13) :: fmt_mt
+    CHARACTER(len=9) :: fmt_mt
     INTEGER :: i, n_r, n_c
 
     n_r = SIZE(X,1)
     n_c = SIZE(X,2)
 
-    !WRITE(fmt_mt, '( "(",I2,"ES17.8E3))" )' ) n_c
-    WRITE(fmt_mt, '( "(",I2,"F12.8))" )' ) n_c
-    WRITE(*,fmt_mt) (X(i,1:n_c), i=1,n_r)
+    !WRITE(fmt_mt, '( "(",I2,"ES17.8E3)" )' ) n_c !Change len of fmt_mt to 13
+    WRITE(fmt_mt, '( "(",I2,"F11.7)" )' ) n_c
+    WRITE(*,fmt_mt) (X(i,:n_c), i=1,n_r)
   END SUBROUTINE print_mtx
 
   !Author (Fortran 77): Dr. Mark Pederson
