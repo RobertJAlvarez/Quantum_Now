@@ -5,6 +5,7 @@ MODULE Applications
   IMPLICIT NONE
 
   PRIVATE
+  PUBLIC :: print_EV
   PUBLIC :: STARKDVR, RINGDVR, BOXDVR, HMODVR, write_plot_instructions, open_plot
 
   CONTAINS
@@ -247,6 +248,21 @@ MODULE Applications
     DEALLOCATE(HAM, UMT, DIP)
   END SUBROUTINE HMODVR
 
+  SUBROUTINE print_EV(HAM, UMT)
+    IMPLICIT NONE
+    REAL(DBL), INTENT(IN) :: HAM(:,:), UMT(:,:)
+    CHARACTER(len=18) :: fmt_mt
+    INTEGER :: i, j, NBS
+
+    NBS = SIZE(HAM,1)
+    WRITE(fmt_mt, '( "(F10.6,A1,",I2,"F11.7)" )' ) NBS
+
+    WRITE(*,*) 'EIGENVALUES AND EIGENVECTORS:'
+    DO i=1, NBS
+      WRITE(*,fmt_mt) HAM(i,i),":",(UMT(j,i),j=1,NBS)
+    END DO
+  END SUBROUTINE print_EV
+
   SUBROUTINE print_diag_mtx_info(HAM, UMT)
     IMPLICIT NONE
     REAL(DBL), INTENT(IN) :: HAM(:,:), UMT(:,:)
@@ -259,17 +275,14 @@ MODULE Applications
     WRITE(*,*) "UPDATED HAM"
     CALL print_mtx(HAM)
     !PROVE THAT THE INVERSE OF UMT IS THE TRANSPOSE OF UMT
-    WRITE(*,*) 'EIGENVALUES AND EIGENVECTORS:'
-    DO i=1,NBS
-      WRITE(*,"(10F12.4)") HAM(i,i),(UMT(j,i),j=1,NBS)
-    END DO
+    CALL print_EV(HAM, UMT)
     DO i=1,NBS
       DO j=1,NBS
         OVR(j,i) = UMT(i,j)
       END DO
     END DO
     WRITE(*,*) '2s Wavefunction in terms of new eigenstates'
-    WRITE(*,*) (OVR(2,i),i=1,3)
+    WRITE(*,*) (OVR(2,i),i=1,NBS)
 
     DEALLOCATE(OVR)
   END SUBROUTINE print_diag_mtx_info

@@ -10,7 +10,7 @@ PROGRAM testing_func
   USE FortranFunctions, ONLY: PI, DBL, FMOD, DIV, SQR, SINE
   USE retireFunctions, ONLY: Class_DIV, Class_DIAGNxN
   USE ArrayFunctions, ONLY: print_mtx, INVERSE, J2x2, JAC2BY2GEN, DIAGNxN, LEASTSQUARE
-  USE Applications, ONLY: STARKDVR, RINGDVR, BOXDVR, HMODVR, write_plot_instructions, open_plot
+  USE Applications, ONLY: print_EV, STARKDVR, RINGDVR, BOXDVR, HMODVR, write_plot_instructions, open_plot
   IMPLICIT NONE
 
   INTEGER :: input
@@ -323,7 +323,7 @@ PROGRAM testing_func
 
     WRITE(*,*) 'Updated Hamiltonian:'
     CALL print_mtx(HAM)
-
+CALL print_EV(HAM, UMT)
     DEALLOCATE(HAM, UMT)
   END SUBROUTINE DIAGDVR
 
