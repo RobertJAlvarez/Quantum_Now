@@ -1,7 +1,7 @@
-PROGRAM Main
-  USE FortranFunctions, ONLY: DBL, FMOD, DIV, SINE, COSINE
-  USE ArrayFunctions, ONLY: print_mtx, JAC2BY2GEN
-  USE Applications, ONLY: STARKDVR, RINGDVR, HMODVR, BOXDVR
+PROGRAM main
+  USE fortranFunctions, ONLY: DBL, FMOD, DIV, SINE, COSINE
+  USE arrayFunctions, ONLY: print_mtx, JAC2BY2GEN
+  USE applications, ONLY: STARKDVR, RINGDVR, HMODVR, BOXDVR
   IMPLICIT NONE
 
   INTEGER :: OPT
@@ -149,5 +149,5 @@ PROGRAM Main
       CALL print_mtx(HAM)
     END BLOCK
   END SUBROUTINE SOLVEGEN
-END PROGRAM Main
+END PROGRAM main
 

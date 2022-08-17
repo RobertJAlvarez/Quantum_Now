@@ -1,5 +1,5 @@
-MODULE ArrayFunctions
-  USE FortranFunctions, ONLY: DBL, ABSO, SQR, DIV
+MODULE arrayFunctions
+  USE fortranFunctions, ONLY: DBL, ABSO, SQR, DIV
   IMPLICIT NONE
 
   PRIVATE
@@ -529,4 +529,4 @@ MODULE ArrayFunctions
       WRITE(*,*) x, dat, fit
     END DO
   END SUBROUTINE LEASTSQUARE
-END MODULE ArrayFunctions
+END MODULE arrayFunctions
