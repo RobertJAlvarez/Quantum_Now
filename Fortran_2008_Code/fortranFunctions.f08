@@ -6,7 +6,7 @@
 ! Author: Robert Alvarez
 ! Bugs:   No known bugs
 !
-MODULE FortranFunctions
+MODULE fortranFunctions
   IMPLICIT NONE
 
   PRIVATE
@@ -128,4 +128,4 @@ MODULE FortranFunctions
 
     COSINE = SINE(0.5D0*PI - num)
   END FUNCTION COSINE
-END MODULE FortranFunctions
+END MODULE fortranFunctions

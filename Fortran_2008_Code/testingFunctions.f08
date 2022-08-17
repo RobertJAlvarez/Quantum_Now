@@ -6,11 +6,11 @@
 ! author: Robert Alvarez
 ! bug:    No known bugs
 !
-PROGRAM testing_func
-  USE FortranFunctions, ONLY: PI, DBL, FMOD, DIV, SQR, SINE
+PROGRAM testingFunctions
+  USE fortranFunctions, ONLY: PI, DBL, FMOD, DIV, SQR, SINE
   USE retireFunctions, ONLY: Class_DIV, Class_DIAGNxN
-  USE ArrayFunctions, ONLY: print_mtx, INVERSE, J2x2, JAC2BY2GEN, DIAGNxN, LEASTSQUARE
-  USE Applications, ONLY: print_EV, STARKDVR, RINGDVR, BOXDVR, HMODVR, write_plot_instructions, open_plot
+  USE arrayFunctions, ONLY: print_mtx, INVERSE, J2x2, JAC2BY2GEN, DIAGNxN, LEASTSQUARE
+  USE applications, ONLY: print_EV, STARKDVR, RINGDVR, BOXDVR, HMODVR, write_plot_instructions, open_plot
   IMPLICIT NONE
 
   INTEGER :: input
@@ -283,7 +283,7 @@ PROGRAM testing_func
  
   SUBROUTINE DIAGDVR()  !Diag driver
     IMPLICIT NONE
-    REAL(DBL), ALLOCATABLE :: HAM(:,:), UMT(:,:)  !Hamiltonian, Unitary, Product
+    REAL(DBL), ALLOCATABLE :: HAM(:,:), UMT(:,:)  !Hamiltonian, Unitary
     REAL(DBL) :: G, X, P, TXR
     INTEGER :: i, j, NBS
 
@@ -294,8 +294,8 @@ PROGRAM testing_func
     X = -0.5D0  !Exited
     P =  0.1D0  !Perturbation
     TXR = 0.2D0 !Transfer
-    HAM = 0.D0
 
+    HAM = 0.D0
     HAM(1,1) = G
     HAM(2,2) = X
     HAM(3,3) = X
@@ -316,6 +316,7 @@ PROGRAM testing_func
         HAM(j,i) = HAM(i,j)
       END DO
     END DO
+
     WRITE(*,*) 'Original Hamiltonian:'
     CALL print_mtx(HAM)
 
@@ -323,7 +324,7 @@ PROGRAM testing_func
 
     WRITE(*,*) 'Updated Hamiltonian:'
     CALL print_mtx(HAM)
-CALL print_EV(HAM, UMT)
+
     DEALLOCATE(HAM, UMT)
   END SUBROUTINE DIAGDVR
 
@@ -331,5 +332,5 @@ CALL print_EV(HAM, UMT)
     IMPLICIT NONE
     !
   END SUBROUTINE
-END PROGRAM testing_func
+END PROGRAM testingFunctions
 

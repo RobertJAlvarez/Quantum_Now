@@ -1,6 +1,6 @@
-MODULE Applications
-  USE FortranFunctions, ONLY: DBL, PI, ABSO, COSINE, SINE, DIV, SQR
-  USE ArrayFunctions, ONLY: print_mtx, DIAGNxN
+MODULE applications
+  USE fortranFunctions, ONLY: DBL, PI, ABSO, COSINE, SINE, DIV, SQR
+  USE arrayFunctions, ONLY: print_mtx, DIAGNxN
 
   IMPLICIT NONE
 
@@ -348,5 +348,5 @@ MODULE Applications
     CALL SYSTEM('./plot_directions')
     CALL SYSTEM('open output.png')
   END SUBROUTINE open_plot
-END MODULE Applications
+END MODULE applications
 

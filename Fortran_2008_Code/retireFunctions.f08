@@ -2,8 +2,8 @@
 !Extra functions for reference but never used
 !!!
 MODULE retireFunctions
-  USE FortranFunctions, ONLY: PI, DBL, FMOD, ABSO, DIV
-  USE ArrayFunctions, ONLY: J2x2
+  USE fortranFunctions, ONLY: PI, DBL, FMOD, ABSO, DIV
+  USE arrayFunctions, ONLY: J2x2
 
   PRIVATE
   PUBLIC :: Class_SQR, Class_DIV, Class_DIAGNxN !Only TestingFunctions.f08 use it
