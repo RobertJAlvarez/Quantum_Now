@@ -28,32 +28,28 @@ def INVERSE(AA: Matrix) -> Matrix:
   # Find invert matrix
   for i in range(n):
     # Find largest value of column i
-    MAX = ABS(A[i,i])
     k = i
+    MAX = ABS(A[k,i])
     for j in range(i+1,n):
       if ABS(A[j,i]) > MAX:
         k = j
-        MAX = ABS(A[j,i])
+        MAX = ABS(A[k,i])
 
     MAX = A[k,i]
-    if MAX == 0.:
+    if MAX < 1E-15:
       exit('A row is linearly dependent of one or more other rows')
 
-    # Swap row with highest value in column i
-    if k != i:
-      for j in range(i,2*n):
-        A[i,j], A[k,j] = A[k,j], A[i,j]
+    if k != i:  # Swap row with highest value in column i
+      A[[i,k],i:] = A[[k,i],i:]
 
     # Normalize matrix
-    for j in range(i,2*n):
-      A[i,j] = DIV(A[i,j],MAX)
+    A[i,i:] = [DIV(A[i,j],MAX) for j in range(i,2*n)]
 
-    # Subtract value A(j,i) to every column in row i
+    # Subtract value A[j,i] to every column in row >= i
     for j in range(n):
       temp = A[j,i]
       if j != i:
-        for k in range(i,2*n):
-          A[j,k] -= temp*A[i,k]
+        A[j,i:] -= temp*A[i,i:]
 
   # Copy inverse matrix
   BB = np.array(A[:,n:])
@@ -82,8 +78,7 @@ def J2X2(H: Matrix, E: Matrix, O: Matrix) -> None:
   """ Diagonalize a 2x2 matrix using Jacobean 2 by 2 analytic diagonalization """
   rad = SQR((H[0,0] - H[1,1])*(H[0,0] - H[1,1]) + 4.*(H[0,1]*H[1,0]))
   trc = H[0,0] + H[1,1]
-  E[0] = 0.5*(trc+rad)
-  E[1] = 0.5*(trc-rad)
+  E[0], E[1] = 0.5*(trc+rad), 0.5*(trc-rad)
 
   #Explain ortagonal matrix:
   O[0,0] = -H[0,1]
@@ -93,8 +88,7 @@ def J2X2(H: Matrix, E: Matrix, O: Matrix) -> None:
 
   for i in range(2):
     dot = SQR(O[0,i]*O[0,i] + O[1,i]*O[1,i])
-    O[0,i] = DIV(O[0,i],dot)
-    O[1,i] = DIV(O[1,i],dot)
+    O[0,i], O[1,i] = DIV(O[0,i],dot), DIV(O[1,i],dot)
   pass
 
 def JAC2BY2GEN(H: Matrix, O: Matrix, V: Matrix, E: Vector) -> None:
@@ -108,7 +102,7 @@ def JAC2BY2GEN(H: Matrix, O: Matrix, V: Matrix, E: Vector) -> None:
   trc = DIV(-B,A)
   rad = DIV(SQR(B*B - 4.*A*C),A)
 
-  E[0], E[1] = 0.5*(trc + rad), 0.5*(trc - rad)
+  E[0], E[1] = 0.5*(trc+rad), 0.5*(trc-rad)
 
   print("Eigenvalues: {0:10.7f} {1:10.7f}".format(E[1],E[2]))
 
@@ -181,8 +175,8 @@ def DIAGNxN(HAM: Matrix, UMT: Matrix) -> None:
     idxAll = [[] for _ in range(2)]
 
     for i in range(NBS):
+      ERROLD += sum(PRD[i+1:,i]*PRD[i+1:,i])
       for j in range(i+1,NBS):
-        ERROLD += PRD[i,j]*PRD[i,j]
         if ABS(PRD[i,j]) > 1.E-10:
           idxAll[0].append(i)
           idxAll[1].append(j)
@@ -225,9 +219,8 @@ def DIAGNxN(HAM: Matrix, UMT: Matrix) -> None:
       print("{0:14.7e} {1:14.7e} {2:14.7e}".format(E[i], O[i,0], O[i,1]))
 
     PRD = np.array(UMT)
-    for i in range(NBS):
-      PRD[i,k] = UMT[i,k]*O[0,0] + UMT[i,l]*O[1,0]
-      PRD[i,l] = UMT[i,k]*O[0,1] + UMT[i,l]*O[1,1]
+    PRD[:,k] = UMT[:,k]*O[0,0] + UMT[:,l]*O[1,0]
+    PRD[:,l] = UMT[:,k]*O[0,1] + UMT[:,l]*O[1,1]
 
     for i in range(NBS):
       for j in range(NBS):
@@ -235,7 +228,6 @@ def DIAGNxN(HAM: Matrix, UMT: Matrix) -> None:
 
     SPC = np.identity(NBS)  # Start with identity matrix
     SPC[k,k], SPC[l,k], SPC[l,l], SPC[k,l] = O[0,0], O[1,0], O[1,1], O[0,1]
-
     for i in range(NBS):
       for j in range(NBS):
         SPC[j,i] = 0.
@@ -252,9 +244,8 @@ def DIAGNxN(HAM: Matrix, UMT: Matrix) -> None:
 
     ERRNW = 0.
     for i in range(NBS):
-      for j in range(i+1,NBS):
-        ERRNW += PRD[j,i]*PRD[j,i]
-    print("{0:2d} {1:7.5f} {2:7.5f}".format(iTry, ERRNW, ERROLD))
+      ERRNW += sum(PRD[i+1:,i]*PRD[i+1:,i])
+    print("{0:2d} {1:7.5e} {2:7.5e}".format(iTry, ERRNW, ERROLD))
 
     if ERRNW < 1.E-12:
       break

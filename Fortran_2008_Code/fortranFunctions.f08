@@ -50,7 +50,7 @@ MODULE fortranFunctions
     IMPLICIT NONE
     REAL(DBL), INTENT(IN) :: num
 
-    ABSO = num  !Assume num is positive
+    ABSO = num
     IF (num < 0.D0) ABSO = -ABSO
   END FUNCTION ABSO
 
