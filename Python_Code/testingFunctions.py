@@ -31,11 +31,9 @@ def modulus_test() -> None:
     #Python modulus operator can't handle negative numerators so we stay with positives
     N = random()*720.
     n_nums.add(N)
-    if abs(N%D-MOD(N,D)) > 1.E-10:
-      print()
-      print('NN = {}, DD = {}'.format(N,D))
-      print(N%D)
-      print(MOD(N,D))
+    if abs(N%D-MOD(N,D)) > 1.E-12:
+      print('\nNN = {}, DD = {}'.format(N,D))
+      print('N%D = {}, MOD(N,D) = {}'.format(N%D, MOD(N,D)))
   print("{} different N's were used for testing".format(len(n_nums)))
   pass
 
@@ -68,7 +66,7 @@ def trigTest() -> None:
   add = PI/36.
   angle = -PI
   print('       angle        SINE         SIN       error')
-  for i in range(72):
+  for _ in range(72):
     print('{:12.8f}{:12.8f}{:12.8f}{:12.8f}'.format(angle,SINE(angle),sin(angle),abs(sin(angle)-SINE(angle))))
     angle += add
   pass
@@ -80,7 +78,7 @@ def inverseTest() -> None:
   n = int(input('What is the size of the matrix?'))
   A = np.zeros(shape=(n,n))
   for i in range(len(A)):
-    print('Enter {} numbers for row {} as a single input'.format(n,i+1))
+    print('Enter {} numbers, separated by a white space and in a single line, for row {} as a single input'.format(n,i+1))
     A[i] = np.array([float(j) for j in input().strip().split(" ")])
   B = INVERSE(A)
   pass

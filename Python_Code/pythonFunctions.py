@@ -30,7 +30,7 @@ def DIV(NN: float, DD: float) -> float:
     exit("Can't divide by 0")
 
   #If DD < 0 multiply D and N by -1 so D > 0
-  N, D = (-NN, -DD) if DD < 0. else (NN,DD)
+  N, D = (-NN,-DD) if DD < 0. else (NN,DD)
 
   while D > 1.:  #Scale N and D so 0<D<1
     N *= 0.1

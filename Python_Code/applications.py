@@ -56,9 +56,9 @@ def calc_something(HAM: Matrix, UMT: Matrix, DIP: Matrix, t: float) -> None:
   print('Finish printing information')
   pass
 
-def draw_plot()
+def draw_plot():
   pass
 
-def open_plot()
+def open_plot():
   pass
 
