@@ -16,6 +16,13 @@ def print_mtx(X: Matrix) -> None:
     print(str(["{0:10.7f}".format(num) for num in row]).replace("'",""))
   pass
 
+def print_EV(E: Vector, O: Matrix) -> None:
+  """ Print Eigenvalues (E) and eigenvectors (V) with format E_i: V_i """
+  print("Eigenvalues and eigenvectors")
+  for i in range(len(E)):
+    print(" {0:10.7f}: ".format(E[i]) + str(["{0:10.7f}".format(num) for num in O[:,i]]).replace("'","")[1:-1:1])
+  pass
+
 def INVERSE(AA: Matrix) -> Matrix:
   """ Receives matrix A and returns A inverse """
   n = len(AA)
@@ -214,9 +221,7 @@ def DIAGNxN(HAM: Matrix, UMT: Matrix) -> None:
     O = np.zeros(shape=(2,2))
     J2X2(H, E, O)
 
-    print('E and O values:')
-    for i in range(2):
-      print("{0:14.7e} {1:14.7e} {2:14.7e}".format(E[i], O[i,0], O[i,1]))
+    #print_EV(E, O)
 
     PRD = np.array(UMT)
     PRD[:,k] = UMT[:,k]*O[0,0] + UMT[:,l]*O[1,0]
@@ -240,14 +245,14 @@ def DIAGNxN(HAM: Matrix, UMT: Matrix) -> None:
         for k in range(NBS):
           PRD[j,i] += UMT[k,j]*SPC[k,i]
 
-    print_mtx(PRD)
+    #print_mtx(PRD)
 
     ERRNW = 0.
     for i in range(NBS):
       ERRNW += sum(PRD[i+1:,i]*PRD[i+1:,i])
     print("{0:2d} {1:7.5e} {2:7.5e}".format(iTry, ERRNW, ERROLD))
 
-    if ERRNW < 1.E-12:
+    if ERRNW < 1.E-15:
       break
 
   if iTry == MXIT:

@@ -14,13 +14,6 @@ def BOXDVR() -> None:
 def HMODVR() -> None:
   pass
 
-def print_EV(HAM: Matrix, UMT: Matrix) -> None:
-  """ Print Eigenvalues (E) and eigenvectors (V) with format E_i: V_i """
-  print("Eigenvalues and eigenvectors")
-  for i in range(len(UMT)):
-    print(" {0:10.7f}: ".format(HAM[i,i]) + str(["{0:10.7f}".format(num) for num in UMT[:,i]]).replace("'","")[1:-1:1])
-  pass
-
 def print_diag_mtx_info(HAM: Matrix, UMT: Matrix) -> None:
   """ Print Hamiltonian, Eigenvalues and Eigenvectors and 2s wavefunction in terms of eigenstates """
   NBS = len(HAM)
@@ -29,7 +22,7 @@ def print_diag_mtx_info(HAM: Matrix, UMT: Matrix) -> None:
   print_mtx(HAM)
 
   #Prove that the inverse of UMT is the transpose of UMT
-  print_EV(HAM, UMT)
+  print_EV([HAM[i,i] for i in range(NBS)], UMT)
   OVR = UMT.transpose()
 
   print("2s Wavefunction in terms of new eigenstates")
