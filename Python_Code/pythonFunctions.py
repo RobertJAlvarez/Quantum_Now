@@ -7,6 +7,10 @@ Date:   Jun 26th, 2022
 
 PI = 3.14159265358979
 
+def ABS(num: float) -> float:
+  """ Calculate and return |number| """
+  return -num if num < 0. else num
+
 def MOD(NN: float, DD: float) -> float:
   """ NN = numerator, DD = denominator. Calculate and return |N|%|D|. """
 
@@ -19,14 +23,10 @@ def MOD(NN: float, DD: float) -> float:
     N -= D
   return fact * N
 
-def ABS(num: float) -> float:
-  """ Calculate and return |number| """
-  return -num if num < 0. else num
-
 def DIV(NN: float, DD: float) -> float:
   """ Use Goldschmidt division to calculate and return NN/DD,
   where NN = numerator, DD = denominator """
-  if abs(DD) < 1.E-15:
+  if ABS(DD) < 1.E-35:
     exit("Can't divide by 0")
 
   #If DD < 0 multiply D and N by -1 so D > 0
@@ -56,9 +56,8 @@ def SINE(num: float) -> float:
 
   temp = DIV(x,PI)
   temp = temp*(temp-1.)
-  ans = temp*(2.21652*(temp - DIV(31.,36.)) - DIV(1.5372,1.25+temp))
+  ans = temp*(2.21652*(temp - DIV(31.,36.)) - DIV(1.5372,1.25+temp)) + 2.563E-5
 
-  ans += 2.563E-5  #Shift the graph down by 2.6E-5 to minimize error
   #Adjust for negative angles
   if num > 0.:
     return -ans if MOD(num,2.*PI) > PI else ans

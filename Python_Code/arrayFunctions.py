@@ -43,13 +43,13 @@ def INVERSE(AA: Matrix) -> Matrix:
         MAX = ABS(A[k,i])
 
     MAX = A[k,i]
-    if MAX < 1E-15:
+    if MAX < 1.E-15:
       exit('A row is linearly dependent of one or more other rows')
 
-    if k != i:  # Swap row with highest value in column i
+    if k != i:  # Swap rows
       A[[i,k],i:] = A[[k,i],i:]
 
-    # Normalize matrix
+    # Make leading one
     A[i,i:] = [DIV(A[i,j],MAX) for j in range(i,2*n)]
 
     # Subtract value A[j,i] to every column in row >= i
@@ -74,7 +74,7 @@ def INVERSE(AA: Matrix) -> Matrix:
   print_mtx(CC)
   return BB
 
-def J2X2(H: Matrix, E: Matrix, O: Matrix) -> None:
+def J2X2(H: Matrix, E: Vector, O: Matrix) -> None:
   """ Diagonalize a 2x2 matrix using Jacobean 2 by 2 analytic diagonalization """
   rad = SQR((H[0,0] - H[1,1])*(H[0,0] - H[1,1]) + 4.*(H[0,1]*H[1,0]))
   trc = H[0,0] + H[1,1]
