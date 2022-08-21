@@ -14,10 +14,6 @@ PROGRAM testingFunctions
   IMPLICIT NONE
 
   INTEGER :: input
-REAL :: ti1
-REAL(DBL) ti2
-WRITE(*,*) TINY(ti1)
-WRITE(*,*) TINY(ti2)
 
   DO
     WRITE(*,*)
