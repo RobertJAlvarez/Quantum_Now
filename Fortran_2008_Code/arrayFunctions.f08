@@ -3,7 +3,7 @@ MODULE arrayFunctions
   IMPLICIT NONE
 
   PRIVATE
-  PUBLIC :: print_mtx, INVERSE, J2X2, JAC2BY2GEN, DIAGNxN, LEASTSQUARE
+  PUBLIC :: print_mtx, print_EV, INVERSE, J2X2, JAC2BY2GEN, DIAGNxN, LEASTSQUARE
 
   CONTAINS
 
@@ -24,6 +24,21 @@ MODULE arrayFunctions
     WRITE(fmt_mt, '( "(",I2,"F11.7)" )' ) n_c
     WRITE(*,fmt_mt) (X(i,:n_c), i=1,n_r)
   END SUBROUTINE print_mtx
+
+  SUBROUTINE print_EV(E, O)
+    IMPLICIT NONE
+    REAL(DBL), INTENT(IN) :: E(:), O(:,:)
+    CHARACTER(len=18) :: fmt_mt
+    INTEGER :: i, j, NBS
+
+    NBS = SIZE(E)
+    WRITE(fmt_mt, '( "(F10.6,A1,",I2,"F11.7)" )' ) NBS
+
+    WRITE(*,*) 'EIGENVALUES AND EIGENVECTORS:'
+    DO i=1, NBS
+      WRITE(*,fmt_mt) E(i),":",(O(j,i),j=1,NBS)
+    END DO
+  END SUBROUTINE print_EV
 
   !Author (Fortran 77): Dr. Mark Pederson
   !Date:  September 8th, 2021
@@ -52,7 +67,7 @@ MODULE arrayFunctions
     END DO
 
     !Print matrix A
-    WRITE(*,*)
+    WRITE(*,'(/,A)') '[Matrix | Identity]:'
     CALL print_mtx(A)
 
     !Find invert matrix using Gaussian elimination
@@ -86,18 +101,17 @@ MODULE arrayFunctions
 
       !Subtract value A(j,i) to every column at row i
       DO j=1, n
-        temp = A(j,i)
         IF (j /= i) THEN
-          A(j,i:2*n) = A(j,i:2*n) - temp*A(i,i:2*n)
+          A(j,i:2*n) = A(j,i:2*n) - A(j,i)*A(i,i:2*n)
         END IF
       END DO
     END DO
 
     !Copy inverse matrix into B
-    B(1:n,1:n) = A(1:n,n+1:2*n)
+    B = A(:,n+1:2*n)
 
     !Print inverse matrix
-    WRITE(*,*)
+    WRITE(*,'(/,A)') 'Inverse matrix:'
     CALL print_mtx(B)
 
     !Multiplication of A and A inverse = identity matrix
@@ -111,7 +125,7 @@ MODULE arrayFunctions
     END DO
 
     !Print identity matrix, CC
-    WRITE(*,*)
+    WRITE(*,'(/,A)') 'A*A^(-1):'
     CALL print_mtx(CC)
   END FUNCTION INVERSE
 
@@ -120,8 +134,7 @@ MODULE arrayFunctions
 ! det(A) = d*g - f*e
 ! An eigenvalue satisfies:
 ! (d-E)*(g-E) - e*f = 0 <=> E^2 - E*(d+g) + (d*g-f*e) = 0
-! From quadratic formula: b^2-4*a*c ->
-! (d+g)^2 - 4*1*(d*g-f*e) <=> (d-g)^2 + 4*e*f
+! From quadratic formula: b^2-4*a*c -> (d+g)^2 - 4*1*(d*g-f*e) <=> (d-g)^2 + 4*e*f
 ! E = answers of quadratic formula
 !Second part:
 ! The eigenvector O_n follows that (H-IE(n))O_n=0.
@@ -390,10 +403,7 @@ MODULE arrayFunctions
       H(2,2) = PRD(l,l)
       CALL J2X2(H, E, O)
 
-      WRITE(*,*) 'E and O values:'
-      DO i=1, 2
-        WRITE(*,'(3ES20.12E2)') E(i), (O(i,j),j=1,2)
-      END DO
+      !CALL print_EV(E, O)
 
       !Get new unitary matrix
       PRD = UMT
@@ -430,7 +440,7 @@ MODULE arrayFunctions
         END DO
       END DO
 
-      CALL print_mtx(PRD)
+      !CALL print_mtx(PRD)
 
       ERRNW = 0.D0
       DO i=1,NBS
@@ -441,7 +451,7 @@ MODULE arrayFunctions
 
       WRITE(*,'(3G15.6)') iTry, ERRNW, ERROLD
 
-      IF (ERRNW < 1.D-12) EXIT
+      IF (ERRNW < 1.D-15) EXIT
     END DO
 
     IF (iTry == MXIT) THEN
@@ -499,8 +509,6 @@ MODULE arrayFunctions
     END DO
 
     CALL DIAGNxN(DM, DU)
-
-    STOP 'Before INVERSE'
 
     DI = INVERSE(DM)
 

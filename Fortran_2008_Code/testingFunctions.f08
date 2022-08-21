@@ -10,10 +10,14 @@ PROGRAM testingFunctions
   USE fortranFunctions, ONLY: PI, DBL, FMOD, DIV, SQR, SINE
   USE retireFunctions, ONLY: Class_DIV, Class_DIAGNxN
   USE arrayFunctions, ONLY: print_mtx, INVERSE, J2x2, JAC2BY2GEN, DIAGNxN, LEASTSQUARE
-  USE applications, ONLY: print_EV, STARKDVR, RINGDVR, BOXDVR, HMODVR, write_plot_instructions, open_plot
+  USE applications, ONLY: STARKDVR, RINGDVR, BOXDVR, HMODVR, write_plot_instructions, open_plot
   IMPLICIT NONE
 
   INTEGER :: input
+REAL :: ti1
+REAL(DBL) ti2
+WRITE(*,*) TINY(ti1)
+WRITE(*,*) TINY(ti2)
 
   DO
     WRITE(*,*)
@@ -93,7 +97,7 @@ PROGRAM testingFunctions
 
       ans = MOD(N,D)
       ans1 = FMOD(N,D)
-      IF (ABS(ans-ans1) > 1.D-5) THEN
+      IF (ABS(ans-ans1) > 1.D-11) THEN
         WRITE(*,*)  'N = ', N, 'D = ', D
         WRITE(*,*) MOD(N,D)
         WRITE(*,*) FMOD(N,D)
