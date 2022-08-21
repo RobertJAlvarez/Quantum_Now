@@ -129,50 +129,33 @@ MODULE arrayFunctions
     CALL print_mtx(CC)
   END FUNCTION INVERSE
 
-!First part:
-! if A = [[d, e], [f,g]]
-! det(A) = d*g - f*e
-! An eigenvalue satisfies:
-! (d-E)*(g-E) - e*f = 0 <=> E^2 - E*(d+g) + (d*g-f*e) = 0
-! From quadratic formula: b^2-4*a*c -> (d+g)^2 - 4*1*(d*g-f*e) <=> (d-g)^2 + 4*e*f
-! E = answers of quadratic formula
-!Second part:
-! The eigenvector O_n follows that (H-IE(n))O_n=0.
-! So: (H(1,1)-E(n))O_n(1)+H(1,2)O_n(2)=0
-!     H(2,1)O_n(1)+H(2,2)-E(n))O_n(2)=0
-! But: H(2,1)=H(1,2)
-! We can do: O_n(1)=-H(1,2) ; O_n(2)=(H(1,1)-E(n))
-! This way the first equation is zero, and the second will have the form:
-! -H(1,2)^2 + H(1,2)H(2,2)-E(n)(H(1,1)+H(2,2)) + E(n)^2 = 0
-! Notice that this equation is equal to the determinant, which is equal to zero.
-! So our solutions are valid, and any non zero scalar multiples of this O_n vectors.
-! Notice that we can do the same using the second equation to obtain O_n(1) and O_n(2)
-! And we will have that: O_n(1)=(H(2,2)-E(n)) and O_n(2)=-H(1,2), so
-!   Left handed
-
   !Author (Fortran 77): Dr. Mark Pederson
   !Date:  September 15th, 2021
   SUBROUTINE J2X2(H, E, O)
     IMPLICIT NONE
-    REAL(DBL), INTENT(IN) :: H(:,:)
-    REAL(DBL), INTENT(OUT) :: E(:), O(:,:)
-    REAL(DBL) :: dot, trc, rad
+    REAL(DBL), INTENT(IN) :: H(:,:)         ! Hamiltonian matrix
+    REAL(DBL), INTENT(OUT) :: E(:), O(:,:)  ! Eigenvalues - orthogonal eigenvectors
+    REAL(DBL) :: vMag, trc, dis !vector magnitude, trace, discriminant
     INTEGER :: i
 
-    rad = SQR((H(1,1) - H(2,2))*(H(1,1) - H(2,2)) + 4.D0*H(1,2)*H(2,1))
+    dis = SQR((H(1,1) - H(2,2))*(H(1,1) - H(2,2)) + 4.D0*H(1,2)*H(2,1))
     trc = H(1,1) + H(2,2)
-    E(1) = (0.5D0)*(trc+rad)
-    E(2) = (0.5D0)*(trc-rad)
 
-    O(1,1) = -H(1,2)
-    O(2,1) =  H(1,1) - E(1)
-    O(1,2) =  H(2,2) - E(2)
-    O(2,2) = -H(1,2)
+    !Calculate eigenvalues
+    E(1) = (0.5D0)*(trc+dis)
+    E(2) = (0.5D0)*(trc-dis)
 
+    !Calculate eigenvectors
     DO i=1, 2
-      dot = SQR(O(1,i)*O(1,i) + O(2,i)*O(2,i))
-      O(1,i) = DIV(O(1,i),dot)
-      O(2,i) = DIV(O(2,i),dot)
+      O(1,i) = -H(1,2)
+      O(2,i) =  H(1,1) - E(i)
+    END DO
+
+    !Normalize eigenvectors
+    DO i=1, 2
+      vMag = SQR(O(1,i)*O(1,i) + O(2,i)*O(2,i))
+      O(1,i) = DIV(O(1,i),vMag)
+      O(2,i) = DIV(O(2,i),vMag)
     END DO
   END SUBROUTINE J2X2
 
