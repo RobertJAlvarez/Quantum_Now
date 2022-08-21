@@ -73,20 +73,19 @@ MODULE arrayFunctions
     !Find invert matrix using Gaussian elimination
     DO i=1, n
       !Find largest value of column i
-      TMAX = ABSO(A(i,i))
       k = i
+      TMAX = ABSO(A(k,i))
       DO j=i+1, n
         IF (ABSO(A(j,i)) > TMAX) THEN
           k = j
-          TMAX = ABSO(A(j,i))
+          TMAX = ABSO(A(k,i))
         END IF
       END DO
 
       TMAX = A(k,i)
       IF (TMAX < 1.D-15) STOP 'A row is linearly dependent of one or more other rows'
 
-      !Swap row with highest value in column i
-      IF (k /= i) THEN
+      IF (k /= i) THEN !Swap rows
         DO j=i, 2*n
           temp = A(i,j)
           A(i,j) = A(k,j)
@@ -94,12 +93,12 @@ MODULE arrayFunctions
         END DO
       END IF
 
-      !Normalize matrix
+      !Make leading one
       DO j=i,2*n
         A(i,j) = DIV(A(i,j),TMAX)
       END DO
 
-      !Subtract value A(j,i) to every column at row i
+      !Clear numbers above and below A(j,i)
       DO j=1, n
         IF (j /= i) THEN
           A(j,i:2*n) = A(j,i:2*n) - A(j,i)*A(i,i:2*n)
@@ -302,7 +301,7 @@ MODULE arrayFunctions
     REAL(DBL), INTENT(INOUT) :: HAM(:,:)  !Hamiltonian matrix
     REAL(DBL), INTENT(OUT) :: UMT(:,:)    !Unitary matrix
 
-    REAL(DBL), ALLOCATABLE :: PRD(:,:), SPC(:,:)  !Product matrix
+    REAL(DBL), DIMENSION(SIZE(HAM,1),SIZE(HAM,1)) :: PRD, SPC  !Product matrix
     REAL(DBL) :: H(2,2), E(2), O(2,2) !Hamiltonian, Eigenvalues, and Eigenvectors for J2X2
     REAL(DBL) :: ERROLD, ERRNW        !Error values
 
@@ -310,7 +309,6 @@ MODULE arrayFunctions
     INTEGER :: NBS, iTry, MXIT  !NBS = dimension of matrix
 
     NBS = SIZE(HAM,1)
-    ALLOCATE(PRD(NBS,NBS), SPC(NBS,NBS))
 
     UMT = 0.D0
     DO i=1, NBS
@@ -432,7 +430,7 @@ MODULE arrayFunctions
         END DO
       END DO
 
-      WRITE(*,'(3G15.6)') iTry, ERRNW, ERROLD
+      WRITE(*,'(I3,2G15.6)') iTry, ERRNW, ERROLD
 
       IF (ERRNW < 1.D-15) EXIT
     END DO
@@ -441,10 +439,10 @@ MODULE arrayFunctions
       WRITE(*,*) 'Warning: No Convergence'
     END IF
 
-    WRITE(*,*) iTry, NBS, DIV(DBLE(iTry),DBLE(NBS*NBS)), 'Diag Eff'
+    WRITE(*,'(A,I3,A)') 'Diagonalization took', iTry, ' iterations.'
+    WRITE(*,'(A,ES14.6E2)') 'Diagonalization efficienty:', DIV(DBLE(iTry),DBLE(NBS*NBS))
 
     HAM = PRD
-    DEALLOCATE(PRD, SPC)
   END SUBROUTINE DIAGNxN
 
   SUBROUTINE LEASTSQUARE()
