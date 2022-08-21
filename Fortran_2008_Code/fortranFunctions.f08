@@ -17,6 +17,16 @@ MODULE fortranFunctions
 
   CONTAINS
 
+  !Last modification: July 14th, 2022
+  !  Simplification on IF statement
+  REAL(DBL) FUNCTION ABSO(num)  !Return absolute value of num
+    IMPLICIT NONE
+    REAL(DBL), INTENT(IN) :: num
+
+    ABSO = num  ! Assume num is positive
+    IF (num < 0.D0) ABSO = -ABSO  !Update ABSO if num is negative
+  END FUNCTION ABSO
+
   !Last modification: Jun 7th, 2022
   !  Simplification on copying NN and DD
   REAL(DBL) FUNCTION FMOD(NN,DD)  !Return |N|%|D|
@@ -44,16 +54,6 @@ MODULE fortranFunctions
     FMOD = FMOD * N
   END FUNCTION FMOD
 
-  !Last modification: July 14th, 2022
-  !  Simplification on IF statement
-  REAL(DBL) FUNCTION ABSO(num)  !Return absolute value of num
-    IMPLICIT NONE
-    REAL(DBL), INTENT(IN) :: num
-
-    ABSO = num
-    IF (num < 0.D0) ABSO = -ABSO
-  END FUNCTION ABSO
-
   !Last modification: Jun 20th, 2022
   !  Simplification on coping NN and DD
   REAL(DBL) FUNCTION DIV(NN,DD) RESULT(N) !Goldschmidt division, return N/D
@@ -78,7 +78,7 @@ MODULE fortranFunctions
       D = D*0.1D0
     END DO
 
-    DO WHILE(D + 1.D-15 < 1.D0) !Make D = 1
+    DO WHILE(D + 1.D-15 <= 1.D0) !Make D = 1
       F = 2.D0 - D
       N = N*F
       D = D*F
