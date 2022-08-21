@@ -74,25 +74,19 @@ def INVERSE(AA: Matrix) -> Matrix:
   print_mtx(CC)
   return BB
 
-# if A = [[d,e], [f,g]] 
-# det(A) = d*g-f*e
-# An eigenvalue satisfies:
-# (d-E)*(g-E) - e*f = 0 <=> E^2 - E*(d+g) + (d*g-f*e) = 0
-# From quadratic formula: b^2-4*a*c ->
-# (D+g)^2 - 4*1*(d*g-f*e) <=> (d-g)^2 + 4*e*f
-# E = answers of quadratic formula
 def J2X2(H: Matrix, E: Matrix, O: Matrix) -> None:
   """ Diagonalize a 2x2 matrix using Jacobean 2 by 2 analytic diagonalization """
   rad = SQR((H[0,0] - H[1,1])*(H[0,0] - H[1,1]) + 4.*(H[0,1]*H[1,0]))
   trc = H[0,0] + H[1,1]
+
+  # Calculate eigenvalues
   E[0], E[1] = 0.5*(trc+rad), 0.5*(trc-rad)
 
-  #Explain ortagonal matrix:
-  O[0,0] = -H[0,1]
-  O[1,0] =  H[0,0] - E[0]
-  O[0,1] =  H[1,1] - E[1]
-  O[1,1] = -H[0,1]
+  # Calculate eigenvectors
+  O[0,0], O[0,1] = -H[0,1], -H[0,1]
+  O[1,0], O[1,1] =  H[0,0] - E[0], H[0,0] - E[1]
 
+  # Normalize eigenvectors
   for i in range(2):
     dot = SQR(O[0,i]*O[0,i] + O[1,i]*O[1,i])
     O[0,i], O[1,i] = DIV(O[0,i],dot), DIV(O[1,i],dot)
@@ -106,8 +100,8 @@ def JAC2BY2GEN(H: Matrix, O: Matrix, V: Matrix, E: Vector) -> None:
   B = -( H[0,0]*O[1,1] - O[0,1]*H[1,0] + O[0,0]*H[1,1] - H[0,1]*O[1,0] )
   C = H[0,0]*H[1,1] - H[0,1]*H[1,0]
 
-  trc = DIV(-B,A)
   rad = DIV(SQR(B*B - 4.*A*C),A)
+  trc = DIV(-B,A)
 
   E[0], E[1] = 0.5*(trc+rad), 0.5*(trc-rad)
 
