@@ -16,6 +16,13 @@ def print_mtx(X: Matrix) -> None:
     print(str(["{0:10.7f}".format(num) for num in row]).replace("'",""))
   pass
 
+def print_EV(E: Vector, O: Matrix) -> None:
+  """ Print Eigenvalues (E) and eigenvectors (V) with format E_i: V_i """
+  print("Eigenvalues and eigenvectors")
+  for i in range(len(E)):
+    print(" {0:10.7f}: ".format(E[i]) + str(["{0:10.7f}".format(num) for num in O[:,i]]).replace("'","")[1:-1:1])
+  pass
+
 def INVERSE(AA: Matrix) -> Matrix:
   """ Receives matrix A and returns A inverse """
   n = len(AA)
@@ -67,25 +74,19 @@ def INVERSE(AA: Matrix) -> Matrix:
   print_mtx(CC)
   return BB
 
-# if A = [[d,e], [f,g]] 
-# det(A) = d*g-f*e
-# An eigenvalue satisfies:
-# (d-E)*(g-E) - e*f = 0 <=> E^2 - E*(d+g) + (d*g-f*e) = 0
-# From quadratic formula: b^2-4*a*c ->
-# (D+g)^2 - 4*1*(d*g-f*e) <=> (d-g)^2 + 4*e*f
-# E = answers of quadratic formula
 def J2X2(H: Matrix, E: Matrix, O: Matrix) -> None:
   """ Diagonalize a 2x2 matrix using Jacobean 2 by 2 analytic diagonalization """
   rad = SQR((H[0,0] - H[1,1])*(H[0,0] - H[1,1]) + 4.*(H[0,1]*H[1,0]))
   trc = H[0,0] + H[1,1]
+
+  # Calculate eigenvalues
   E[0], E[1] = 0.5*(trc+rad), 0.5*(trc-rad)
 
-  #Explain ortagonal matrix:
-  O[0,0] = -H[0,1]
-  O[1,0] =  H[0,0] - E[0]
-  O[0,1] =  H[1,1] - E[1]
-  O[1,1] = -H[0,1]
+  # Calculate eigenvectors
+  O[0,0], O[0,1] = -H[0,1], -H[0,1]
+  O[1,0], O[1,1] =  H[0,0] - E[0], H[0,0] - E[1]
 
+  # Normalize eigenvectors
   for i in range(2):
     dot = SQR(O[0,i]*O[0,i] + O[1,i]*O[1,i])
     O[0,i], O[1,i] = DIV(O[0,i],dot), DIV(O[1,i],dot)
@@ -99,8 +100,8 @@ def JAC2BY2GEN(H: Matrix, O: Matrix, V: Matrix, E: Vector) -> None:
   B = -( H[0,0]*O[1,1] - O[0,1]*H[1,0] + O[0,0]*H[1,1] - H[0,1]*O[1,0] )
   C = H[0,0]*H[1,1] - H[0,1]*H[1,0]
 
-  trc = DIV(-B,A)
   rad = DIV(SQR(B*B - 4.*A*C),A)
+  trc = DIV(-B,A)
 
   E[0], E[1] = 0.5*(trc+rad), 0.5*(trc-rad)
 
@@ -214,9 +215,7 @@ def DIAGNxN(HAM: Matrix, UMT: Matrix) -> None:
     O = np.zeros(shape=(2,2))
     J2X2(H, E, O)
 
-    print('E and O values:')
-    for i in range(2):
-      print("{0:14.7e} {1:14.7e} {2:14.7e}".format(E[i], O[i,0], O[i,1]))
+    #print_EV(E, O)
 
     PRD = np.array(UMT)
     PRD[:,k] = UMT[:,k]*O[0,0] + UMT[:,l]*O[1,0]
@@ -240,14 +239,14 @@ def DIAGNxN(HAM: Matrix, UMT: Matrix) -> None:
         for k in range(NBS):
           PRD[j,i] += UMT[k,j]*SPC[k,i]
 
-    print_mtx(PRD)
+    #print_mtx(PRD)
 
     ERRNW = 0.
     for i in range(NBS):
       ERRNW += sum(PRD[i+1:,i]*PRD[i+1:,i])
     print("{0:2d} {1:7.5e} {2:7.5e}".format(iTry, ERRNW, ERROLD))
 
-    if ERRNW < 1.E-12:
+    if ERRNW < 1.E-15:
       break
 
   if iTry == MXIT:

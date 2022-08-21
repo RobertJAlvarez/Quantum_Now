@@ -62,7 +62,7 @@ MODULE fortranFunctions
     REAL(DBL) :: F, D
 
     !Stop if denominator is 0
-    IF (ABSO(DD) < 1.D-15) STOP "Can't divide by 0"
+    IF (ABSO(DD) < 1.D-35) STOP "Can't divide by 0"
 
     !If DD < 0 multiply D and N by -1 so D > 0
     IF (DD < 0.D0) THEN
@@ -94,7 +94,7 @@ MODULE fortranFunctions
 
     xn = 1.D0
 
-    DO i=1, 25
+    DO i=1, 30
       xn = xn + DIV(num - xn*xn, 2.D0*xn)
     END DO
   END FUNCTION SQR

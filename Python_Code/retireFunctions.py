@@ -12,15 +12,11 @@ def SINB(num: float) -> float:
   """ Bhaskara approximation: temp = (PI-x)x; sin(x) = (16*temp) / (5*PI*PI - 4*temp)"""
   x = MOD(ABS(num),PI)
   temp = (PI-x)*x
-  ans = (16.0*temp) / (5.0*PI*PI - 4.0*temp)
+  ans = (16.*temp) / (5.*PI*PI - 4.*temp)
 
-  if num > 0.0:
-    if MOD(num,2.0*PI) > PI:
-      ans = -ans
-  else:
-    if MOD(num,2.0*PI) < -PI:
-      ans = -ans
-  return ans
+  if num > 00:
+    return -ans if MOD(num,2.*PI) > PI else ans
+  return -ans if MOD(num,2.*PI) < -PI else ans
 
 def Class_SQR(num: float) -> float:
   """ Approximation the square root of a number and return it """
@@ -29,12 +25,12 @@ def Class_SQR(num: float) -> float:
   xn_2 = -0.2
 
   for _ in range(100):
-    xn += DIV(num - xn*xn, 2.0*xn)
+    xn += DIV(num - xn*xn, 2.*xn)
     #Exit loop if values are cycling
     if xn == xn_1:
       break
     elif xn == xn_2:
-      xn = DIV(xn_1 + xn_2, 2.0)
+      xn = DIV(xn_1 + xn_2, 2.)
       break
     #Update x_ns
     xn_2 = xn_1
@@ -44,8 +40,8 @@ def Class_SQR(num: float) -> float:
 #DIVIDE (1/(1+x)) 0 < x < 0.5
 def DIVIDE(num: float) -> float:
   n = 50
-  recid = 0.0
-  p = 1.0
+  recid = 0.
+  p = 1.
 
   for i in range(n):
     recid += p
@@ -63,11 +59,11 @@ def DIVIDER(num: float) -> float:
 
 # 0.0 < num <= 0.1
 def TNYDIVIDE(num: float) -> float:
-  P = 1.0
-  R = 1.0
-  recid = 0.0
+  P = 1.
+  R = 1.
+  recid = 0.
   for i in range(64):
-    if num > R and num < R*2.0:
+    if num > R and num < R*2.:
       x = (num-R)*P
       recid = P*DIVIDER(x)
     R *= 0.5
@@ -77,8 +73,8 @@ def TNYDIVIDE(num: float) -> float:
 # 0.1 < num < 1.0
 def LT1DIVIDE(num: float) -> float:
   n = 1000
-  recid = 0.0
-  p = 1.0
+  recid = 0.
+  p = 1.
 
   for i in range(n):
     recid += p
@@ -92,24 +88,24 @@ def RECIPROCAL(num: float) -> float:
 
 def Class_DIV(NN: float, DD: float) -> float:
   """ Approximate and return NN/DD and return """
-  if DD == 1.0: #If DD = 1.0, NN/DD = NN
+  if DD == 1.: #If DD = 1.0, NN/DD = NN
     return NN
 
-  if DD == 0.0: #Check that DD /= 0.0
+  if DD == 0.: #Check that DD /= 0.0
     try:
       ans = NN/DD
     except ZeroDivisionError:
       exit("Can't divide by 0")
 
   #If DD < 0 multiply D and N by -1 so D > 0
-  if DD < 0.0:
+  if DD < 0.:
     N = -NN
     D = -DD
   else:
     N = NN
     D = DD
 
-  while D > 1.0:
+  while D > 1.:
     N *= 0.1
     D *= 0.1
 

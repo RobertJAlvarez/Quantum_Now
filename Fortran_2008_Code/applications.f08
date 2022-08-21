@@ -1,11 +1,10 @@
 MODULE applications
   USE fortranFunctions, ONLY: DBL, PI, ABSO, COSINE, SINE, DIV, SQR
-  USE arrayFunctions, ONLY: print_mtx, DIAGNxN
+  USE arrayFunctions, ONLY: print_mtx, print_EV, DIAGNxN
 
   IMPLICIT NONE
 
   PRIVATE
-  PUBLIC :: print_EV
   PUBLIC :: STARKDVR, RINGDVR, BOXDVR, HMODVR, write_plot_instructions, open_plot
 
   CONTAINS
@@ -35,10 +34,14 @@ MODULE applications
     HAM(1,1) = -0.5D0
     HAM(2,2) = -0.125D0
     HAM(3,3) = -0.125D0
+
     HAM(1,3) = DIP(1,3)*EFIELD
-    HAM(3,1) = HAM(1,3)
     HAM(2,3) = DIP(2,3)*EFIELD
-    HAM(3,2) = HAM(2,3)
+    DO i=1,NBS
+      DO j=i+1,NBS
+        HAM(j,i) = HAM(i,j)
+      END DO
+    END DO
 
     CALL DIAGNxN(HAM, UMT)
     CALL print_diag_mtx_info(HAM, UMT)
@@ -98,6 +101,7 @@ MODULE applications
       END DO
     END IF
 
+    WRITE(*,*) "INITIAL HAM:"
     CALL print_mtx(HAM)
 
     DIP = DIP + HAM
@@ -144,7 +148,7 @@ MODULE applications
       HAM(i,i) = DIV(TWOM,BOXSZ)*DIV(TWOM,BOXSZ)
     END DO
 
-    WRITE(*,*) "INITIAL HAM"
+    WRITE(*,*) "INITIAL HAM:"
     CALL print_mtx(HAM)
 
     CALL DIAGNxN(HAM,UMT)
@@ -175,49 +179,60 @@ MODULE applications
     ALLOCATE(HAM(NBS,NBS), UMT(NBS,NBS), DIP(NBS,NBS))
 
     WRITE(*,*) 'NRLMOL:',DIV(0.36005D0*1.6D-19,6.626D-34)
+
+    WRITE(*,*) 'WELCOME TO HARMONIC OSCILLATOR DRIVER'
+    WRITE(*,*) 'HCl Diatomic in and Electric Field' 
+    WRITE(*,*) 'Clorine atom has infinite mass'
+
+    energy = 8.88D13
+    WRITE(*,'(A,ES9.2E2,A)') 'IR frequency of HCl molecule is', energy, ' Hz.'
+
+    hmass = 1.6735575D-27
+    WRITE(*,'(A,ES14.7E2,A)') 'The mass of the Hydrogen is', hmass, ' kg.'
+
+    WRITE(*,*) 'Strength of Electric field?'
+    READ(*,*) EFIELD
+!!! EFIELD never used !!!
+
+    DIP(1,2) = 1.D-2
+    DO i=1,NBS
+      DO j=i+1,NBS
+        DIP(j,i) = DIP(i,j)
+      END DO
+    END DO
+
     rkmx = 1.D30
     rkmn = 0.D0
     emax = 1.D30
     emin = 0.D0
-    WRITE(*,*) 'WELCOME TO HARMONIC OSCILLATOR DRIVER, EFIELD=?'
-    WRITE(*,*) 'HCl Diatomic in and Electric Field' 
-    WRITE(*,*) 'Clorine atom has infinite mass'
-    WRITE(*,*) 'IR frequency of HCl molecule is: 8.88*10^13 Hz' 
-    energy = 8.88D13
-    WRITE(*,*) 'energy:', energy
-    WRITE(*,*) 'Please googlge this to determine if this is correct'
-    WRITE(*,*) 'The mass of the Hydrogen is 1.67*10^{-27} kg'
-    WRITE(*,*) 'Strength of Electric field?'
-    hmass = 1.67D-27!*(35.)/(36.)
-    WRITE(*,*) EField
-    DIP(1,2) = 1.D-2
-    DIP(2,1) = DIP(1,2)
-    DO i=1,2
-      DO j=i+1,2
-        DIP(j,i) = DIP(i,j)
-      END DO
-    END DO
+
     DO k=1,30
       WRITE(*,*) 'Guess the spring constant in (Newtons/Meter)'
       WRITE(*,*) 'Guess should be between:',rkmn,' and ',rkmx
       READ(*,*) guess
       scale = SQR(DIV(guess,hmass))
       WRITE(*,'(4G15.6)') guess, hmass, DIV(guess,hmass), scale
+
       HAM = 0.D0
-      HAM(1,1) = DIV(0.5D0*SQR(DIV(guess,hmass)),(2.D0*PI))
-      HAM(2,2) = DIV(1.5D0*SQR(DIV(guess,hmass)),(2.D0*PI))
+      HAM(1,1) = DIV(0.5D0*scale,2.D0*PI)
+      HAM(2,2) = DIV(1.5D0*scale,2.D0*PI)
       HAM(1,2) = 0.D0 !DIP(1,2)
       HAM(2,1) = 0.D0 !DIP(2,1)
-      CALL print_mtx(HAM)
       DO i=1,NBS
         DO j=1,NBS
           HAM(i,j) = DIV(HAM(i,j),scale)
         END DO
       END DO
+
+      WRITE(*,*) "INITIAL HAM:"
+      CALL print_mtx(HAM)
+
       CALL DIAGNxN(HAM,UMT)
+
       DO i=1,NBS
         HAM(i,i) = HAM(i,i)*scale
       END DO
+
       HAM(3,3) = MAX(HAM(2,2),HAM(1,1)) - MIN(HAM(2,2),HAM(1,1))
       WRITE(*,"('frequency:',2G12.4)") HAM(3,3),energy
       IF (HAM(3,3) > energy) THEN
@@ -226,7 +241,8 @@ MODULE applications
           EMAX = HAM(3,3)
           RKMX = guess
         END IF
-      ELSE IF (HAM(3,3) < energy) THEN
+      END IF
+      IF (HAM(3,3) < energy) THEN
         WRITE(*,*) 'Too SMALL!'
         IF (HAM(3,3) > EMIN) THEN
           EMIN = HAM(3,3)
@@ -234,7 +250,9 @@ MODULE applications
         END IF
       END IF
     END DO 
+
     CALL print_diag_mtx_info(HAM, UMT)
+
 ! AT TIME=0, OCCUPY THE 2S FUNCTION:
 ! |PHI_K (t) > = SUM_J exp(ie(J) t)* OVR(k,j)|PSI_J> = SUM_JL exp(iEjt)ovr(j,k)*umt(k,l)|PHI_l> !E_j=LAMDA_J
     TAU = DIV(8.D0*PI,ABSO(HAM(1,1)))
@@ -248,21 +266,6 @@ MODULE applications
     DEALLOCATE(HAM, UMT, DIP)
   END SUBROUTINE HMODVR
 
-  SUBROUTINE print_EV(HAM, UMT)
-    IMPLICIT NONE
-    REAL(DBL), INTENT(IN) :: HAM(:,:), UMT(:,:)
-    CHARACTER(len=18) :: fmt_mt
-    INTEGER :: i, j, NBS
-
-    NBS = SIZE(HAM,1)
-    WRITE(fmt_mt, '( "(F10.6,A1,",I2,"F11.7)" )' ) NBS
-
-    WRITE(*,*) 'EIGENVALUES AND EIGENVECTORS:'
-    DO i=1, NBS
-      WRITE(*,fmt_mt) HAM(i,i),":",(UMT(j,i),j=1,NBS)
-    END DO
-  END SUBROUTINE print_EV
-
   SUBROUTINE print_diag_mtx_info(HAM, UMT)
     IMPLICIT NONE
     REAL(DBL), INTENT(IN) :: HAM(:,:), UMT(:,:)
@@ -275,7 +278,7 @@ MODULE applications
     WRITE(*,*) "UPDATED HAM"
     CALL print_mtx(HAM)
     !PROVE THAT THE INVERSE OF UMT IS THE TRANSPOSE OF UMT
-    CALL print_EV(HAM, UMT)
+    CALL print_EV([(HAM(i,i),i=1,NBS)], UMT)
     DO i=1,NBS
       DO j=1,NBS
         OVR(j,i) = UMT(i,j)
