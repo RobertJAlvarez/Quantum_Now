@@ -321,7 +321,7 @@ PROGRAM testingFunctions
 
     CALL DIAGNxN(HAM, UMT)
 
-    WRITE(*,*) 'Updated Hamiltonian:'
+    WRITE(*,*) 'Diagonalized Hamiltonian:'
     CALL print_mtx(HAM)
   END SUBROUTINE DIAGDVR
 

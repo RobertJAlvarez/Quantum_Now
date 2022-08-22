@@ -215,15 +215,12 @@ def DIAGNxN(HAM: Matrix, UMT: Matrix) -> None:
     O = np.zeros(shape=(2,2))
     J2X2(H, E, O)
 
+    #print()
     #print_EV(E, O)
 
     PRD = np.array(UMT)
-    PRD[:,k] = UMT[:,k]*O[0,0] + UMT[:,l]*O[1,0]
-    PRD[:,l] = UMT[:,k]*O[0,1] + UMT[:,l]*O[1,1]
-
-    for i in range(NBS):
-      for j in range(NBS):
-        UMT[i,j] = PRD[i,j]
+    UMT[:,k] = PRD[:,k]*O[0,0] + PRD[:,l]*O[1,0]
+    UMT[:,l] = PRD[:,k]*O[0,1] + PRD[:,l]*O[1,1]
 
     SPC = np.identity(NBS)  # Start with identity matrix
     SPC[k,k], SPC[l,k], SPC[l,l], SPC[k,l] = O[0,0], O[1,0], O[1,1], O[0,1]
@@ -244,19 +241,20 @@ def DIAGNxN(HAM: Matrix, UMT: Matrix) -> None:
     ERRNW = 0.
     for i in range(NBS):
       ERRNW += sum(PRD[i+1:,i]*PRD[i+1:,i])
-    print("{0:2d} {1:7.5e} {2:7.5e}".format(iTry, ERRNW, ERROLD))
+
+    #print("Iteration {0:3d} complited. New error: {1:7.5e}. Previous error: {2:7.5e}".format(iTry, ERRNW, ERROLD))
 
     if ERRNW < 1.E-15:
       break
 
-  if iTry == MXIT:
-    print("Warning: No convergence")
-
-  print("{0:2d} {1:2d} {2:7.5f} Diag Eff".format(iTry, NBS, DIV(iTry, NBS*NBS)))
+  if iTry+1 == MXIT:
+    print("\nWARNING: No convergence\n")
+  else:
+    print("\nDiagonalization took {0:3d} iterations.".format(iTry))
+    print("Diagonalization efficienty: {0:7.5f} \n".format(DIV(iTry, NBS*NBS)))
 
   for i in range(NBS):
-    for j in range(NBS):
-      HAM[i,j] = PRD[i,j]
+    HAM[:,i] = PRD[:,i]
   pass
 
 def LEASTSQUARE() -> None:
