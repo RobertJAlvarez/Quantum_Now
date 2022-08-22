@@ -230,7 +230,7 @@ MODULE arrayFunctions
     END DO
   END SUBROUTINE JAC2BY2GEN
 !
-!Subroutine sort and MergeIdx are only used for DIAGNxN
+!Subroutine sort and MergeIdx are only used only for DIAGNxN
 !
   !Author: Robert Alvarez
   !Last modification: August 1st, 2022
@@ -386,7 +386,7 @@ MODULE arrayFunctions
 
       !CALL print_EV(E, O)
 
-      !Get new unitary matrix
+      !Update unitary matrix
       PRD = UMT
       DO i=1, NBS
         PRD(i,k) = UMT(i,k)*O(1,1) + UMT(i,l)*O(2,1)
@@ -435,9 +435,7 @@ MODULE arrayFunctions
       IF (ERRNW < 1.D-15) EXIT
     END DO
 
-    IF (iTry == MXIT) THEN
-      WRITE(*,*) 'Warning: No Convergence'
-    END IF
+    IF (iTry == MXIT) WRITE(*,*) 'Warning: No Convergence'
 
     WRITE(*,'(A,I3,A)') 'Diagonalization took', iTry, ' iterations.'
     WRITE(*,'(A,ES14.6E2)') 'Diagonalization efficienty:', DIV(DBLE(iTry),DBLE(NBS*NBS))

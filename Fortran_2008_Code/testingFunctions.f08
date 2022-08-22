@@ -283,12 +283,11 @@ PROGRAM testingFunctions
  
   SUBROUTINE DIAGDVR()  !Diag driver
     IMPLICIT NONE
-    REAL(DBL), ALLOCATABLE :: HAM(:,:), UMT(:,:)  !Hamiltonian, Unitary
+    REAL(DBL) :: HAM(7,7), UMT(7,7)  !Hamiltonian, Unitary
     REAL(DBL) :: G, X, P, TXR
     INTEGER :: i, j, NBS
 
     NBS = 7
-    ALLOCATE(HAM(NBS,NBS), UMT(NBS,NBS))
 
     G = -1.D0   !Ground
     X = -0.5D0  !Exited
@@ -324,8 +323,6 @@ PROGRAM testingFunctions
 
     WRITE(*,*) 'Updated Hamiltonian:'
     CALL print_mtx(HAM)
-
-    DEALLOCATE(HAM, UMT)
   END SUBROUTINE DIAGDVR
 
   SUBROUTINE LSA_test()

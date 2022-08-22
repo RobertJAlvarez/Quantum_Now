@@ -269,14 +269,14 @@ MODULE applications
   SUBROUTINE print_diag_mtx_info(HAM, UMT)
     IMPLICIT NONE
     REAL(DBL), INTENT(IN) :: HAM(:,:), UMT(:,:)
-    REAL(DBL), ALLOCATABLE :: OVR(:,:)
+    REAL(DBL) :: OVR(SIZE(HAM,1),SIZE(HAM,1))
     INTEGER :: NBS, i, j
 
     NBS = SIZE(HAM,1)
-    ALLOCATE(OVR(NBS,NBS))
 
     WRITE(*,*) "UPDATED HAM"
     CALL print_mtx(HAM)
+
     !PROVE THAT THE INVERSE OF UMT IS THE TRANSPOSE OF UMT
     CALL print_EV([(HAM(i,i),i=1,NBS)], UMT)
     DO i=1,NBS
@@ -284,10 +284,9 @@ MODULE applications
         OVR(j,i) = UMT(i,j)
       END DO
     END DO
+
     WRITE(*,*) '2s Wavefunction in terms of new eigenstates'
     WRITE(*,*) (OVR(2,i),i=1,NBS)
-
-    DEALLOCATE(OVR)
   END SUBROUTINE print_diag_mtx_info
 
   SUBROUTINE calc_something(HAM, UMT, DIP, t, file_num)
@@ -295,12 +294,11 @@ MODULE applications
     REAL(DBL), INTENT(IN) :: HAM(:,:), UMT(:,:), DIP(:,:), t
     INTEGER, INTENT(IN) :: file_num
 
-    REAL(DBL), ALLOCATABLE :: PRD(:,:)
+    REAL(DBL) :: PRD(SIZE(HAM,1),SIZE(HAM,1))
     REAL(DBL) :: AR, AI, DR, DI, phs
     INTEGER :: i, j, k, NBS
 
     NBS = SIZE(HAM,1)
-    ALLOCATE(PRD(NBS,NBS))
 
     DO k=1,NBS
       DO j=1,NBS
@@ -313,6 +311,7 @@ MODULE applications
         PRD(k,j) = AR*AR + AI*AI
       END DO
     END DO
+
 ! |phi_2t> = Sum_i u(2,i)exp(i eps_i t) |psi_i>
 ! <phi_2t| phi_2t> = sum_ij exp(i (eps_i-eps_j)t <psi_j|d|phi_i>*u(2,i)*u(2,j)
     DR = 0.D0
@@ -326,8 +325,6 @@ MODULE applications
     END DO
     WRITE(*,'(12F12.4)') t, (PRD(k,2),k=1,NBS), DR, DI
     WRITE(file_num,'(12F12.4)') t, (PRD(k,2),k=1,NBS), SQR(DR*DR + DI*DI)*1.D2 !Dipole
-
-    DEALLOCATE(PRD)
   END SUBROUTINE calc_something
 
   SUBROUTINE write_plot_instructions()
