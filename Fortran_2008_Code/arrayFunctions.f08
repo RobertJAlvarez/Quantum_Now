@@ -389,10 +389,9 @@ MODULE arrayFunctions
       !Update unitary matrix
       PRD = UMT
       DO i=1, NBS
-        PRD(i,k) = UMT(i,k)*O(1,1) + UMT(i,l)*O(2,1)
-        PRD(i,l) = UMT(i,k)*O(1,2) + UMT(i,l)*O(2,2)
+        UMT(i,k) = PRD(i,k)*O(1,1) + PRD(i,l)*O(2,1)
+        UMT(i,l) = PRD(i,k)*O(1,2) + PRD(i,l)*O(2,2)
       END DO
-      UMT = PRD
 
       SPC = 0.D0
       DO i=1, NBS
