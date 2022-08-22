@@ -67,7 +67,7 @@ MODULE arrayFunctions
     END DO
 
     !Print matrix A
-    WRITE(*,'(/,A)') '[Matrix | Identity]:'
+    WRITE(*,'(/,A)') 'Inverse matrix:'
     CALL print_mtx(A)
 
     !Find invert matrix using Gaussian elimination
@@ -384,15 +384,15 @@ MODULE arrayFunctions
       H(2,2) = PRD(l,l)
       CALL J2X2(H, E, O)
 
+      !WRITE(*,*)
       !CALL print_EV(E, O)
 
       !Update unitary matrix
       PRD = UMT
       DO i=1, NBS
-        PRD(i,k) = UMT(i,k)*O(1,1) + UMT(i,l)*O(2,1)
-        PRD(i,l) = UMT(i,k)*O(1,2) + UMT(i,l)*O(2,2)
+        UMT(i,k) = PRD(i,k)*O(1,1) + PRD(i,l)*O(2,1)
+        UMT(i,l) = PRD(i,k)*O(1,2) + PRD(i,l)*O(2,2)
       END DO
-      UMT = PRD
 
       SPC = 0.D0
       DO i=1, NBS
@@ -421,6 +421,7 @@ MODULE arrayFunctions
         END DO
       END DO
 
+      !WRITE(*,*) 'Updated Hamiltonian:'
       !CALL print_mtx(PRD)
 
       ERRNW = 0.D0
@@ -430,15 +431,17 @@ MODULE arrayFunctions
         END DO
       END DO
 
-      WRITE(*,'(I3,2G15.6)') iTry, ERRNW, ERROLD
+      !WRITE(*,'(A,I3,2(A,ES13.6E2))') 'Iteration',iTry,' complited. New error:',ERRNW,'. Previous error:',ERROLD
 
       IF (ERRNW < 1.D-15) EXIT
     END DO
 
-    IF (iTry == MXIT) WRITE(*,*) 'Warning: No Convergence'
-
-    WRITE(*,'(A,I3,A)') 'Diagonalization took', iTry, ' iterations.'
-    WRITE(*,'(A,ES14.6E2)') 'Diagonalization efficienty:', DIV(DBLE(iTry),DBLE(NBS*NBS))
+    IF (iTry-1 == MXIT) THEN
+      WRITE(*,*) 'WARNING: No Convergence'
+    ELSE
+      WRITE(*,'(/,A,I3,A)') 'Diagonalization took ', iTry, ' iterations.'
+      WRITE(*,'(A,ES14.6E2,/)') 'Diagonalization efficienty:', DIV(DBLE(iTry),DBLE(NBS*NBS))
+    END IF
 
     HAM = PRD
   END SUBROUTINE DIAGNxN
