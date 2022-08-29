@@ -259,8 +259,8 @@ PROGRAM testingFunctions
 
     ALLOCATE(A(n,n), B(n,n))
 
+    10 FORMAT (A,I2,A,I2)
     DO i=1,n
-      10 FORMAT (A,I2,A,I2)
       WRITE(*,10) 'Enter ',n,' numbers for row ',i
       READ(*,*) A(i,:)
     END DO

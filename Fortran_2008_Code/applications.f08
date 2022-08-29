@@ -11,7 +11,7 @@ MODULE applications
 
   SUBROUTINE STARKDVR()
     IMPLICIT NONE
-    REAL(DBL), ALLOCATABLE, DIMENSION(:,:) :: HAM, UMT, DIP
+    REAL(DBL), ALLOCATABLE, DIMENSION(:,:) :: HAM, UMT, DIP !Dipole
     REAL(DBL) :: EFIELD, t, TAU
     INTEGER :: i, j, NBS
 
@@ -47,7 +47,7 @@ MODULE applications
     CALL print_diag_mtx_info(HAM, UMT)
 
 ! AT TIME=0, OCCUPY THE 2S FUNCTION:
-! |PHI_K (t) > = SUM_J exp(ie(J) t)* OVR(k,j)|PSI_J> = SUM_JL exp(iEjt)ovr(j,k)*umt(k,l)|PHI_l> !E_j=LAMDA_J
+! |PHI_K (t)> = SUM_J exp(ie(J) t)*OVR(k,j)|PSI_J> = SUM_JL exp(iEjt)OVR(j,k)*UMT(k,l)|PHI_l> !E_j=LAMDA_J
     TAU = DIV(8.D0*PI,ABSO(HAM(1,1)))
     OPEN(12,FILE='PLOT')
     DO j=0,1000
@@ -75,24 +75,20 @@ MODULE applications
     WRITE(*,*) 'HOW BIG THE FIELD?'
     READ(*,*) E
 
-    i = 0
-    HAM = 0.D0
     aM = -5.D0
-    DIP = 0.D0
-    DO j=-5,5 
-      i = i + 1
-      IF (i > 1) THEN
-        DIP(i-1,i) = DIV(E*RINGSZ,2.D0)
-        DIP(i,i-1) = DIP(i-1,i)
-!       HAM(i-1,i) = DIV(E*RINGSZ,2.D0)
-!       HAM(i,i-1) = HAM(i-1,i)
-      END IF
+    HAM = 0.D0
+    DO i=1,NBS 
       HAM(i,i) = DIV(aM*aM,RINGSZ*RINGSZ)
       aM = aM + 1.D0
     END DO
 
-    IF (iAP == 2)THEN
-      DIP = 0.D0
+    DIP = 0.D0
+    IF (iAP /= 2) THEN
+      DO i=2,NBS
+        DIP(i-1,i) = DIV(E*RINGSZ,2.D0)
+        DIP(i,i-1) = DIP(i-1,i)
+      END DO
+    ELSE
       i = 0
 !     E=-1*DIV(2.D0,RINGSZ*RINGSZ)
       DO j=-5,5
@@ -144,7 +140,6 @@ MODULE applications
     DO j=-4,4
       i = i + 1
       TWOM = 2.D0*DBLE(j)*PI
-      WRITE(*,*) j, TWOM
       HAM(i,i) = DIV(TWOM,BOXSZ)*DIV(TWOM,BOXSZ)
     END DO
 
@@ -191,8 +186,7 @@ MODULE applications
     WRITE(*,'(A,ES14.7E2,A)') 'The mass of the Hydrogen is', hmass, ' kg.'
 
     WRITE(*,*) 'Strength of Electric field?'
-    READ(*,*) EFIELD
-!!! EFIELD never used !!!
+    READ(*,*) EFIELD  !!! EFIELD never used !!!
 
     DIP(1,2) = 1.D-2
     DO i=1,NBS
