@@ -1054,7 +1054,6 @@ C      E=-1*DIV(2.0D0,RINGSZ*RINGSZ)
       PRINT ('(11F7.2)'), (HAM(I,J),J=1,NBS)
       END DO
       
-      READ*, DUMMY
       DIP=DIP+HAM
       CALL DIAGnxn(NDH,NBS,HAM,OVR,UMT,PRD,SPC)
       PRINT*,"UPDATED HAM"

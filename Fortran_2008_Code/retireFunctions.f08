@@ -422,10 +422,8 @@ MODULE retireFunctions
         WRITE(*,'(12F10.3)') (OVR(i,j),j=1,ND)
       END DO
 
+      EVC = 0.D0
       DO i=1, ND
-        DO j=1, ND
-          EVC(i,j) = 0.D0
-        END DO
         EVC(i,i) = 1.D0
       END DO
 
@@ -450,7 +448,7 @@ MODULE retireFunctions
               END DO
             END DO
 
-            CALL JAC2BY2GEN(H,O,V,E)
+            CALL JAC2BY2GEN(H,O,V,E)  ! H is never use again, O and E only after the last loop
 
             UPD = 0.D0
             DO k=1, ND

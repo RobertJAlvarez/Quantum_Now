@@ -119,7 +119,7 @@ def JAC2BY2GEN(H: Matrix, O: Matrix, V: Matrix, E: Vector) -> None:
   D = np.zeros(shape=(2,2))
   for iTry in range(3):
     for i in range(2):
-      for k in range(2):
+      for j in range(2):
         D[i,j] = 0.
         for k in range(2):
           for l in range(2):
