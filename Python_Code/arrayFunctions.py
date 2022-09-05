@@ -1,6 +1,6 @@
-from pythonFunctions import ABS, DIV, SQR
 import numpy as np
 from sys import exit
+from pythonFunctions import ABS, DIV, SQR
 
 """
 Author: Robert Alvarez

@@ -1,26 +1,31 @@
 PROGRAM main
-  USE applications, ONLY: STARKDVR, RINGDVR, HMODVR, BOXDVR
+  USE applications, ONLY: STARKDVR, RINGDVR, BOXDVR, HMODVR, write_plot_instructions, open_plot
   IMPLICIT NONE
 
-  INTEGER :: OPT
+  INTEGER :: input
 
   DO
     WRITE(*,'(/,A)') 'DIAG options:'
-    WRITE(*,'(A)') '1. STARK', '2. RING', '3. HMO', '4. BOX'
+    WRITE(*,'(A)') '1. STARKDVR', '2. RINGDVR', '3. HMODVR', '4. BOXDVR'
     WRITE(*,'(A)') 'n. Exit the program'
-    READ (*,*) OPT
+    READ (*,*) input
 
-    IF (OPT == 1) THEN
+    SELECT CASE (input)
+    CASE (1)
       CALL STARKDVR()
-    ELSE IF (OPT == 2) THEN
+    CASE (2)
       CALL RINGDVR()
-    ELSE IF (OPT == 3) THEN
+    CASE (3)
       CALL HMODVR()
-    ELSE IF (OPT == 4) THEN
+    CASE (4)
       CALL BOXDVR()
-    ELSE
+    CASE DEFAULT
+      WRITE(*,*) 'Have a nice day:)'
       EXIT
-    END IF
+    END SELECT
+
+    CALL write_plot_instructions()
+    CALL open_plot()
   END DO
 END PROGRAM main
 
