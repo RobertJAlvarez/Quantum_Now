@@ -1,12 +1,16 @@
-from pythonFunctions import PI, MOD, DIV, SQR, SINE
-from retireFunctions import Class_DIV
-from arrayFunctions import print_mtx, INVERSE, J2X2, JAC2BY2GEN, DIAGNxN, LEASTSQUARE
-from applications import STARKDVR, RINGDVR, HMODVR, BOXDVR
+# Add numpy path library
+import sys
+sys.path.append("/Library/Frameworks/Python.framework/Versions/3.10/lib/python3.10/site-packages")
 
 import numpy as np
 from math import sin, sqrt
 from time import time
 from random import random, uniform
+
+from pythonFunctions import PI, MOD, DIV, SQR, SINE
+from retireFunctions import Class_DIV
+from arrayFunctions import print_mtx, INVERSE, J2X2, JAC2BY2GEN, DIAGNxN, LEASTSQUARE
+from applications import STARKDVR, RINGDVR, HMODVR, BOXDVR
 
 """
   file:   PythonFunctions.py
@@ -83,7 +87,10 @@ def inverseTest() -> None:
   B = INVERSE(A)
   pass
 
-def gen_J2X2_test() -> None:
+def solve_2by2() -> None:
+  pass
+
+def solve_gen() -> None:
   pass
 
 def DIAGDVR() -> None:
@@ -119,8 +126,8 @@ def LSA_test() -> None:
 def menu() -> int:
   print('\nYou can test for:')
   print('PythonFunctions: 1. Modulus, 2. Division, 3. Square root, 4. Sin')
-  print('ArrayFunctions: 5. Inverse, 6. J2X2 and JAC2BY2GEN, 7. DIAGNxN, 8. LEASTSQUARE')
-  print('Applications: 9. STARKDVR, 10. RINGDVR, 11. BOXDVR, 12. HMODVR')
+  print('ArrayFunctions: 5. Inverse, 6. J2X2, 7. JAC2BY2GEN, 8. DIAGNxN, 9. LEASTSQUARE')
+  print('Applications: 10. STARKDVR, 11. RINGDVR, 12. BOXDVR, 13. HMODVR')
   print('Anything else to exit')
   return int(input())
 
@@ -140,21 +147,28 @@ if __name__ == "__main__":
     elif choose == 5:
       inverseTest()
     elif choose == 6:
-      gen_J2X2_test()
+      solve_2by2()
     elif choose == 7:
-      DIAGDVR()
+      solve_gen()
     elif choose == 8:
-      LSA_test()
+      DIAGDVR()
     elif choose == 9:
-      STARKDVR()
+      LSA_test()
     elif choose == 10:
-      RINGDVR()
+      STARKDVR()
     elif choose == 11:
-      BOXDVR()
+      RINGDVR()
     elif choose == 12:
+      BOXDVR()
+    elif choose == 13:
       HMODVR()
     else:
       print('Have a nice day:)')
       break
+
+    if 10 <= input <= 13:
+      draw_plot()
+      open_plot()
+
     choose = menu()
 

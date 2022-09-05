@@ -109,7 +109,7 @@ MODULE applications
 ! |PHI_K (t) > = SUM_J exp(ie(J) t)* OVR(k,j)|PSI_J> = SUM_JL exp(iEjt)ovr(j,k)*umt(k,l)|PHI_l> !E_j=LAMDA_J
     TAU = DIV(8.D0*PI,ABSO(HAM(1,1)))
     OPEN(12,FILE='PLOT')
-    DO j=-100,100000
+    DO j=-100,1000
       IF (j == 0)THEN
         HAM = DIP
         CALL DIAGNxN(HAM,UMT)
@@ -180,10 +180,10 @@ MODULE applications
     WRITE(*,*) 'Clorine atom has infinite mass'
 
     energy = 8.88D13
-    WRITE(*,'(A,ES9.2E2,A)') 'IR frequency of HCl molecule is', energy, ' Hz.'
+    WRITE(*,'(A,ES9.2E2,A)') ' IR frequency of HCl molecule is', energy, ' Hz.'
 
     hmass = 1.6735575D-27
-    WRITE(*,'(A,ES14.7E2,A)') 'The mass of the Hydrogen is', hmass, ' kg.'
+    WRITE(*,'(A,ES14.7E2,A)') ' The mass of the Hydrogen is', hmass, ' kg.'
 
     WRITE(*,*) 'Strength of Electric field?'
     READ(*,*) EFIELD  !!! EFIELD never used !!!
@@ -195,14 +195,14 @@ MODULE applications
       END DO
     END DO
 
-    rkmx = 1.D30
-    rkmn = 0.D0
-    emax = 1.D30
-    emin = 0.D0
+    RKMX = 1.D30
+    RKMN = 0.D0
+    EMAX = 1.D30
+    EMIN = 0.D0
 
     DO k=1,30
       WRITE(*,*) 'Guess the spring constant in (Newtons/Meter)'
-      WRITE(*,*) 'Guess should be between:',rkmn,' and ',rkmx
+      WRITE(*,*) 'Guess should be between:',RKMN,' and ',RKMX
       READ(*,*) guess
       scale = SQR(DIV(guess,hmass))
       WRITE(*,'(4G15.6)') guess, hmass, DIV(guess,hmass), scale
@@ -235,8 +235,7 @@ MODULE applications
           EMAX = HAM(3,3)
           RKMX = guess
         END IF
-      END IF
-      IF (HAM(3,3) < energy) THEN
+      ELSE IF (HAM(3,3) < energy) THEN
         WRITE(*,*) 'Too SMALL!'
         IF (HAM(3,3) > EMIN) THEN
           EMIN = HAM(3,3)
