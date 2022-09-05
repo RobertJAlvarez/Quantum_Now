@@ -1,7 +1,3 @@
-# Add numpy path library
-import sys
-sys.path.append("/Library/Frameworks/Python.framework/Versions/3.10/lib/python3.10/site-packages")
-
 import numpy as np
 from math import sin, sqrt
 from time import time
