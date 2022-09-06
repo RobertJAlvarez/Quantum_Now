@@ -1,3 +1,6 @@
+import sys
+sys.path.append("/Library/Frameworks/Python.framework/Versions/3.10/lib/python3.10/site-packages")
+
 import numpy as np
 from math import sin, sqrt
 from time import time
@@ -6,8 +9,7 @@ from random import random, uniform
 from pythonFunctions import PI, MOD, DIV, SQR, SINE
 from retireFunctions import Class_DIV
 from arrayFunctions import print_mtx, INVERSE, J2X2, JAC2BY2GEN, DIAGNxN, LEASTSQUARE
-from applications import STARKDVR, RINGDVR, HMODVR, BOXDVR
-
+from applications import STARKDVR, RINGDVR, HMODVR, BOXDVR, draw_plot, open_plot
 """
   file:   PythonFunctions.py
   brief:  Tester driver
@@ -162,7 +164,7 @@ if __name__ == "__main__":
       print('Have a nice day:)')
       break
 
-    if 10 <= input <= 13:
+    if 10 <= choose <= 13:
       draw_plot()
       open_plot()
 

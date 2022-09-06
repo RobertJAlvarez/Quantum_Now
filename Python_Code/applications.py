@@ -1,9 +1,9 @@
 import numpy as np
 from pythonFunctions import PI, ABS, COSINE, SINE, DIV, SQR
-from arrayFunctions import Matrix, print_mtx, DIAGNxN
+from arrayFunctions import Matrix, print_mtx, print_EV, DIAGNxN
 
 def STARKDVR() -> None:
-  EFIELD = float(input("Welcome to start driver, EFIELD = ?"))
+  EFIELD = float(input("Welcome to start driver, EFIELD = "))
 
   NBS = 3
   DIP = np.zeros(shape=(NBS,NBS))
@@ -22,10 +22,11 @@ def STARKDVR() -> None:
   HAM[1,2] = DIP[1,2]*EFIELD
   for i in range(NBS):
     for j in range(i+1,NBS):
-      HAM[j,i] = HMA[i,j]
+      HAM[j,i] = HAM[i,j]
 
+  UMT = np.zeros(shape=(NBS,NBS))
   DIAGNxN(HAM, UMT)
-  print_diagmtx_info(HAM, UMT)
+  print_diag_mtx_info(HAM, UMT)
 
 #At time t=0, occupy the 2s function:
 #|phi_k(t)> = sum_j exp(ie(j) t)*OVR(k,j)|phi_j> = sum_jl exp(iEjt)OVR(j,k)UMT(k,l)|phi_l where E_j = lamda_j
@@ -66,6 +67,7 @@ def RINGDVR() -> None:
 
   DIP += HAM
 
+  UMT = np.zeros(shape=(NBS,NBS))
   DIAGNxN(HAM, UMT)
   print_diag_mtx_info(HAM, UMT)
 
@@ -97,6 +99,7 @@ def BOXDVR() -> None:
   print("Initial HAM:")
   print_mtx(HAM)
 
+  UMT = np.zeros(shape=(NBS,NBS))
   DIAGNxN(HAM, UMT)
   print_diag_mtx_info(HAM, UMT)
 
@@ -131,6 +134,7 @@ def print_diag_mtx_info(HAM: Matrix, UMT: Matrix) -> None:
 
 def calc_something(HAM: Matrix, UMT: Matrix, DIP: Matrix, t: float, f) -> None:
   NBS = len(HAM)
+  PRD = np.zeros(shape=(NBS,NBS))
   for k in range(NBS):
     for j in range(NBS):
       ar = sum([COSINE(HAM[i,i]*t)*UMT[k,i]*UMT[j,i] for i in range(NBS)])
@@ -143,8 +147,8 @@ def calc_something(HAM: Matrix, UMT: Matrix, DIP: Matrix, t: float, f) -> None:
   for i in range(NBS):
     for j in range(NBS):
       phs = (HAM[i,i] - HAM[j,j])*t
-      dr += COSINE(phs)*UMT(1,i)*UMT(1,j)*DIP[i,j]
-      di += SINE(phs)*UMT(1,i)*UMT(1,j)*DIP[i,j]
+      dr += COSINE(phs)*UMT[1,i]*UMT[1,j]*DIP[i,j]
+      di += SINE(phs)*UMT[1,i]*UMT[1,j]*DIP[i,j]
 
   temp = [t] + [num for num in PRD[:,1]] + [dr, di]
   print(str(["{0:10.7f}".format(num) for num in temp]).replace("'",""))
